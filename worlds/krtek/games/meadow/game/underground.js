@@ -21,11 +21,16 @@
 // bedtime under, he goes to bed there; in the morning he wakes there and
 // climbs up his shaft (Adam, 2026-11-14).
 //
+// Digging new earth on his own crawls, now and then he finds something (a
+// stone with a hole, a button, a snail shell, a carrot, an old key): he
+// stops, "ooh", and it goes up on his back; the next time his crawl ends in
+// his den, it goes on the ledge there with the rest (Adam's pick, 2026-11-14).
+//
 // Gestures here move him with Motion.endAt on the Clock; the meadow's cut
 // calls halt(), which keeps what was dug as far as he got and leaves him
 // where he is drawn.
 
-/* global Clock, Debug, Den, Hills, Layout, Mole, Motion, Sound, TunnelArt, Tunnels, World */
+/* global Acts, Clock, Debug, Den, Hills, Layout, Mole, Motion, Sound, TunnelArt, Tunnels, World */
 /* exported Underground */
 const Underground = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
@@ -43,6 +48,9 @@ const Underground = (() => {
   const SNIFF_CHANCE = 0.55 // …this often for each such stretch…
   const SNIFF_MS = [500, 900] // …stopping this long, nose up
   const CLOD_EVERY_MS = 170 // digging, a clod of earth flung back this often
+  const FINDS = ['stone', 'button', 'shell', 'carrot', 'key'] // what turns up, each once, in an order each play draws
+  const FIND_FROM = 150 // a stretch of new earth at least this long may turn something up…
+  const FIND_CHANCE = 0.4 // …this often
   const IDLE_MS = [2500, 5500] // just there in his tunnel, now and then a sniff, a look back, a stretch
   const LOOK_BACK_MS = 800 // looking back over his shoulder, this long
   const IDLE_CHECK_MS = 300
@@ -56,6 +64,7 @@ const Underground = (() => {
   const RESTS = ['snooze', 'plump', 'turn'] // how he rests in his den
   const rests = Debug.random('meadow-den-rests') // which way: its own, so nothing else shifts
   const ways = Debug.random('meadow-crawl') // where he stops to sniff, the clods, what he does just there: its own
+  const luck = Debug.random('meadow-finds') // what he finds, and when: its own
   let lastRest = null
 
   const net = Tunnels.make()
@@ -69,6 +78,9 @@ const Underground = (() => {
   let free = () => false // the meadow's: nobody tapping, nothing under way
   let nextIdle = 0 // when he may next do something by himself, just there in his tunnel
   let idling = 0 // which of his little moves is under way (a new one, or a trip, ends it)
+  let toFind = null // what is still to be found this play, in order (drawn at setup)
+  let carrying = null // what he has found and carries on his back, to take home
+  const kept = [] // what he has brought home, on his den's ledge
 
   const el = (tag, attrs = {}, parent) => {
     const e = document.createElementNS(SVG, tag)
@@ -82,6 +94,7 @@ const Underground = (() => {
   /** The cutaway into `layer`, the earth all along into `deep`, the bump over him into `ground`. */
   function setup(layer, deep, ground, hooks = {}) {
     free = hooks.free || free
+    toFind = Acts.pool(FINDS, luck) // each once, in this play's order
     Clock.every(IDLE_CHECK_MS, idle)
     TunnelArt.setup(layer, deep, Den.room(), Den.ROOM, HOME)
     Tunnels.dig(net, HOME - TunnelArt.DEN_HALF, HOME + TunnelArt.DEN_HALF) // his den: there from the start
@@ -158,9 +171,9 @@ const Underground = (() => {
       for (const [i, part] of parts.entries()) {
         going.leg = part
         await crawl(part, from, dir, k, easeFor(i === 0 || parts[i - 1].pause, part.pause || i === parts.length - 1))
-        if (!part.dug) Tunnels.dig(net, part.from, part.to)
-        if (part.pause) await sniff(SNIFF_MS[0] + ways() * (SNIFF_MS[1] - SNIFF_MS[0]))
+        await after(part, natural)
       }
+      if (carrying && Math.abs(x - HOME) <= TunnelArt.DEN_HALF) keep() // home in his den with it: on the ledge
     } finally {
       if (going === mine) arrived() // cut short, halt() has seen to it already, and another trip may be under way
     }
@@ -217,6 +230,37 @@ const Underground = (() => {
       facing = -facing
       if (still()) rest(Mole.state.x)
     })
+  }
+
+  /** A piece of the way crawled: what was dug is kept; digging his own way, something may turn up; a stop for a sniff. */
+  async function after(part, natural) {
+    if (!part.dug) Tunnels.dig(net, part.from, part.to)
+    if (natural && !part.dug) await find(part)
+    if (part.pause) await sniff(SNIFF_MS[0] + ways() * (SNIFF_MS[1] - SNIFF_MS[0]))
+  }
+
+  /** After a stretch of new earth: now and then something turns up, and he takes it on his back (one at a time). */
+  async function find(part) {
+    const roll = luck() // drawn either way, so the stream stays put
+    if (carrying || kept.length >= FINDS.length || Math.abs(part.to - part.from) < FIND_FROM || roll > FIND_CHANCE) return
+    const kind = toFind()
+    Debug.trace('finds', { find: kind }) // not `kind`: the trace's own name for the event
+    TunnelArt.act('sniff', true)
+    Sound.say('ooh', true)
+    await TunnelArt.unearth(kind, Mole.state.x, facing)
+    TunnelArt.act('sniff', false)
+    carrying = kind
+    TunnelArt.carry(kind)
+  }
+
+  /** What he carries, onto the ledge in his den. */
+  function keep() {
+    kept.push(carrying)
+    Debug.trace('keeps', { find: carrying, kept: kept.length })
+    carrying = null
+    TunnelArt.carry(null)
+    TunnelArt.shelf(kept)
+    Sound.say('giggle', true)
   }
 
   /** A stop to sniff: his head up, his nose twitching, for `ms`. */
@@ -416,5 +460,7 @@ const Underground = (() => {
     setup, redraw, tunnelTo, goUnder, crawlTo, upAt, upNear, restInDen, toBed, wakeUp, halt, burrowX, inTunnel, ALONE_MS,
     /** What he has dug (tunnels.js runs), for the overlay and the tests. */
     get runs() { return Tunnels.runs(net).map(({ from, to }) => [Math.round(from), Math.round(to)]) },
+    /** What he carries, and what he has kept in his den, for the overlay and the tests. */
+    get finds() { return { carrying, kept: [...kept] } },
   }
 })()

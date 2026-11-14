@@ -34,7 +34,8 @@ const TunnelArt = (() => {
   /** How wide his den is in the tunnels: what he has dug round his home from the start (underground.js). */
   const DEN_HALF = 120
 
-  let root, earthG, tunnelsG, crumbsG, denG, digG, moversG, flyG, clipRect
+  let root, earthG, tunnelsG, crumbsG, denG, shelfG, digG, moversG, flyG, clipRect
+  let carried = null // what he carries on his back, found while digging (drawn on him each time he is drawn)
   let deep = null // the earth all along the meadow, under the cutaway: shown while the view is slid down
   let shown = false // open, or opening: the child can see it
   let shutting = null // the timer before it closes
@@ -87,6 +88,8 @@ const TunnelArt = (() => {
     const cy = DEN_TOP + (room.h * DEN_SCALE) / 2
     denG = el('g', { class: 'den-room', transform: `translate(${home} ${cy}) scale(${DEN_SCALE}) translate(${-(room.x + room.w / 2)} ${-(room.y + room.h / 2)})` }, root)
     denG.appendChild(den)
+    shelfG = el('g', { class: 'den-shelf' }, denG) // what he has found, kept in his den: in the den's own units
+    el('path', { d: `M${room.x + 70} ${room.y + 150} H${room.x + room.w - 70}`, stroke: '#7a4a22', 'stroke-width': 12, 'stroke-linecap': 'round' }, shelfG) // a ledge dug in its back wall
     const clip = el('clipPath', { id: 'tunnel-movers' }, root)
     clipRect = el('rect', { y: TOP, height: DEEP }, clip)
     moversG = el('g', { 'clip-path': 'url(#tunnel-movers)' }, root)
@@ -146,8 +149,53 @@ const TunnelArt = (() => {
       const f = el('g', { transform: `translate(${(n + 1) * FOLLOW_GAP} 0) scale(${scale})` }, facing)
       drawOne(f)
     })
-    crawler(facing)
+    const him = crawler(facing)
+    if (carried) him.appendChild(findArt(carried, 'carried')).setAttribute('transform', 'translate(-2 -64) scale(1.6)') // on his back
     return run
+  }
+
+  /** Something found while digging, drawn round its middle, about his hand's size: 'stone', 'button', 'shell', 'carrot' or 'key'. */
+  function findArt(kind, cls = '') {
+    const g = el('g', { class: `find find-${kind} ${cls}` })
+    const ink = { stroke: '#2f2a22', 'stroke-width': 2 }
+    if (kind === 'stone') { // a pebble with a hole worn through it
+      el('ellipse', { rx: 13, ry: 10, fill: '#a59a8a', ...ink }, g)
+      el('circle', { cx: 2, cy: -1, r: 3.5, fill: '#4a301b' }, g)
+    } else if (kind === 'button') {
+      el('circle', { r: 11, fill: '#d4473b', ...ink }, g)
+      for (const [x, y] of [[-3, -3], [3, -3], [-3, 3], [3, 3]]) el('circle', { cx: x, cy: y, r: 1.6, fill: '#2f2a22' }, g)
+    } else if (kind === 'shell') { // an empty snail shell
+      el('path', { d: 'M-12 6 C-14 -10 6 -14 12 -2 C16 8 2 12 -6 6 C-10 2 -6 -4 0 -2 C4 0 2 4 -2 3', fill: '#e6c48a', ...ink }, g)
+    } else if (kind === 'carrot') {
+      el('path', { d: 'M-14 -4 L12 -2 L-14 4 Z', fill: '#e8892c', ...ink }, g)
+      el('path', { d: 'M-14 0 l-8 -6 M-14 0 l-9 1 M-14 0 l-7 6', stroke: '#4f8a2e', 'stroke-width': 2.5 }, g)
+    } else { // an old key
+      el('circle', { cx: -9, cy: 0, r: 6, fill: 'none', stroke: '#b8892e', 'stroke-width': 3.5 }, g)
+      el('path', { d: 'M-3 0 H14 M10 0 v5 M14 0 v4', stroke: '#b8892e', 'stroke-width': 3.5, 'stroke-linecap': 'round' }, g)
+    }
+    return g
+  }
+
+  /** He carries `kind` on his back now (found while digging), or nothing (null). */
+  function carry(kind) {
+    carried = kind
+    const him = moversG.querySelector('.crawler')
+    him?.querySelector('.carried')?.remove()
+    if (kind && him) him.appendChild(findArt(kind, 'carried')).setAttribute('transform', 'translate(-2 -64) scale(1.6)')
+  }
+
+  /** The finds kept in his den, in a row along its ledge (`kinds`, in the order he brought them). */
+  function shelf(kinds) {
+    for (const f of [...shelfG.querySelectorAll('.find')]) f.remove()
+    kinds.forEach((kind, i) => {
+      shelfG.appendChild(findArt(kind)).setAttribute('transform', `translate(${600 + i * 100} 352) scale(3.8)`) // on the ledge, in the den's units
+    })
+  }
+
+  /** Something found, popping out of the earth at x (his hands) onto his back: drawn flying, for a moment. */
+  function unearth(kind, x, dir) {
+    const g = flyG.appendChild(findArt(kind))
+    return Motion.endAt(g, [{ transform: `translate(${x + dir * 50}px, ${FLOOR - 30}px) scale(0.6)` }, { transform: `translate(${x + dir * 10}px, ${FLOOR - 140}px) scale(1.4)`, offset: 0.5 }, { transform: `translate(${x}px, ${FLOOR - 90}px) scale(1.2)` }], { duration: 700, easing: 'ease-out' }).finally(() => g.remove())
   }
 
   /** What he is doing, on his crawling figure: 'crawling', 'digging', 'sniff' (on or off). */
@@ -207,7 +255,7 @@ const TunnelArt = (() => {
   }
 
   return {
-    setup, draw, depth, asleep, act, clod, DEN_HALF, digging, diggingUp, dug, movers, empty, open, shut,
+    setup, draw, depth, asleep, act, clod, carry, shelf, unearth, DEN_HALF, digging, diggingUp, dug, movers, empty, open, shut,
     /** Is it open (or opening, or lingering) for the child to see? */
     get shown() { return shown },
     /** The earth's top: a tap below it, he staying under, is a tap on the earth. */

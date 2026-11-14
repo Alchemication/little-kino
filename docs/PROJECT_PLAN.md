@@ -407,8 +407,14 @@ sounds he has judged are in.
       game.css `.crawler`), eased into and out of each stretch, stopping
       partway on his own long crawls for a sniff (`underground.js`
       `SNIFF_EVERY`, `SNIFF_CHANCE`), and, just there in his tunnel, now
-      and then a sniff, a look back, a paddle (`IDLE_MS`). Next, his pick:
-      finds while digging, carried home to a shelf in his den. Still open: no sound for
+      and then a sniff, a look back, a paddle (`IDLE_MS`). **Adam judges
+      his finds** (built 2026-11-14, his pick 2B): digging new earth on
+      his own crawls, now and then something turns up (a stone with a
+      hole, a button, a snail shell, a carrot, an old key: `underground.js`
+      `FINDS`, `FIND_CHANCE`), goes on his back, and once his crawl ends in
+      his den, onto the ledge there; five a day at most. The underground
+      ideas are all built; what is left of 6d is a deeper level with
+      animals of its own, when he wants it. Still open: no sound for
       crawling or digging under (his call).
    7. **Adam plays the meadow with Eliot** before any LLM work (Adam,
       2026-10-26).

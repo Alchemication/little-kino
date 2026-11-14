@@ -1026,6 +1026,35 @@ class TestMeadowUnderground:
         assert m.state()["pose"] == "under"
         assert not m.errors, m.errors
 
+    def test_he_finds_something_digging_and_takes_it_home_to_his_den(
+        self, meadow: callable
+    ) -> None:
+        """Adam's pick, 2026-11-14: digging new earth on his own crawls, now and then
+        something turns up (seed 1: a carrot, going 900 to 1500); he carries it on
+        his back, and once his crawl ends in his den it goes on the ledge there. A
+        cut on the way leaves it on his back."""
+        m = meadow()
+        self.under(m)
+        m.do("crawl to 1500")
+        m.wait_free()
+        assert m.page.evaluate("Underground.finds.carrying") == "carrot"
+        assert m.page.evaluate("!!document.querySelector('.crawler .carried')")
+        m.do("crawl to 1200")
+        m.play_for(200)
+        m.do("crawl to 1300")  # cut on the way: still on his back
+        m.wait_free()
+        assert m.page.evaluate("Underground.finds.carrying") == "carrot"
+        m.do("crawl to 900")
+        m.wait_free()
+        assert m.page.evaluate("Underground.finds") == {
+            "carrying": None,
+            "kept": ["carrot"],
+        }
+        assert (
+            m.page.evaluate("document.querySelectorAll('.den-shelf .find').length") == 1
+        )
+        assert not m.errors, m.errors
+
     def test_bedtime_under_he_goes_home_along_his_tunnel(
         self, meadow: callable
     ) -> None:
