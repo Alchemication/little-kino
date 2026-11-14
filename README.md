@@ -53,7 +53,7 @@ shared/                 game scripts every game uses (debug.js: the clock, the r
                         filmlook.js: the old-print look; takes.js: the music's recorded takes;
                         bed.js and ensemble.js: the music bed's rules and the band that plays it;
                         world.js, creature.js and ambient.js: the world model, docs/WORLD_MODEL.md;
-                        wind.js: the breeze and its gusts);
+                        wind.js: the breeze and its gusts; acts.js: how a hero left alone picks a move);
                         `main.py shared` copies each into the games whose page loads it
 worlds/<id>/
   world.yaml            series dossier (schema.world.WorldDossier)

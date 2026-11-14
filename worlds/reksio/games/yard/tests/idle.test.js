@@ -4,7 +4,7 @@ const { describe, it } = require('node:test')
 const assert = require('node:assert/strict')
 const { load } = require('./load')
 
-const Idle = load(['idle.js']).get('Idle')
+const Idle = load(['acts.js', 'idle.js']).get('Idle')
 const ACTS = { wish: { weight: 2 }, sniff: { weight: 3 }, hop: { weight: 1 } }
 const always = () => true
 /** A fixed sequence of random numbers, then 0. */

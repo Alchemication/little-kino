@@ -12,7 +12,7 @@
 // other; he dreams of supper, smiling and licking his chops; or he woofs in
 // his sleep, ears up, paws paddling.
 
-/* global Clock, Debug, Sound, Music, Figure, Things, Reksio, Idle */
+/* global Clock, Debug, Sound, Music, Figure, Things, Reksio, Acts */
 /* exported Nap */
 const Nap = (() => {
   const SVG_NS = 'http://www.w3.org/2000/svg'
@@ -150,7 +150,7 @@ const Nap = (() => {
 
   /** The next variation: all of them before any comes again, and never the
    * same twice running (idle.js). */
-  const next = Idle.pool(Object.keys(VARIATIONS), Debug.random('nap'))
+  const next = Acts.pool(Object.keys(VARIATIONS), Debug.random('nap'))
 
   /** A nap in the doorway (the doghouse thing): the snores, and on top the
    * named variation (or none). Resolves when he is ready to come out. */

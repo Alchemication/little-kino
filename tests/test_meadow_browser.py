@@ -110,6 +110,13 @@ def traced(m: Meadow, kind: str) -> list[str]:
     )
 
 
+def traced_field(m: Meadow, kind: str, field: str) -> list[str]:
+    """One field of each traced `kind`, in order."""
+    return m.page.evaluate(
+        f"meadowGame.trace().split('\\n').filter((l) => l.includes(' {kind} ')).map((l) => JSON.parse(l.slice(l.indexOf('{{'))).{field})"
+    )
+
+
 def finish(m: Meadow, name: str) -> None:
     """Taps it to its end: on and on, or, a choice encounter, its choices in turn."""
     for intent in SOLVE.get(name, [f"use {name}"]):
@@ -962,6 +969,78 @@ class TestMeadowUnderground:
         s = m.state()
         assert (s["x"], s["pose"]) == (900, "down"), s  # home, and down to bed
         assert not m.errors, m.errors
+
+
+# Every move he makes left alone (alone.js ACTS), and where he must be for it.
+ALONE_ACTS = {
+    "look": "hill",
+    "ponder": "hill",
+    "scratch": "hill",
+    "hum": "hill",
+    "stroll": "hill",
+    "bob": "hill",
+    "pat": "out",
+    "sniff": "out",
+    "wave": "hill",
+    "stretch": "hill",
+    "hop": "hill",
+}
+
+
+class TestMeadowAlone:
+    """Left alone, he potters about his home (alone.js): a move now and then, by
+    the hour, each cut short by a tap like any other."""
+
+    def test_every_move_is_tested(self, meadow: callable) -> None:
+        assert set(meadow().page.evaluate("Object.keys(Alone.ACTS)")) == set(ALONE_ACTS)
+
+    def ready(self, m: Meadow, name: str) -> None:
+        """Where the move can happen: in his molehill, or out on the grass by it (by
+        his flower bed, for a sniff)."""
+        m.wake()
+        if ALONE_ACTS[name] == "out":
+            m.do("go to 960")  # by his molehill and his tulips
+            m.wait_free()
+        assert m.page.evaluate(
+            f"Alone.ACTS.{name}.ok ? Alone.ACTS.{name}.ok() : true"
+        ), name
+
+    @pytest.mark.parametrize("name", sorted(ALONE_ACTS))
+    def test_each_move_ends_free(self, meadow: callable, name: str) -> None:
+        m = meadow()
+        self.ready(m, name)
+        m.page.evaluate("(n) => { Alone.play(n) }", name)
+        m.wait(f"meadowGame.state().busy === 'alone {name}'", 5000)
+        m.wait_free()
+        m.assert_settled()
+
+    @pytest.mark.parametrize("name", sorted(ALONE_ACTS))
+    def test_each_move_cut_short_by_a_tap(self, meadow: callable, name: str) -> None:
+        m = meadow()
+        self.ready(m, name)
+        m.page.evaluate("(n) => { Alone.play(n) }", name)
+        m.play_for(CUT_MS)
+        m.do("go to 1500")
+        m.wait_free()
+        assert m.state()["x"] == 1500, m.state()
+        m.assert_settled()
+
+    def test_left_alone_he_potters_about_his_home(self, meadow: callable) -> None:
+        m = meadow("seed=1&props=&day=200")
+        m.wake()
+        m.wait("meadowGame.trace().split(' alone ').length > 6", 90_000)
+        m.wait_free()
+        acts = traced_field(m, "alone", "act")
+        assert len(set(acts)) >= 4, acts
+        assert all(a != b for a, b in pairwise(acts)), acts
+        assert abs(m.state()["x"] - 900) < 1000, "he wandered off from home"
+        m.assert_settled()
+
+    def test_a_still_play_has_none(self, meadow: callable) -> None:
+        m = meadow()
+        m.wake()
+        m.play_for(20_000)
+        assert " alone " not in m.page.evaluate("meadowGame.trace()")
 
 
 class TestMeadowRain:

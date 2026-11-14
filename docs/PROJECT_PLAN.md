@@ -78,6 +78,17 @@ sounds he has judged are in.
      `STROKES`), the painted one squirms with eyes shut, and the hare
      dabs the mole's spots. Judge the pace, and the mouse standing among
      the tins while she is painted (`paint.js` `friendsPaint`).
+   - **Adam judges him left alone** (built 2026-11-14, his pick A with B):
+     left alone a while he potters about his home, a move every 4.5–9 s
+     (`alone.js` `FIRST_MS`, `GAP_MS`): looking about, pondering with a
+     hand to his chin, scratching his head, swaying to himself, a stroll
+     out and a look round, ducking into his molehill and up, patting it,
+     sniffing a tulip, a wave, a stretch, a hop; weighted by the hour
+     (`ACTS` `by`: mornings stretches and hops, the day strolls, evenings
+     swaying). None at dusk, in the rain, under a threat, or under the
+     ground. The choosing is now shared with the yard (`shared/acts.js`).
+     Next, his call: the watering errand (a can filled at the spring, his
+     tulips watered: Buldozer 0:28).
    - **Adam judges him in the water** (built 2026-11-14, design A of
      three, his pick): a tap on the spring has him wade into the pool up
      to his middle and paddle a way each time (kicks, a splash in his

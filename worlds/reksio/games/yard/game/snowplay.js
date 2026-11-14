@@ -20,7 +20,7 @@
 // carrot lies where it fell, and the next tap (or Reksio, left alone) brings
 // it back.
 
-/* global Clock, Debug, Idle, Layout, Sound, Reksio, Boy, Snowman, Things, Creatures */
+/* global Clock, Debug, Acts, Layout, Sound, Reksio, Boy, Snowman, Things, Creatures */
 /* exported SnowPlay */
 const SnowPlay = (() => {
   const BALL_R = 13 // a snowball, packed in his hands: big enough to follow in the air (Adam, 2026-10-27: 9 was too small)
@@ -52,7 +52,7 @@ const SnowPlay = (() => {
 
   const SVG_NS = 'http://www.w3.org/2000/svg'
   const random = Debug.random('snowplay') // this part's own random stream (debug.js)
-  const next = Idle.pool(['snowballs', 'carrot'], random)
+  const next = Acts.pool(['snowballs', 'carrot'], random)
   let flight = null // the snowball in the air: { n, arrives, landed }
   let thrown = 0 // throws so far, so Reksio knows a new one from the last
   let theft = 'none' // the sparrow's part: none, coming, on (the cap), pulled, dropped

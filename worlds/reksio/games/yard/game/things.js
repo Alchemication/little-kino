@@ -11,7 +11,7 @@
 // first.
 //
 
-/* global Clock, Debug, Layout, Sound, Music, Reksio, Bowl, Tree, Bramble, Bird, Cuckoo, Nap, Figure, Idle, Hen, Mushrooms, Mouse, Mound, Film, Snowman, Tap */
+/* global Clock, Debug, Layout, Sound, Music, Reksio, Bowl, Tree, Bramble, Bird, Cuckoo, Nap, Figure, Acts, Hen, Mushrooms, Mouse, Mound, Film, Snowman, Tap */
 /* exported Things */
 const Things = (() => {
   const DOOR = { x: 560, y: 726 } // doghouse door, scene units
@@ -37,7 +37,7 @@ const Things = (() => {
   // or it lands on his head.
   const VARIATIONS = { tap: ['spray', 'hiccups'], gate: ['answer', 'dig', 'gnaw', 'peek'], bird: ['fly', 'head'], hen: Hen.VARIATIONS, ...Mushrooms.VARIATIONS, trap: ['crumb', 'baby', 'hide', 'ride'], dig: ['harder', 'boot', 'molehill'], bury: ['sly', 'watched'], film: ['roll', 'show', 'restamp'], tree: Tree.VARIATIONS, berries: ['miss', 'caught', 'tongue', 'share', 'juggle'] }
   const variety = Debug.random('variety') // its own stream: how often the pools draw depends on taps
-  const pools = Object.fromEntries(Object.entries(VARIATIONS).map(([name, names]) => [name, Idle.pool(names, variety)]))
+  const pools = Object.fromEntries(Object.entries(VARIATIONS).map(([name, names]) => [name, Acts.pool(names, variety)]))
 
   /** A thing kept in its own file, whose run takes the variation (v) that
    * things.js draws for it from VARIATIONS. */

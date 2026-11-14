@@ -207,8 +207,10 @@ file layout update `README.md` and the `main.py` docstring in the same change.
   `beds.js`), `ensemble.js` (samples and the bed, played), `world.js`,
   `creature.js` and `ambient.js` (the world model, `docs/WORLD_MODEL.md`),
   `wind.js` (the breeze and its gusts), `again.js` (the corner sun a
-  grown-up holds for a new play) and `turn.js` (a phone held upright: the
-  picture asking to turn it, the game waiting) are there so far.
+  grown-up holds for a new play), `turn.js` (a phone held upright: the
+  picture asking to turn it, the game waiting) and `acts.js` (how a hero
+  left alone picks his next move; each game keeps its moves) are there so
+  far.
 - **Game debuggability (`debug.js`, loaded first):** every bug must be
   replayable, so:
   - randomness comes from `Debug.random('<part>')`, never `Math.random`
@@ -265,7 +267,7 @@ the edge cases that would let bad data pass silently.
 - *Unit* (`worlds/<id>/games/<game>/tests/*.test.js`, `node:test`, run by
   `uv run pytest`): logic, loaded into a sandbox by `tests/load.js`. Rules
   live in pure modules with no drawing or clock of their own (`day.js`,
-  `shower.js`, `idle.js`, `input.js`, `layout.js`, `life.js`, `gait.js`, `bed.js` and each game's `beds.js`, `world.js`, `creature.js`, `wind.js`, the meadow's `eclipse.js`, `showers.js`, `moons.js` and `tunnels.js`): the part that draws tells them what
+  `shower.js`, `idle.js`, `input.js`, `layout.js`, `life.js`, `gait.js`, `bed.js` and each game's `beds.js`, `world.js`, `creature.js`, `wind.js`, the meadow's `eclipse.js`, `showers.js`, `moons.js` and `tunnels.js`, and the shared `acts.js`): the part that draws tells them what
   happened and does what they say. Drawing parts are tested here too, on a
   pretend page and clock: `load(…, { dom: true, globals })`, then
   `await page.advance(ms)` runs the timers and animation frames due (all
@@ -332,6 +334,7 @@ heats the laptop for minutes.
 | the meadow's autumn (`autumn.js`, the woodpecker `woodpecker.js`, the hedgehog `hedgehog.js`, `hedgeart.js`) | `"TestMeadowAutumn"`, the hedgehog also `"TestMeadowEncounters and hedgehog"` |
 | the painter's fence at the meadow's right end (`fence.js`) | `"TestMeadowFence"` |
 | the mole (`mole.js`, `moleart.js`), his tunnels and stays under (`underground.js`, `tunnels.js`, `tunnelart.js`, `soilart.js`), his molehills (`hills.js`), taps on him or the meadow (`meadow.js`) | `"TestMeadowDay or TestMeadowWalking or TestMeadowMolehills or TestMeadowUnderground or TestMeadowTapHim or TestMeadowTapsWait"` |
+| him left alone in the meadow (`alone.js`, `acts.js`) | `"TestMeadowAlone"` (and `alone.test.js`); `acts.js` is shared: the yard's `"TestActs or TestLeftAlone"` too |
 | the meadow's view or screen (`view.js`, `painting.js`, `game.css`) | `"TestMeadowView or TestMeadowScreens or TestMeadowUnderground"` |
 | the meadow's friends, their drawings and faces (`friends.js`, `friendart.js`) | `"TestMeadowFriendFaces or TestMeadowEncounters or TestMeadowEgg or TestMeadowFox or TestMeadowFence"` |
 | the meadow's small life and wildlife (`critters.js`, `flock.js`, `wildlife.js`, `wildart.js`, `heron.js`, `nest.js`, `foxart.js`) | `"TestMeadowCritters or TestMeadowFireflies or TestMeadowSnail or TestMeadowWildlife"` |

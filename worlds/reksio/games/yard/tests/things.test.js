@@ -36,7 +36,7 @@ function yard(query = '') {
   const bee = [] // where the bee was sent, and 'free' when let go
   const Creatures = { async beeTo(x, y) { bee.push({ x, y }) }, beeFree() { bee.push('free') } }
   const Weather = { raining: false, on() {} }
-  const page = load(['debug.js', 'layout.js', 'idle.js', 'bird.js', 'bramble.js', 'bowl.js', 'cuckoo.js', 'mouse.js', 'mound.js', 'tap.js', 'film.js', 'hen.js', 'mushrooms.js', 'things.js'], {
+  const page = load(['debug.js', 'layout.js', 'acts.js', 'bird.js', 'bramble.js', 'bowl.js', 'cuckoo.js', 'mouse.js', 'mound.js', 'tap.js', 'film.js', 'hen.js', 'mushrooms.js', 'things.js'], {
     query: `?seed=1&${query}`,
     dom: true,
     globals: { Snowman: { things: {}, init() {} }, Reksio: reksio, Sound, Music, Creatures, Weather, Figure: { bowlTopAt() {}, noseTipAt() {} }, Tree: { init() {}, ready: false, VARIATIONS: ['stuck', 'leaves'], thing: { at: () => 1600, async run() {} } } },
