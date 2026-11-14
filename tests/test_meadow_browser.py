@@ -405,7 +405,10 @@ class TestMeadowCar:
         assert m.page.evaluate("meadowGame.detail('car').parked")
         m.wait("meadowGame.trace().includes(' end')", 90_000)
         assert "car to bed" in m.page.evaluate("meadowGame.trace()")
-        assert m.page.evaluate("document.querySelector('.den-car').style.display") == ""
+        assert (
+            m.page.evaluate("document.querySelector('#den .den-car').style.display")
+            == ""
+        )
         assert m.page.evaluate(
             "[...document.querySelectorAll('.car')].every((c) => c.style.display === 'none')"
         )
@@ -416,7 +419,7 @@ class TestMeadowCar:
         m.wake()
         m.wait("meadowGame.trace().includes(' end')", 60_000)
         assert (
-            m.page.evaluate("document.querySelector('.den-car').style.display")
+            m.page.evaluate("document.querySelector('#den .den-car').style.display")
             == "none"
         )
         assert not m.errors, m.errors
@@ -713,7 +716,7 @@ class TestMeadowMolehills:
         m.wait_free()
         s = m.state()
         assert (s["x"], s["pose"], s["hills"]) == (900, "hill", 1), s
-        assert s["tunnels"] == [[900, 1500]], "what he dug is kept"
+        assert s["tunnels"] == [[780, 1500]], "what he dug is kept"
         m.wait("!TunnelArt.shown", 10_000)  # the ground closes after a moment
         assert m.page.evaluate("meadowGame.trace().includes(' dig in ')"), (
             "he went down without digging himself in"
@@ -770,20 +773,20 @@ class TestMeadowUnderground:
         m.do("crawl to 1400")
         m.wait_free()
         s = m.state()
-        assert (s["x"], s["pose"], s["tunnels"]) == (1400, "under", [[900, 1400]]), s
+        assert (s["x"], s["pose"], s["tunnels"]) == (1400, "under", [[780, 1400]]), s
         m.do("crawl to 1100")  # back along what he dug: quick, nothing new
         m.wait_free()
-        assert m.state()["tunnels"] == [[900, 1400]], m.state()
+        assert m.state()["tunnels"] == [[780, 1400]], m.state()
         m.do("go to 1700")  # the grass above, further on: he digs there and comes up
         m.wait_free()
         s = m.state()
         assert (s["x"], s["pose"], s["hills"]) == (1700, "hill", 1), s
-        assert s["tunnels"] == [[900, 1700]], s
+        assert s["tunnels"] == [[780, 1700]], s
         m.wait("!TunnelArt.shown", 10_000)
         m.do("dig to 900")  # a trip home: the ground opens on all he has dug
         m.wait("TunnelArt.shown")
         m.wait_free()
-        assert m.state()["tunnels"] == [[900, 1700]], "what he dug was forgotten"
+        assert m.state()["tunnels"] == [[780, 1700]], "what he dug was forgotten"
         assert " digs along " in m.page.evaluate("meadowGame.trace()")
         m.assert_settled()
 
@@ -878,6 +881,74 @@ class TestMeadowUnderground:
             m.page.evaluate("document.getElementById('deep').style.display") == "none"
         )
         m.assert_settled()
+
+    def test_in_the_morning_he_wakes_in_his_den_and_climbs_up(
+        self, meadow: callable
+    ) -> None:
+        m = meadow()
+        m.page.evaluate(
+            "() => { window.inDen = false; Clock.every(40, () => {"
+            " if (TunnelArt.shown && document.querySelector('.cutaway .crawler')) inDen = true }) }"
+        )
+        m.do("wake")
+        m.wait_free()
+        assert m.page.evaluate("inDen"), "the ground never opened on him in his den"
+        assert m.state()["pose"] == "hill", m.state()
+        m.wait("!TunnelArt.shown", 10_000)
+        assert not m.errors, m.errors
+
+    def test_a_tap_on_his_den_and_he_rests_on_his_pillow(
+        self, meadow: callable
+    ) -> None:
+        """His den, a room under his home molehill (Adam, 2026-11-14): he crawls in
+        and rests a different way each time, and is up and about again after."""
+        m = meadow()
+        self.under(m)
+        m.do("crawl to 1400")
+        m.wait_free()
+        box = m.page.evaluate(
+            "(() => { const r = document.querySelector('.den-room .den-room-art').getBoundingClientRect();"
+            " return { x: r.x + r.width * 0.5, y: r.y + r.height * 0.25 } })()"
+        )
+        m.page.mouse.click(box["x"], box["y"])  # a real tap on the room
+        m.wait("document.querySelector('.den-room.asleep')")
+        m.wait_free()
+        for _ in range(2):
+            m.do("rest")
+            m.wait_free()
+        s = m.state()
+        assert (s["x"], s["pose"]) == (900, "under"), s
+        assert m.page.evaluate("!document.querySelector('.den-room.asleep')")
+        ways = traced(m, "rests")
+        assert len(ways) == 3 and all(a != b for a, b in pairwise(ways)), ways
+        assert not m.errors, m.errors
+
+    def test_cut_short_asleep_he_is_up_and_crawling(self, meadow: callable) -> None:
+        m = meadow()
+        self.under(m)
+        m.do("rest")
+        m.wait("document.querySelector('.den-room.asleep')")
+        m.do("crawl to 1300")
+        m.wait_free()
+        s = m.state()
+        assert (s["x"], s["pose"]) == (1300, "under"), s
+        assert m.page.evaluate("!document.querySelector('.den-room.asleep')")
+        assert not m.errors, m.errors
+
+    def test_left_alone_under_at_dusk_he_lies_down_in_his_den_and_sleeps_there(
+        self, meadow: callable
+    ) -> None:
+        m = meadow("seed=1&props=&day=20")
+        self.under(m)
+        m.do("crawl to 1300")
+        m.wait_free()
+        m.wait('meadowGame.trace().includes(\'"how":"long"\')', 40_000)
+        m.wait("document.querySelector('.den-room.asleep')")
+        m.wait("meadowGame.state().ended", 40_000)
+        m.wait("!meadowGame.state().busy", 20_000)
+        s = m.state()
+        assert (s["x"], s["pose"]) == (900, "down"), s
+        assert not m.errors, m.errors
 
     def test_bedtime_under_he_goes_home_along_his_tunnel(
         self, meadow: callable
@@ -1409,8 +1480,9 @@ class TestMeadowWind:
         self, meadow: callable
     ) -> None:
         m = meadow(f"{STILL}&props=&wind=gust")
-        m.wake()
+        m.play_for(500)  # the breeze going, before he wakes: the gust comes as he does
         breeze = m.page.evaluate(self.SWAY)
+        m.wake()
         m.wait("document.querySelectorAll('.carried').length > 0", 6_000)
         assert m.page.evaluate("World.state.wind") > 0.7
         assert m.page.evaluate(self.SWAY) > breeze + 2

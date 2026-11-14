@@ -309,7 +309,8 @@ const meadowGame = (() => {
     const share = Day.iris(h)
     irisCircle.setAttribute('r', String(share >= 1 ? IRIS_OPEN : Math.round(share * IRIS_FULL)))
     const alone = !Debug.still && !game.gesture && Clock.now() - game.lastInput > HOME_AT_DUSK_MS
-    if (Day.phase(h) === 'dusk' && alone && Mole.state.pose !== 'listen') run('home to listen', homeToListen)
+    if (Day.phase(h) === 'dusk' && alone && Mole.state.pose === 'under') run('rest', (alive) => Underground.restInDen(alive, true)) // down there at dusk: he lies down in his den
+    else if (Day.phase(h) === 'dusk' && alone && Mole.state.pose !== 'listen') run('home to listen', homeToListen)
     else if (Mole.state.pose === 'under' && !Debug.still && !game.gesture && Clock.now() - game.lastInput > Underground.ALONE_MS) run('up', Underground.upNear) // never left down there
     if (Day.phase(h) === 'bedtime') bedtime()
   }
@@ -365,7 +366,7 @@ const meadowGame = (() => {
   }
 
   // What he does staying under himself; anything else, he comes up first (upFirst)
-  const UNDER = new Set(['crawl', 'go', 'dig', 'stop', 'up', 'home to listen'])
+  const UNDER = new Set(['crawl', 'go', 'dig', 'stop', 'up', 'rest', 'home to listen'])
 
   /** `fn`, after he has come up where he is from his tunnels. */
   const upFirst = (fn) => async (alive) => {
@@ -549,6 +550,8 @@ const meadowGame = (() => {
     if (Layout.flags.wind === 'gust') Weather.gustSoon()
     tick()
     if (game.token !== mine) return // a tap has him busy already
+    await Debug.ignoreCut(Underground.wakeUp(), 'up from his den') // the ground open on him in his den, up his shaft
+    if (game.token !== mine) return
     Sound.pop()
     Clock.after(MORNING_AFTER_MS, () => Music.morning()) // his "ahoj!" first, on its own: under the theme it was lost
     await Debug.ignoreCut(Mole.comeUp('hill'), 'come up')
@@ -573,16 +576,20 @@ const meadowGame = (() => {
     const car = Things.get('car')
     const toy = car?.toBed?.() // the toy car, mended and parked by his molehill: he takes it to bed, as the film ends
     if (toy) {
+      if (Mole.state.pose === 'under') await Debug.ignoreCut(Underground.upAt(Mole.state.x), 'up for the car')
       await Debug.ignoreCut(goTo(toy.x - 150), 'to the car') // from its far side: the cricket plays on its near side
       Mole.show('three', 1)
       Sound.say('giggle')
       await Debug.ignoreCut(Mole.knock(), 'a goodnight pat')
     }
-    await Debug.ignoreCut(intoHome(), 'home to bed')
-    Mole.put(HOME, 'hill')
-    Sound.say('achJo')
-    await Debug.ignoreCut(Mole.stretch(), 'bedtime stretch')
-    await Debug.ignoreCut(Mole.goDown(), 'down to bed')
+    if (Mole.state.pose === 'under') await Debug.ignoreCut(Underground.toBed(), 'to bed in his den') // down there already: along to his den
+    else {
+      await Debug.ignoreCut(intoHome(), 'home to bed')
+      Mole.put(HOME, 'hill')
+      Sound.say('achJo')
+      await Debug.ignoreCut(Mole.stretch(), 'bedtime stretch')
+      await Debug.ignoreCut(Mole.goDown(), 'down to bed')
+    }
     const from = Number(irisCircle.getAttribute('r'))
     const start = Clock.now()
     while (Clock.now() - start < IRIS_CLOSE_MS) {
@@ -621,6 +628,7 @@ const meadowGame = (() => {
     [/^go to (\d+)$/, (m) => answer('go', () => (Mole.state.pose === 'under' ? Underground.upAt(clampX(Number(m[1]))) : goTo(Number(m[1]))))], // under: up there
     [/^crawl to (\d+)$/, (m) => answer('crawl', () => (Mole.state.pose === 'under' ? Underground.crawlTo(clampX(Number(m[1]))) : goTo(Number(m[1]))))],
     [/^stop$/, () => run('stop', async () => {})],
+    [/^rest$/, () => answer('rest', (alive) => (Mole.state.pose === 'under' ? Underground.restInDen(alive) : goTo(HOME)))],
     [/^dig to (\d+)$/, (m) => answer('dig', (alive) => Hills.burrow(Number(m[1]), alive))], // a tap on a molehill
     [/^tap butterfly (\d+)$/, (m) => tapButterfly(Number(m[1]))],
     [/^tap firefly (\d+)$/, (m) => lookAfter(Critters.tapFirefly(Number(m[1])))],
@@ -750,6 +758,7 @@ const meadowGame = (() => {
     if (thing) return choice ? `use ${thing.dataset.thing} ${choice.dataset.choice}` : `use ${thing.dataset.thing}`
     // a tap on what he holds up waiting (the egg) is a tap on it; on him while an encounter plays,
     // a tap on that encounter (it plays on, not cut short)
+    if (Mole.state.pose === 'under' && target.closest('.den-room')) return 'rest' // his den: in, and a rest on his pillow
     if (Mole.state.pose === 'under' && p.y > TunnelArt.TOP) return `crawl to ${Math.round(clampX(View.toWorld(p.x)))}` // the earth he is in: along it
     if (target.closest('.mole-carry') && Things.holder()) return `use ${Things.holder()}`
     if (target.closest('.mole')) return game.gesture && Things.get(game.gesture) ? `use ${game.gesture}` : 'tap mole'

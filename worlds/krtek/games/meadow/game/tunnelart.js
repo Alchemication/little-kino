@@ -2,7 +2,9 @@
 // opens in a cutaway (its soil: soilart.js), and shows all he has dug this
 // play (tunnels.js): each run, dug out of the earth, crumbs along its walls,
 // and the shaft down from every molehill; what he digs now is dug through it
-// as he goes, with him crawling at its front and whoever follows him behind
+// as he goes, with him crawling at its front and whoever follows him behind;
+// under his home molehill, his den, a room his tunnels lead into (den.js's
+// room, small), where he lies down on his pillow to rest
 // (Adam, 2026-11-11: without it they went into the ground in one place and
 // came out in another). Once he is up, it lingers a moment and closes.
 //
@@ -27,8 +29,12 @@ const TunnelArt = (() => {
   const LINGER_MS = 1500 // once he is up, it stays open this long (Adam, 2026-11-14: they vanished at once)…
   const SHUT_MS = 1200 // …then closes this slowly
   const FOOT = 1300 // the deep earth reaches down to here: past the foot of a view slid all the way down (view.js DOWN)
+  const DEN_SCALE = 0.42 // his den, as small as this in his tunnels (about 252 by 185): its pillow at the tunnel's floor, where he crawls in
+  const DEN_TOP = TOP + 8 // its top, just under the grass, where his home shaft comes down into it
+  /** How wide his den is in the tunnels: what he has dug round his home from the start (underground.js). */
+  const DEN_HALF = 120
 
-  let root, earthG, tunnelsG, crumbsG, digG, moversG, clipRect
+  let root, earthG, tunnelsG, crumbsG, denG, digG, moversG, clipRect
   let deep = null // the earth all along the meadow, under the cutaway: shown while the view is slid down
   let shown = false // open, or opening: the child can see it
   let shutting = null // the timer before it closes
@@ -56,8 +62,9 @@ const TunnelArt = (() => {
     return g
   }
 
-  /** Drawn into `layer`, shut; the earth all along into `deepLayer`, hidden. */
-  function setup(layer, deepLayer) {
+  /** Drawn into `layer`, shut, with `den` (den.js's room, in its own coordinates `room`) under the home molehill
+   * at x `home`; the earth all along into `deepLayer`, hidden. */
+  function setup(layer, deepLayer, den, room, home) {
     deep = deepLayer
     deep.style.display = 'none'
     SoilArt.draw(deep, -200, Layout.WORLD_W + 200, TOP, FOOT - TOP)
@@ -69,6 +76,9 @@ const TunnelArt = (() => {
     tunnelsG = el('g', {}, root)
     digG = el('g', {}, root)
     crumbsG = el('g', {}, root)
+    const cy = DEN_TOP + (room.h * DEN_SCALE) / 2
+    denG = el('g', { class: 'den-room', transform: `translate(${home} ${cy}) scale(${DEN_SCALE}) translate(${-(room.x + room.w / 2)} ${-(room.y + room.h / 2)})` }, root)
+    denG.appendChild(den)
     const clip = el('clipPath', { id: 'tunnel-movers' }, root)
     clipRect = el('rect', { y: TOP, height: DEEP }, clip)
     moversG = el('g', { 'clip-path': 'url(#tunnel-movers)' }, root)
@@ -134,6 +144,9 @@ const TunnelArt = (() => {
   /** Nobody in the tunnel. */
   const empty = () => moversG.replaceChildren()
 
+  /** Him lying asleep on his pillow in his den (true: the crawler gone, the z's drifting up), or up again. */
+  const asleep = (on) => denG.classList.toggle('asleep', on)
+
   /** Open the ground (it may be closing: it opens again). */
   function open() {
     if (shutting) Clock.cancel(shutting)
@@ -174,7 +187,7 @@ const TunnelArt = (() => {
   }
 
   return {
-    setup, draw, depth, digging, diggingUp, dug, movers, empty, open, shut,
+    setup, draw, depth, asleep, DEN_HALF, digging, diggingUp, dug, movers, empty, open, shut,
     /** Is it open (or opening, or lingering) for the child to see? */
     get shown() { return shown },
     /** The earth's top: a tap below it, he staying under, is a tap on the earth. */

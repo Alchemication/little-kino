@@ -93,31 +93,6 @@ sounds he has judged are in.
      fox is sorry and goes off a friend in the first telling; the
      retelling is gone (Adam, 2026-11-14). Judge: the paces, whether the
      pool's edge round him reads as water, how often the fish comes.
-   - **Adam judges his tunnels kept, and his stays under** (built
-     2026-11-14, designed with him): what he digs stays all day
-     (`tunnels.js`), and the ground opens on all of it whenever he is
-     under, lingering a moment after he comes up (`tunnelart.js`
-     `LINGER_MS`, `SHUT_MS`). A tap on the molehill he is in takes him
-     down to stay (`underground.js`); a tap on the earth, he crawls there,
-     quickly along what is dug (`PACE.crawl`) and slowly digging on
-     (`PACE.dig`); a tap on a molehill or the grass brings him up there;
-     anything else, he comes up first; left alone, he comes up himself
-     (`ALONE_MS`, in a molehill within `UP_NEAR`). While he is down nothing
-     arrives (the stage is elsewhere), a waiting visitor waits, showers
-     and the eclipse wait; at dusk and bedtime he goes home along his
-     tunnel. The soil is drawn closer to nature (`soilart.js`: topsoil
-     with root hairs, roots, pebbles, a worm, clay; Adam, 2026-11-14).
-     While he stays under, the view slides down into the earth (Adam,
-     2026-11-14, design A of three: `view.js` `GRASS_AT`, the grass's
-     edge 40% down the screen; on trips it stays up), the sky and the
-     church held still, the far trees sinking behind the meadow; the
-     earth shows in layers down to a stony one, and the oak's roots
-     spread under it. Judge: the paces, whether a child finds the way
-     down and back up, the slide's speed (`DIVE_EASE`) and depth, and
-     the soil. No sound yet for crawling or digging under (his call).
-     Next ideas (his pick, in order): his den as a room in the network,
-     life down there that answers him, finds while digging, the surface
-     feeling him pass.
    - **Adam judges the tunnel seen, and the fox's music** (2026-11-11, from
      his play of the paint story). Whenever he tunnels, the ground opens in
      a cutaway and he crawls along the tunnel as he digs it, the hare and
@@ -393,6 +368,19 @@ sounds he has judged are in.
       toddler gets at once. Sketch designs for Adam after the fox. The
       way in and out, and the tunnels kept, are built (above): its levels
       join `tunnels.js` (each run has a depth), its painting `soilart.js`.
+      Adam saw the tunnels, the stays under and the slide down
+      (2026-11-14): good. **Adam judges his den in the tunnels** (built
+      2026-11-14, design A of three, his pick): the den's room, small,
+      under his home molehill, his runs leading into it (`tunnelart.js`
+      `DEN_SCALE`); a tap on it, staying under, and he rests on his
+      pillow a way each time (a snooze, plumping it, turning round
+      first: `underground.js` `restInDen`); left alone under at dusk he
+      lies down there till a tap or bedtime (his call: not before the
+      last hour); bedtime under, he sleeps there; mornings he is seen in
+      it and climbs up his shaft (`WAKE_MS`). Next, his pick, in order:
+      life down there that answers him, finds while digging (and a store
+      room in the den for them), the surface feeling him pass. Still open: no sound for
+      crawling or digging under (his call).
    7. **Adam plays the meadow with Eliot** before any LLM work (Adam,
       2026-10-26).
    8. If the meadow feels more alive: the LLM director behind the player's

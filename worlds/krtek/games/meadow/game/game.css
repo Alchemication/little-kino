@@ -228,3 +228,11 @@ body { touch-action: manipulation; -webkit-user-select: none; user-select: none;
 /* the falls pouring on his head as he stands under them (water.js): the streaks run down */
 #wade .pour-streak { animation: pour 0.5s linear infinite; }
 @keyframes pour { from { stroke-dashoffset: 32; } to { stroke-dashoffset: 0; } }
+/* his den, a room in his tunnels (tunnelart.js): him on his pillow only while he rests there, breathing as in the night's den */
+.den-room .sleeper, .den-room .zees { display: none; }
+.den-room.asleep .sleeper, .den-room.asleep .zees { display: inline; }
+.den-room .z { opacity: 0; animation: zee 3s ease-in-out infinite; }
+.den-room .z2 { animation-delay: 1s; }
+.den-room .z3 { animation-delay: 2s; }
+.den-room .sleeper-body { transform-origin: 780px 594px; animation: breathe 3.8s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .den-room .z, .den-room .sleeper-body { animation: none; } }

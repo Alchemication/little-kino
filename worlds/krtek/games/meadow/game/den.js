@@ -9,7 +9,10 @@
 // night the toy car came and was mended, it is in his arms, as the film ends. He breathes (a CSS loop, game.css #den); z's drift up.
 //
 // Drawn once, in code, into #den (meadow.js shows and hides it): only
-// drawing here, from its own random stream, so it shifts nothing else.
+// drawing here, from its own random stream, so it shifts nothing else. The
+// same room, small, is a room in his tunnels under the home molehill
+// (room(): a copy for tunnelart.js, so it is the very same stones and
+// pillow; Adam, 2026-11-14).
 
 /* global Debug, MoleArt */
 /* exported Den */
@@ -25,6 +28,8 @@ const Den = (() => {
   const SPIKE_EVERY = 34 // the fringe round its edge: a small spike about this often
   const FLECKS = 220
   let toy = null // the toy car in his arms
+  const toys = [] // …and in the copies of him asleep (room()): all shown together
+  let parts = null // the chamber, his bed and the z's as drawn, for room()
   const random = Debug.random('meadow-den') // the mosaic, the fringe, the flecks: its own stream
 
   const el = (tag, attrs = {}, parent) => {
@@ -146,18 +151,34 @@ const Den = (() => {
   /** Draw the den into `into` (#den). */
   function draw(into) {
     earth(into)
-    chamber(into)
+    const room = el('g', {}, into)
+    chamber(room)
     const bed = el('g', { transform: 'translate(790 600) scale(1.15) translate(-790 -600)' }, into) // he and his pillow fill the room, as in the film
     pillow(bed)
     sleeper(bed)
     zees(into)
+    parts = [room, bed, into.querySelector('.zees')]
+  }
+
+  /**
+   * A copy of the room, its pillow, him asleep on it and the z's, in the den's own coordinates (ROOM): for
+   * the room in his tunnels (tunnelart.js), which scales it down. Its clip is the den's (no second id).
+   */
+  function room() {
+    const g = el('g', { class: 'den-room-art' })
+    for (const p of parts) g.appendChild(p.cloneNode(true))
+    for (const c of g.querySelectorAll('[id]')) c.remove() // the den's clip path: the copy's stones use the den's own
+    toys.push(...g.querySelectorAll('.den-car'))
+    return g
   }
 
   return {
     draw,
+    room,
+    ROOM,
     /** The toy car in his arms tonight, or not (Krtek a autíčko 15:04). */
     hug(on) {
-      toy.style.display = on ? '' : 'none'
+      for (const t of [toy, ...toys]) t.style.display = on ? '' : 'none'
     },
   }
 })()

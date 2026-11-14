@@ -13,11 +13,19 @@
 // While he stays, nothing new arrives on the meadow (meadow.js: the stage
 // is elsewhere), and a waiting visitor waits.
 //
+// Under his home molehill his tunnels lead into his den, a room (den.js's,
+// small: tunnelart.js), dug from the start. A tap on it, staying under, and
+// he crawls in and rests on his pillow a different way each time (a snooze,
+// plumping it first, turning round first), then wriggles up; left alone
+// under at dusk, he goes there and lies down till a tap or bedtime; at
+// bedtime under, he goes to bed there; in the morning he wakes there and
+// climbs up his shaft (Adam, 2026-11-14).
+//
 // Gestures here move him with Motion.endAt on the Clock; the meadow's cut
 // calls halt(), which keeps what was dug as far as he got and leaves him
 // where he is drawn.
 
-/* global Debug, Hills, Layout, Mole, Motion, Sound, TunnelArt, Tunnels */
+/* global Clock, Debug, Den, Hills, Layout, Mole, Motion, Sound, TunnelArt, Tunnels */
 /* exported Underground */
 const Underground = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
@@ -31,6 +39,14 @@ const Underground = (() => {
   const DIG_UP_MS = 450 // digging the way up where there is no molehill yet
   const SHAFT_DROP = 90 // how far up the shaft he is seen as he drops in or climbs out
   const WRIGGLE_MS = 500 // a tap where he is: a happy wriggle
+  const HOME = Layout.HOME
+  const NAP_MS = 2600 // a snooze on his pillow in his den
+  const TURN_MS = 350 // turning round before he lies down, each way
+  const WAKE_MS = 700 // in the morning, seen a moment in his den before he climbs up
+  const LONG_REST_STEP_MS = 500 // resting at dusk: he lies there until a tap or bedtime, checked this often
+  const RESTS = ['snooze', 'plump', 'turn'] // how he rests in his den
+  const rests = Debug.random('meadow-den-rests') // which way: its own, so nothing else shifts
+  let lastRest = null
 
   const net = Tunnels.make()
   let bumpLayer = null
@@ -51,7 +67,8 @@ const Underground = (() => {
 
   /** The cutaway into `layer`, the earth all along into `deep`, the bump over him into `ground`. */
   function setup(layer, deep, ground) {
-    TunnelArt.setup(layer, deep)
+    TunnelArt.setup(layer, deep, Den.room(), Den.ROOM, HOME)
+    Tunnels.dig(net, HOME - TunnelArt.DEN_HALF, HOME + TunnelArt.DEN_HALF) // his den: there from the start
     bumpLayer = ground
   }
 
@@ -190,9 +207,87 @@ const Underground = (() => {
   /** Left alone under: up in a molehill near him, or, with none near, where he is. */
   const upNear = () => upAt(Tunnels.nearest(Hills.xs(), Mole.state.x, UP_NEAR) ?? Mole.state.x)
 
+  /** Him lying asleep on his pillow in his den (the crawler gone), or up again, crawling, where he is. */
+  function lieDown(on) {
+    TunnelArt.asleep(on)
+    if (on) {
+      TunnelArt.empty()
+      movers = null
+    } else rest(Mole.state.x)
+  }
+
+  // How he rests in his den, a tap on it: each ends with him up and crawling again
+  const WAYS = {
+    /** On his pillow, asleep a moment, z's drifting up; up, and a wriggle. */
+    async snooze() {
+      lieDown(true)
+      await Clock.wait(NAP_MS)
+      lieDown(false)
+      await wriggle()
+    },
+    /** Pillow first: he bumps it into shape, twice; then a short snooze, and a giggle. */
+    async plump() {
+      await wriggle()
+      await wriggle()
+      lieDown(true)
+      await Clock.wait(NAP_MS * 0.6)
+      lieDown(false)
+      Sound.say('giggle', true)
+    },
+    /** Round he turns, and back, as an animal does before it lies down; then a snooze. */
+    async turn() {
+      for (let i = 0; i < 2; i++) {
+        facing = -facing
+        rest(Mole.state.x)
+        await Clock.wait(TURN_MS)
+      }
+      lieDown(true)
+      await Clock.wait(NAP_MS * 0.7)
+      lieDown(false)
+      Sound.say('giggle', true)
+    },
+  }
+
+  /** A way to rest, never the same twice running. */
+  function pickRest() {
+    const left = RESTS.filter((w) => w !== lastRest)
+    return (lastRest = left[Math.floor(rests() * left.length)])
+  }
+
+  /** Staying under: into his den and a rest on his pillow; `long` (left alone at dusk), lying there till cut short. */
+  async function restInDen(alive, long = false) {
+    if (Math.abs(Mole.state.x - HOME) >= NEAR) await crawlTo(HOME)
+    if (!alive()) return
+    const how = long ? 'long' : pickRest()
+    Debug.trace('rests', { how })
+    if (!long) return WAYS[how]()
+    lieDown(true)
+    while (alive()) await Clock.wait(LONG_REST_STEP_MS)
+  }
+
+  /** Bedtime, staying under: along to his den, and down on his pillow to sleep (the night's den is this room). */
+  async function toBed() {
+    if (Math.abs(Mole.state.x - HOME) >= NEAR) await crawlTo(HOME)
+    lieDown(true)
+    Mole.put(HOME, 'down') // asleep in his den: no longer about in his tunnels
+  }
+
+  /** Morning: the ground opens on him in his den, and he climbs up his shaft (Mole.comeUp brings him up). */
+  async function wakeUp() {
+    Debug.trace('wakes in his den')
+    open()
+    rest(HOME)
+    await Clock.wait(WAKE_MS) // there he is, in his den
+    await climb(HOME, 0)
+    TunnelArt.empty()
+    movers = null
+    TunnelArt.shut()
+  }
+
   /** Cut short (the meadow's cutShort, after Mole.relax): what was dug as far as he got stays; staying under,
    * he rests in his tunnel where he is drawn, else nobody is left in it and the ground closes. */
   function halt() {
+    TunnelArt.asleep(false)
     if (going) arrived()
     movers?.getAnimations().forEach((a) => a.cancel())
     if (under()) {
@@ -216,7 +311,7 @@ const Underground = (() => {
   const inTunnel = (x) => Tunnels.dug(net, x) || Hills.at(x)
 
   return {
-    setup, redraw, tunnelTo, goUnder, crawlTo, upAt, upNear, halt, burrowX, inTunnel, ALONE_MS,
+    setup, redraw, tunnelTo, goUnder, crawlTo, upAt, upNear, restInDen, toBed, wakeUp, halt, burrowX, inTunnel, ALONE_MS,
     /** What he has dug (tunnels.js runs), for the overlay and the tests. */
     get runs() { return Tunnels.runs(net).map(({ from, to }) => [Math.round(from), Math.round(to)]) },
   }
