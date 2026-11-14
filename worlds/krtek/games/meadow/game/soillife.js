@@ -110,7 +110,7 @@ const SoilLife = (() => {
     const nest = el('g', { class: 'soil-ants', 'data-soil': 'ants', transform: `translate(${ANTS_AT.x} ${ANTS_AT.y}) scale(${SIZE * 0.8})` }, g)
     el('ellipse', { cx: 0, cy: 0, rx: 58, ry: 26, fill: '#8a5a2c', stroke: '#5a3a1c', 'stroke-width': 2 }, nest)
     el('ellipse', { cx: 0, cy: 2, rx: 50, ry: 20, fill: '#b98345' }, nest)
-    el('path', { d: 'M-40 -16 Q-70 -60 -40 -120 M44 -14 Q80 -70 60 -140', stroke: '#8a5a2c', 'stroke-width': 8, fill: 'none', 'stroke-linecap': 'round' }, nest) // their runs up
+    el('path', { d: 'M-40 -16 Q-62 -36 -52 -62 M44 -14 Q66 -40 58 -66', stroke: '#8a5a2c', 'stroke-width': 7, fill: 'none', 'stroke-linecap': 'round' }, nest) // their runs, up a little way: clear of his tunnels
     const round = el('g', { transform: 'scale(1 0.45)' }, nest) // round the chamber's floor, seen side on
     for (let i = 0; i < ANTS; i++) {
       const orbit = el('g', { class: 'ant-orbit' }, round)

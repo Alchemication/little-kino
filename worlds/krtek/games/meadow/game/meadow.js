@@ -106,7 +106,7 @@ const meadowGame = (() => {
     makeBed()
     makeTufts()
     Mole.make(layers.mole, document.getElementById('mole-out'))
-    Underground.setup(document.getElementById('tunnels'), document.getElementById('deep'), document.getElementById('tunnels'))
+    Underground.setup(document.getElementById('tunnels'), document.getElementById('deep'), document.getElementById('tunnels'), { free: () => game.awake && !game.ended && !game.gesture })
     SoilLife.setup(document.getElementById('soil-life'), () => tulipHeads.map(({ x, base, bend }) => ({ x, base, bend }))) // the earth's small life, the tulips' bulbs
     Mole.put(HOME, 'down')
   }

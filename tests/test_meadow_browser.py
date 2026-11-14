@@ -997,6 +997,35 @@ class TestMeadowUnderground:
         assert m.state()["pose"] == "under", "a tap on the earth's life is not a crawl"
         assert not m.errors, m.errors
 
+    def test_his_own_crawl_stops_for_a_sniff_and_he_flings_earth_digging(
+        self, meadow: callable
+    ) -> None:
+        """Adam, 2026-11-14: more natural. A long crawl of his own stops partway for a
+        sniff (seed 1: twice going 900 to 2000), and digging, earth flies back."""
+        m = meadow()
+        self.under(m)
+        m.page.evaluate(
+            "() => { window.flung = 0; window.paddled = false; Clock.every(40, () => {"
+            " flung = Math.max(flung, document.querySelectorAll('.cutaway > g:last-child > ellipse').length);"
+            " if (document.querySelector('.crawler.crawling.digging')) paddled = true }) }"
+        )
+        m.do("crawl to 2000")
+        m.wait_free()
+        assert '"stops":2' in m.page.evaluate("meadowGame.trace()")
+        assert m.page.evaluate("flung") > 0, "no earth flew as he dug"
+        assert m.page.evaluate("paddled"), "he did not scoop as he dug"
+        assert m.state()["x"] == 2000, m.state()
+        assert not m.errors, m.errors
+
+    def test_just_there_in_his_tunnel_he_sniffs_and_looks_about(
+        self, meadow: callable
+    ) -> None:
+        m = meadow("seed=1&props=&day=200")
+        self.under(m)
+        m.wait("meadowGame.trace().includes(' in his tunnel ')", 20_000)
+        assert m.state()["pose"] == "under"
+        assert not m.errors, m.errors
+
     def test_bedtime_under_he_goes_home_along_his_tunnel(
         self, meadow: callable
     ) -> None:

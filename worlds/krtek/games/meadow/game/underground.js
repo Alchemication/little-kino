@@ -39,6 +39,13 @@ const Underground = (() => {
   const DIG_UP_MS = 450 // digging the way up where there is no molehill yet
   const SHAFT_DROP = 90 // how far up the shaft he is seen as he drops in or climbs out
   const WRIGGLE_MS = 500 // a tap where he is: a happy wriggle
+  const SNIFF_EVERY = 420 // staying under, a crawl longer than this may stop partway for a sniff…
+  const SNIFF_CHANCE = 0.55 // …this often for each such stretch…
+  const SNIFF_MS = [500, 900] // …stopping this long, nose up
+  const CLOD_EVERY_MS = 170 // digging, a clod of earth flung back this often
+  const IDLE_MS = [2500, 5500] // just there in his tunnel, now and then a sniff, a look back, a stretch
+  const LOOK_BACK_MS = 800 // looking back over his shoulder, this long
+  const IDLE_CHECK_MS = 300
   const BURROW_EVERY_MS = 250 // going along, his bump makes a soft noise this often…
   const BURROW_REACH = 170 // …heard this far: the earth's life and the meadow above mind it (soillife.js, spring.js, critters.js)
   const HOME = Layout.HOME
@@ -48,6 +55,7 @@ const Underground = (() => {
   const LONG_REST_STEP_MS = 500 // resting at dusk: he lies there until a tap or bedtime, checked this often
   const RESTS = ['snooze', 'plump', 'turn'] // how he rests in his den
   const rests = Debug.random('meadow-den-rests') // which way: its own, so nothing else shifts
+  const ways = Debug.random('meadow-crawl') // where he stops to sniff, the clods, what he does just there: its own
   let lastRest = null
 
   const net = Tunnels.make()
@@ -58,6 +66,9 @@ const Underground = (() => {
   let facing = -1 // which way he last went (1 right)
   let extra = null // a stretch being dug: its earth shown already
   let rustle = null // stops the bump's noise
+  let free = () => false // the meadow's: nobody tapping, nothing under way
+  let nextIdle = 0 // when he may next do something by himself, just there in his tunnel
+  let idling = 0 // which of his little moves is under way (a new one, or a trip, ends it)
 
   const el = (tag, attrs = {}, parent) => {
     const e = document.createElementNS(SVG, tag)
@@ -69,7 +80,9 @@ const Underground = (() => {
   const under = () => Mole.state.pose === 'under'
 
   /** The cutaway into `layer`, the earth all along into `deep`, the bump over him into `ground`. */
-  function setup(layer, deep, ground) {
+  function setup(layer, deep, ground, hooks = {}) {
+    free = hooks.free || free
+    Clock.every(IDLE_CHECK_MS, idle)
     TunnelArt.setup(layer, deep, Den.room(), Den.ROOM, HOME)
     Tunnels.dig(net, HOME - TunnelArt.DEN_HALF, HOME + TunnelArt.DEN_HALF) // his den: there from the start
     bumpLayer = ground
@@ -92,17 +105,44 @@ const Underground = (() => {
   }
 
   /**
-   * Along under the grass from where he is to x: quickly through what is dug, slowly digging through
-   * earth (tunnels.js legs), the bump over him and the view after him (his figure goes along too, out of
-   * sight). `followers` ([{ draw(g), scale }]) come behind him.
+   * The way to x in pieces, each to be crawled in one go: the legs (dug or not), and, `natural` (staying under,
+   * his own crawl), long stretches broken where he stops a moment to sniff. Each piece: { from, to, dug, pause }.
    */
-  async function along(x, followers = []) {
+  function pieces(legs, natural) {
+    const out = []
+    for (const leg of legs) {
+      const len = Math.abs(leg.to - leg.from)
+      const dir = Math.sign(leg.to - leg.from)
+      let at = leg.from
+      if (natural) {
+        for (let left = len; left > SNIFF_EVERY; left -= SNIFF_EVERY) {
+          const roll = ways()
+          const stop = at + dir * SNIFF_EVERY * (0.4 + 0.5 * ways())
+          if (roll < SNIFF_CHANCE) {
+            out.push({ from: at, to: stop, dug: leg.dug, pause: true })
+            at = stop
+          }
+        }
+      }
+      out.push({ from: at, to: leg.to, dug: leg.dug, pause: false })
+    }
+    return out
+  }
+
+  /**
+   * Along under the grass from where he is to x: quickly through what is dug, slowly digging through earth
+   * (tunnels.js legs), crawling as he goes, the bump over him and the view after him (his figure goes along too,
+   * out of sight). He gets going and slows to a stop rather than gliding; digging, he flings earth back; `natural`
+   * (his own crawl, staying under) he stops now and then for a sniff. `followers` ([{ draw(g), scale }]) come behind.
+   */
+  async function along(x, followers = [], natural = false) {
     const from = Mole.state.x
     if (Math.abs(x - from) < 1) return
     const dir = (facing = x < from ? -1 : 1)
     const legs = Tunnels.legs(net, from, x)
     const total = Tunnels.duration(net, from, x, PACE)
     const k = total < MIN_MS ? MIN_MS / total : 1
+    const parts = pieces(legs, natural)
     extra = [from, x]
     open()
     movers = TunnelArt.movers(from, dir, Math.min(from, x), Math.max(from, x), followers)
@@ -113,24 +153,77 @@ const Underground = (() => {
       if (at !== null) World.noise('burrow', at, BURROW_REACH)
     })
     const mine = (going = { from, x, dir, followers, leg: null })
-    Debug.trace('digs along', { from: Math.round(from), to: Math.round(x), dug: legs.filter((l) => l.dug).length, new: legs.filter((l) => !l.dug).length })
+    Debug.trace('digs along', { from: Math.round(from), to: Math.round(x), dug: legs.filter((l) => l.dug).length, new: legs.filter((l) => !l.dug).length, stops: parts.filter((p) => p.pause).length })
     try {
-      for (const leg of legs) {
-        going.leg = leg
-        const ms = Math.abs(leg.to - leg.from) * (leg.dug ? PACE.crawl : PACE.dig) * k
-        const opts = { duration: ms, easing: 'linear' }
-        const paths = leg.dug ? [] : TunnelArt.digging(leg.from, leg.to)
-        await Promise.all([
-          Mole.glide(leg.to, ms, 0, 'linear'),
-          Motion.endAt(bump, [{ transform: bumpAt(leg.from) }, { transform: bumpAt(leg.to) }], opts),
-          Motion.endAt(movers, [{ transform: `translateX(${leg.from - from}px)` }, { transform: `translateX(${leg.to - from}px)` }], opts),
-          ...paths.map((p) => Motion.endAt(p, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], opts)),
-        ])
-        if (!leg.dug) Tunnels.dig(net, leg.from, leg.to)
+      for (const [i, part] of parts.entries()) {
+        going.leg = part
+        await crawl(part, from, dir, k, easeFor(i === 0 || parts[i - 1].pause, part.pause || i === parts.length - 1))
+        if (!part.dug) Tunnels.dig(net, part.from, part.to)
+        if (part.pause) await sniff(SNIFF_MS[0] + ways() * (SNIFF_MS[1] - SNIFF_MS[0]))
       }
     } finally {
       if (going === mine) arrived() // cut short, halt() has seen to it already, and another trip may be under way
     }
+  }
+
+  /** How a piece of the way goes: he gets going where he `starts`, and slows to a stop where he `stops`. */
+  const easeFor = (starts, stops) => (starts && stops ? 'ease-in-out' : starts ? 'ease-in' : stops ? 'ease-out' : 'linear')
+
+  /** One piece of the way, crawled in one go (`from` where the trip began, `k` its pace): digging, earth flung back. */
+  async function crawl(part, from, dir, k, easing) {
+    const ms = Math.abs(part.to - part.from) * (part.dug ? PACE.crawl : PACE.dig) * k
+    const opts = { duration: ms, easing }
+    const paths = part.dug ? [] : TunnelArt.digging(part.from, part.to)
+    TunnelArt.act('crawling', true)
+    TunnelArt.act('digging', !part.dug)
+    const flinging = part.dug ? null : Clock.every(CLOD_EVERY_MS, () => TunnelArt.clod(Mole.drawnX() + dir * 60, dir, ways))
+    try {
+      await Promise.all([
+        Mole.glide(part.to, ms, 0, easing),
+        Motion.endAt(bump, [{ transform: bumpAt(part.from) }, { transform: bumpAt(part.to) }], opts),
+        Motion.endAt(movers, [{ transform: `translateX(${part.from - from}px)` }, { transform: `translateX(${part.to - from}px)` }], opts),
+        ...paths.map((p) => Motion.endAt(p, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], opts)),
+      ])
+    } finally {
+      flinging?.()
+      TunnelArt.act('crawling', false)
+      TunnelArt.act('digging', false)
+    }
+  }
+
+  /**
+   * Just there in his tunnel, staying under, nobody tapping: now and then a sniff, a look back over his shoulder,
+   * or his hands paddling a moment where he is. Only how he is drawn (as his looking about up on the grass,
+   * mole.js): a tap or a trip takes over at once. None in a still play.
+   */
+  function idle() {
+    if (Debug.still || Mole.state.pose !== 'under' || going || !movers || !free() || Clock.now() < nextIdle) return
+    nextIdle = Clock.now() + IDLE_MS[0] + ways() * (IDLE_MS[1] - IDLE_MS[0])
+    const mine = ++idling
+    const roll = ways()
+    const still = () => mine === idling && !going && Mole.state.pose === 'under' && free()
+    Debug.trace('in his tunnel', { does: roll < 0.45 ? 'sniff' : roll < 0.8 ? 'look back' : 'paddle' })
+    if (roll < 0.45) return sniff(SNIFF_MS[0])
+    if (roll < 0.8) return lookBack(still)
+    TunnelArt.act('crawling', true) // paddling a moment where he is
+    Clock.after(600, () => TunnelArt.act('crawling', false))
+  }
+
+  /** A look back over his shoulder, and round again (if nothing else has begun meanwhile). */
+  function lookBack(still) {
+    facing = -facing
+    rest(Mole.state.x)
+    Clock.after(LOOK_BACK_MS, () => {
+      facing = -facing
+      if (still()) rest(Mole.state.x)
+    })
+  }
+
+  /** A stop to sniff: his head up, his nose twitching, for `ms`. */
+  async function sniff(ms) {
+    TunnelArt.act('sniff', true)
+    await Clock.wait(ms)
+    TunnelArt.act('sniff', false)
   }
 
   /** The trip is over, or cut short: what was dug stays, the bump goes, he is where he is drawn. */
@@ -187,7 +280,7 @@ const Underground = (() => {
   async function crawlTo(x) {
     const from = Mole.state.x
     if (Math.abs(x - from) < NEAR) return wriggle()
-    await along(x)
+    await along(x, [], true)
     Mole.put(x, 'under')
     rest(x)
   }
@@ -201,7 +294,7 @@ const Underground = (() => {
 
   /** Staying under: along to x and up there, in its molehill (one made if there is none). */
   async function upAt(x) {
-    await along(x)
+    await along(x, [], true)
     Mole.put(x, 'down') // on his way up: no longer staying
     rest(x)
     await climb(x, 0)

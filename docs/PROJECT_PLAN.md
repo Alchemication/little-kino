@@ -400,9 +400,15 @@ sounds he has judged are in.
       (`underground.js`) that they mind (a worm draws in, the beetle stops,
       the ants hurry), and so does the meadow above: the tulip over him
       wobbles, the snail and the bullfinch at the pool start, the frog
-      plops in. A tap on a bulb nods its tulip. Next, his picks: him
-      underground moving more naturally (Adam, 2026-11-14), then finds
-      while digging, carried home to a shelf in his den. Still open: no sound for
+      plops in. A tap on a bulb nods its tulip. **Adam judges how he
+      moves underground** (built 2026-11-14, his ask "more natural"): a
+      crawl in parts (hands paddling in turn, feet kicking, a bob; quicker
+      scoops and earth flung back as he digs: `tunnelart.js` crawler,
+      game.css `.crawler`), eased into and out of each stretch, stopping
+      partway on his own long crawls for a sniff (`underground.js`
+      `SNIFF_EVERY`, `SNIFF_CHANCE`), and, just there in his tunnel, now
+      and then a sniff, a look back, a paddle (`IDLE_MS`). Next, his pick:
+      finds while digging, carried home to a shelf in his den. Still open: no sound for
       crawling or digging under (his call).
    7. **Adam plays the meadow with Eliot** before any LLM work (Adam,
       2026-10-26).

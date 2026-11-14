@@ -34,7 +34,7 @@ const TunnelArt = (() => {
   /** How wide his den is in the tunnels: what he has dug round his home from the start (underground.js). */
   const DEN_HALF = 120
 
-  let root, earthG, tunnelsG, crumbsG, denG, digG, moversG, clipRect
+  let root, earthG, tunnelsG, crumbsG, denG, digG, moversG, flyG, clipRect
   let deep = null // the earth all along the meadow, under the cutaway: shown while the view is slid down
   let shown = false // open, or opening: the child can see it
   let shutting = null // the timer before it closes
@@ -46,19 +46,27 @@ const TunnelArt = (() => {
     return e
   }
 
-  /** Him crawling, small, facing left: on all fours, digging hands ahead. */
+  /**
+   * Him crawling, small, facing left: on all fours, digging hands ahead, in parts that move (game.css .crawler):
+   * crawling, his hands paddle in turn, his feet kick and he bobs; digging, his hands scoop faster; sniffing,
+   * his head lifts and his nose twitches.
+   */
   function crawler(parent) {
     const g = el('g', { class: 'crawler', transform: `scale(${CRAWLER})` }, parent)
     const { BODY, PINK, NOSE } = MoleArt
-    el('path', { d: 'M34 0 C40 -30 20 -52 -6 -52 C-30 -52 -44 -38 -44 -22 C-44 -8 -34 0 -22 0 Z', fill: BODY }, g)
-    el('path', { d: 'M-44 -24 l-14 4 l13 6 Z', fill: BODY }, g) // his snout
-    el('circle', { cx: -59, cy: -20, r: 5.5, fill: NOSE }, g)
-    el('ellipse', { cx: -32, cy: -34, rx: 5, ry: 6.5, fill: '#fff' }, g)
-    el('circle', { cx: -33.5, cy: -33, r: 2.6, fill: BODY }, g)
-    el('path', { d: 'M-12 -52 q-4 -12 2 -14 M-6 -52 q2 -13 8 -12 M0 -51 q8 -10 13 -6', stroke: BODY, 'stroke-width': 2, fill: 'none', 'stroke-linecap': 'round' }, g)
-    const hands = el('g', { class: 'digging' }, g)
-    el('ellipse', { cx: -46, cy: -6, rx: 11, ry: 7, fill: PINK, stroke: '#b9705a', 'stroke-width': 1.2, transform: 'rotate(-20 -46 -6)' }, hands)
-    for (const x of [-8, 20]) el('ellipse', { cx: x, cy: -2, rx: 10, ry: 5, fill: PINK, stroke: '#b9705a', 'stroke-width': 1.2 }, g)
+    const skin = { stroke: '#b9705a', 'stroke-width': 1.2 }
+    const whole = el('g', { class: 'cr-whole' }, g)
+    el('ellipse', { class: 'cr-foot cr-foot-b', cx: -6, cy: -3, rx: 9, ry: 4.5, fill: '#d98f86', ...skin }, whole) // the far foot, behind
+    el('ellipse', { class: 'cr-hand cr-hand-b', cx: -38, cy: -9, rx: 10, ry: 6, fill: '#d98f86', ...skin, transform: 'rotate(-20 -38 -9)' }, whole) // the far hand, behind
+    el('path', { d: 'M34 0 C40 -30 20 -52 -6 -52 C-30 -52 -44 -38 -44 -22 C-44 -8 -34 0 -22 0 Z', fill: BODY }, whole)
+    const head = el('g', { class: 'cr-head' }, whole)
+    el('path', { d: 'M-44 -24 l-14 4 l13 6 Z', fill: BODY }, head) // his snout
+    el('circle', { class: 'cr-nose', cx: -59, cy: -20, r: 5.5, fill: NOSE }, head)
+    el('ellipse', { cx: -32, cy: -34, rx: 5, ry: 6.5, fill: '#fff' }, head)
+    el('circle', { cx: -33.5, cy: -33, r: 2.6, fill: BODY }, head)
+    el('path', { d: 'M-12 -52 q-4 -12 2 -14 M-6 -52 q2 -13 8 -12 M0 -51 q8 -10 13 -6', stroke: BODY, 'stroke-width': 2, fill: 'none', 'stroke-linecap': 'round' }, head)
+    el('ellipse', { class: 'cr-hand cr-hand-a', cx: -46, cy: -6, rx: 11, ry: 7, fill: PINK, ...skin, transform: 'rotate(-20 -46 -6)' }, whole) // the near hand
+    el('ellipse', { class: 'cr-foot cr-foot-a', cx: 20, cy: -2, rx: 10, ry: 5, fill: PINK, ...skin }, whole) // the near foot
     return g
   }
 
@@ -82,6 +90,7 @@ const TunnelArt = (() => {
     const clip = el('clipPath', { id: 'tunnel-movers' }, root)
     clipRect = el('rect', { y: TOP, height: DEEP }, clip)
     moversG = el('g', { 'clip-path': 'url(#tunnel-movers)' }, root)
+    flyG = el('g', {}, root) // earth flung back as he digs
   }
 
   const tube = { fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }
@@ -141,7 +150,18 @@ const TunnelArt = (() => {
     return run
   }
 
-  /** Nobody in the tunnel. */
+  /** What he is doing, on his crawling figure: 'crawling', 'digging', 'sniff' (on or off). */
+  function act(name, on) {
+    moversG.querySelector('.crawler')?.classList.toggle(name, on)
+  }
+
+  /** A clod of earth flung back from his digging hands at x (`dir` the way he digs), arcing over him onto the floor behind. */
+  function clod(x, dir, r) {
+    const c = el('ellipse', { cx: 0, cy: 0, rx: 3 + r() * 3, ry: 2 + r() * 2, fill: r() < 0.5 ? '#3a2615' : '#6e4a24' }, flyG)
+    const [x0, y0] = [x, FLOOR - 40]
+    const back = -dir * (50 + r() * 70)
+    Motion.endAt(c, [{ transform: `translate(${x0}px, ${y0}px)`, opacity: 1 }, { transform: `translate(${x0 + back * 0.5}px, ${y0 - 30 - r() * 25}px)`, offset: 0.45 }, { transform: `translate(${x0 + back}px, ${FLOOR}px)`, opacity: 0.7 }], { duration: 520, easing: 'ease-out' }).then(() => c.remove(), () => c.remove())
+  }
   const empty = () => moversG.replaceChildren()
 
   /** Him lying asleep on his pillow in his den (true: the crawler gone, the z's drifting up), or up again. */
@@ -187,7 +207,7 @@ const TunnelArt = (() => {
   }
 
   return {
-    setup, draw, depth, asleep, DEN_HALF, digging, diggingUp, dug, movers, empty, open, shut,
+    setup, draw, depth, asleep, act, clod, DEN_HALF, digging, diggingUp, dug, movers, empty, open, shut,
     /** Is it open (or opening, or lingering) for the child to see? */
     get shown() { return shown },
     /** The earth's top: a tap below it, he staying under, is a tap on the earth. */

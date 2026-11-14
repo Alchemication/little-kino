@@ -244,3 +244,24 @@ body { touch-action: manipulation; -webkit-user-select: none; user-select: none;
 .den-room .z3 { animation-delay: 2s; }
 .den-room .sleeper-body { transform-origin: 780px 594px; animation: breathe 3.8s ease-in-out infinite alternate; }
 @media (prefers-reduced-motion: reduce) { .den-room .z, .den-room .sleeper-body { animation: none; } }
+/* him crawling in his tunnels (tunnelart.js crawler): his hands paddle in turn, his feet kick and he bobs; digging new earth, his hands scoop quicker; a sniff lifts his head and twitches his nose */
+.crawler .cr-whole, .crawler .cr-hand, .crawler .cr-foot, .crawler .cr-head, .crawler .cr-nose { transform-box: fill-box; }
+.crawler .cr-whole { transform-origin: center bottom; }
+.crawler .cr-hand { transform-origin: 85% 40%; }
+.crawler .cr-foot { transform-origin: center; }
+.crawler .cr-head { transform-origin: 90% 80%; }
+.crawler .cr-nose { transform-origin: center; }
+.crawler.crawling .cr-whole { animation: cr-bob 0.38s ease-in-out infinite alternate; }
+.crawler.crawling .cr-hand-a { animation: cr-paddle 0.38s ease-in-out infinite alternate; }
+.crawler.crawling .cr-hand-b { animation: cr-paddle 0.38s ease-in-out infinite alternate-reverse; }
+.crawler.crawling .cr-foot-a { animation: cr-kick 0.38s ease-in-out infinite alternate; }
+.crawler.crawling .cr-foot-b { animation: cr-kick 0.38s ease-in-out infinite alternate-reverse; }
+.crawler.digging .cr-hand-a, .crawler.digging .cr-hand-b { animation-duration: 0.18s; }
+.crawler.sniff .cr-head { animation: cr-sniff 0.9s ease-in-out; }
+.crawler.sniff .cr-nose { animation: cr-twitch 0.15s ease-in-out 6 alternate; }
+@keyframes cr-bob { from { transform: translateY(0) rotate(0deg); } to { transform: translateY(-3px) rotate(-1.5deg); } }
+@keyframes cr-paddle { from { transform: translate(-5px, 1px) rotate(-25deg); } to { transform: translate(5px, -2px) rotate(22deg); } }
+@keyframes cr-kick { from { transform: translateX(-3px); } to { transform: translateX(4px); } }
+@keyframes cr-sniff { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(11deg); } 45% { transform: rotate(7deg); } 60% { transform: rotate(11deg); } }
+@keyframes cr-twitch { from { transform: scale(1); } to { transform: scale(1.3, 1.1); } }
+@media (prefers-reduced-motion: reduce) { .crawler .cr-whole, .crawler .cr-hand, .crawler .cr-foot, .crawler .cr-head, .crawler .cr-nose { animation: none !important; } }
