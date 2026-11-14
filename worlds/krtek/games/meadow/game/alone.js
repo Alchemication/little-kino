@@ -4,7 +4,8 @@
 // his chin, scratches his head, sways humming to himself, strolls a few steps
 // and looks round, ducks down into his molehill and pops up again, pats a
 // molehill tidy, sniffs a flower, waves out at the child, has a stretch, a
-// little hop. Calmer and sparser than the yard's: a few seconds between.
+// little hop; and once a day, at midday, he waters his tulips (watering.js).
+// Calmer and sparser than the yard's: a few seconds between.
 //
 // Which one comes is weighted by the hour (Adam's pick B): mornings more
 // stretching, looking about and hopping; the day the strolls and the
@@ -15,7 +16,7 @@
 // none while a threat is about, and none staying under (he comes up first by
 // himself: underground.js).
 
-/* global Acts, Clock, Day, Debug, Hills, Layout, Mole, Sound */
+/* global Acts, Clock, Day, Debug, Hills, Layout, Mole, Sound, Watering */
 /* exported Alone */
 const Alone = (() => {
   const FIRST_MS = 4000 // left alone this long, he starts pottering
@@ -28,7 +29,7 @@ const Alone = (() => {
 
   /**
    * His moves: `weight`, `by` (how much more or less likely in each part of the day), `ok` (can it happen now,
-   * from where he is), `run`.
+   * from where he is), `run`, and `restore` (cut short: what it leaves put right).
    */
   const ACTS = {
     look: { weight: 3, by: { morning: 2 }, run: lookAbout },
@@ -42,6 +43,8 @@ const Alone = (() => {
     wave: { weight: 1, run: wave },
     stretch: { weight: 2, by: { morning: 2.5, day: 0.5, evening: 2 }, run: () => Mole.stretch() },
     hop: { weight: 2, by: { morning: 2, evening: 0.3 }, run: () => Mole.hop(30, 480) },
+    // once a day at midday, or to finish it once cut short (the can left lying out): see watering.js
+    water: { weight: 6, by: { morning: 0 }, ok: () => Watering.wants() && ['out', 'hill'].includes(Mole.state.pose), run: (alive) => Watering.run(alive), restore: () => Watering.restore() },
   }
 
   let hooks = null // the meadow's: run, free (up and nobody tapping), alone (ms since a tap), calm (no rain, no threat)
@@ -75,7 +78,7 @@ const Alone = (() => {
   function play(name) {
     last = name
     Debug.trace('alone', { act: name })
-    hooks.run(`alone ${name}`, (alive) => ACTS[name].run(alive))
+    hooks.run(`alone ${name}`, (alive) => ACTS[name].run(alive), ACTS[name].restore)
   }
 
   // ------------------------------------------------------------ his moves

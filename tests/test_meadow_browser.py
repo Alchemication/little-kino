@@ -984,6 +984,7 @@ ALONE_ACTS = {
     "wave": "hill",
     "stretch": "hill",
     "hop": "hill",
+    "water": "midday",
 }
 
 
@@ -998,6 +999,8 @@ class TestMeadowAlone:
         """Where the move can happen: in his molehill, or out on the grass by it (by
         his flower bed, for a sniff)."""
         m.wake()
+        if ALONE_ACTS[name] == "midday":  # once a day, with his tulips open
+            m.wait("meadowGame.state().hour >= '11:30'", 30_000)
         if ALONE_ACTS[name] == "out":
             m.do("go to 960")  # by his molehill and his tulips
             m.wait_free()
@@ -1007,22 +1010,59 @@ class TestMeadowAlone:
 
     @pytest.mark.parametrize("name", sorted(ALONE_ACTS))
     def test_each_move_ends_free(self, meadow: callable, name: str) -> None:
-        m = meadow()
+        m = meadow(f"{STILL}&props=&day=60")
         self.ready(m, name)
         m.page.evaluate("(n) => { Alone.play(n) }", name)
-        m.wait(f"meadowGame.state().busy === 'alone {name}'", 5000)
+        assert f'"act":"{name}"' in m.page.evaluate(
+            "meadowGame.trace()"
+        )  # a short move can be over before a wait would see it
         m.wait_free()
         m.assert_settled()
 
     @pytest.mark.parametrize("name", sorted(ALONE_ACTS))
     def test_each_move_cut_short_by_a_tap(self, meadow: callable, name: str) -> None:
-        m = meadow()
+        m = meadow(f"{STILL}&props=&day=60")
         self.ready(m, name)
         m.page.evaluate("(n) => { Alone.play(n) }", name)
         m.play_for(CUT_MS)
         m.do("go to 1500")
         m.wait_free()
         assert m.state()["x"] == 1500, m.state()
+        m.assert_settled()
+
+    def test_watering_cut_short_the_can_is_left_out_and_he_finishes_after(
+        self, meadow: callable
+    ) -> None:
+        """Adam, 2026-11-14 (after Krtek a buldozer 0:28): his can from his den, filled
+        at the spring, his tulips watered, home. Cut short with it full, he sets it
+        down on the grass, and the next time picks it up and carries on."""
+        m = meadow(f"{STILL}&props=&day=60")
+        self.ready(m, "water")
+        m.page.evaluate("() => { Alone.play('water') }")
+        m.wait("meadowGame.trace().includes(' can filled ')", 40_000)
+        m.do("go to 1500")
+        m.wait_free()
+        assert m.page.evaluate("typeof Watering.state.can") == "number", (
+            "the can was not left out"
+        )
+        assert m.page.evaluate("!!document.querySelector('.can-lying')")
+        m.assert_settled()
+        m.page.evaluate("() => { Alone.play('water') }")
+        m.wait("meadowGame.trace().includes(' watered')", 40_000)
+        m.wait_free()
+        assert m.page.evaluate("Watering.state.can") == "home"
+        assert m.page.evaluate("!document.querySelector('.can-lying')")
+        assert '"from":"lying"' in m.page.evaluate("meadowGame.trace()")
+        m.assert_settled()
+
+    def test_some_days_the_frog_pours_out_of_the_can(self, meadow: callable) -> None:
+        m = meadow("seed=2&still&props=&day=60")  # a play with the frog on its pad
+        self.ready(m, "water")
+        m.page.evaluate("() => { Alone.play('water') }")
+        m.wait("meadowGame.trace().includes(' watered')", 60_000)
+        assert "frog poured out" in m.page.evaluate("meadowGame.trace()")
+        m.wait_free()
+        m.wait("Spring.frog", 20_000)  # back on its pad in a while
         m.assert_settled()
 
     def test_left_alone_he_potters_about_his_home(self, meadow: callable) -> None:

@@ -6,7 +6,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 const vm = require('node:vm')
 
-const sandbox = { Debug: { random: () => () => 0.5, still: false }, Layout: { BED: { from: 1000, to: 1300 }, HOME: 900 } }
+const sandbox = { Debug: { random: () => () => 0.5, still: false }, Layout: { BED: { from: 1000, to: 1300 }, HOME: 900 }, Watering: { wants: () => false } }
 vm.createContext(sandbox)
 for (const f of ['acts.js', 'alone.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'game', f), 'utf8'), sandbox)
 vm.runInContext('this.Acts = Acts; this.Alone = Alone', sandbox)
@@ -64,7 +64,8 @@ test('by the hour: mornings he stretches and hops more, evenings he sways and st
   assert.ok(Alone.weightAt('hop', 8.5) > Alone.weightAt('hop', 18))
   assert.ok(Alone.weightAt('hum', 18) > Alone.weightAt('hum', 8.5))
   assert.ok(Alone.weightAt('stroll', 12) > Alone.weightAt('stroll', 18))
-  for (const name of Object.keys(Alone.ACTS)) for (const h of [8, 12, 18]) assert.ok(Alone.weightAt(name, h) > 0, `${name} at ${h}`)
+  for (const name of Object.keys(Alone.ACTS)) for (const h of [8, 12, 18]) if (name !== 'water' || h !== 8) assert.ok(Alone.weightAt(name, h) > 0, `${name} at ${h}`)
+  assert.equal(Alone.weightAt('water', 8.5), 0, 'he waters in the middle of the day, not the morning')
 })
 
 test('calm: he waits a while before pottering, and longer between moves than Reksio', () => {

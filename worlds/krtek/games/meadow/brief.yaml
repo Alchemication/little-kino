@@ -82,7 +82,7 @@ scenes:
     text: Nothing - leave him be a while.
     origin: invented
   result:
-    text: He potters about his home, a move now and then, slow and quiet - he looks about, ponders with a hand to his chin, scratches his head, sways to himself, strolls out a few steps and looks round, ducks down into his molehill and pops up again, pats it tidy, sniffs a tulip, waves out at the child, stretches, hops. Mornings more stretching and hopping, the day more strolling, the evening more swaying (Adam, 2026-11-14). Nothing at dusk, in the rain, while a threat is about, or under the ground.
+    text: He potters about his home, a move now and then, slow and quiet - he looks about, ponders with a hand to his chin, scratches his head, sways to himself, strolls out a few steps and looks round, ducks down into his molehill and pops up again, pats it tidy, sniffs a tulip, waves out at the child, stretches, hops. Once a day at midday he waters his tulips, as in Krtek a buldozer - the can from his den, filled at the spring, poured on his tulips, which nod, and home again; some days the frog has swum into the can and pours out with the water. Mornings more stretching and hopping, the day more strolling, the evening more swaying (Adam, 2026-11-14). Nothing at dusk, in the rain, while a threat is about, or under the ground.
     origin: inspired
     refs: ['world:characters[krtek].moves[ponders-hand-to-chin].claim', 'world:characters[krtek].moves[looks-about-turning].claim', 'world:characters[krtek].moves[pops-up-from-molehill].claim']
   sound:

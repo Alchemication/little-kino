@@ -23,7 +23,7 @@
 // gesture under way short (Mole.relax), and he is settled where it left
 // him, so he always ends free and standing.
 
-/* global Again, Alone, Autumn, Bed, Den, Hills, TunnelArt, Underground, Water, Oak, Owl, Fence, Church, Clock, Cricket, Critters, Flock, Heron, Wildlife, Eclipse, Moons, RainPlay, Showers, Spring, Day, Debug, FilmLook, Friends, Layout, MeadowBeds, Mole, Nest, Motion, Music, Painting, Sound, Storm, Things, Swing, Turn, View, Weather, Woodpecker, World */
+/* global Again, Alone, Watering, Autumn, Bed, Den, Hills, TunnelArt, Underground, Water, Oak, Owl, Fence, Church, Clock, Cricket, Critters, Flock, Heron, Wildlife, Eclipse, Moons, RainPlay, Showers, Spring, Day, Debug, FilmLook, Friends, Layout, MeadowBeds, Mole, Nest, Motion, Music, Painting, Sound, Storm, Things, Swing, Turn, View, Weather, Woodpecker, World */
 /* exported meadowGame */
 const meadowGame = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
@@ -831,6 +831,7 @@ const meadowGame = (() => {
   Nest.setup(document.getElementById('spring'), () => game.hour)
   RainPlay.setup({ things: document.getElementById('things'), front: document.getElementById('oak-front'), sky: document.getElementById('far-things'), ground: document.getElementById('oak-ground') }, { goTo, rounds, run, free: upFree })
   Water.setup(document.getElementById('wade'), { goTo, rounds })
+  Watering.setup({ things: document.getElementById('things'), drops: layers.top, goTo, tulips: () => tulipHeads.map(({ x, base, bend }) => ({ x, base, bend })) })
   Alone.setup({ run, free: upFree, alone: () => Clock.now() - game.lastInput, calm: () => !Things.troubled() && !Storm.phase })
   Oak.setup(document.getElementById('oak'), document.getElementById('oak-front'), document.getElementById('oak-ground'), { goTo, rounds, dropHat })
   Owl.setup(document.getElementById('oak'), { goTo, rounds })

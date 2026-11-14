@@ -87,8 +87,13 @@ sounds he has judged are in.
      (`ACTS` `by`: mornings stretches and hops, the day strolls, evenings
      swaying). None at dusk, in the rain, under a threat, or under the
      ground. The choosing is now shared with the yard (`shared/acts.js`).
-     Next, his call: the watering errand (a can filled at the spring, his
-     tulips watered: Buldozer 0:28).
+     Once a day at midday he waters his tulips (`watering.js`, his pick A,
+     after Buldozer 0:28): the can from his den, held up as he carries
+     things, filled at the spring, poured on three tulips that nod, and
+     home; some days the frog swims into the can and pours out onto the
+     tulips. Cut short, he sets the can down and finishes later. Judge:
+     the can (its look is ours: check the films' can), the pour, the
+     pace, and how the can sits on his head rather than in his hands.
    - **Adam judges him in the water** (built 2026-11-14, design A of
      three, his pick): a tap on the spring has him wade into the pool up
      to his middle and paddle a way each time (kicks, a splash in his
