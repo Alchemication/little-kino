@@ -30,7 +30,8 @@ how the games should feel is in `docs/DESIGN_PRINCIPLES.md`.
   wrong, and "-time" names a slot a child asks for more of, so it is told
   as the story on the grown-ups' page instead. A quick web search found no
   app or game of that name; no trademark register was searched. The
-  repository keeps `re-kid` until it is renamed.
+  repository was renamed from `re-kid` to `little-kino` on 2026-11-14;
+  the site's address moved with it, and the old one does not redirect.
 - **It is presented as neither a cartoon nor a game** (Adam, 2026-11-11):
   "a little world to visit". The site shows it by crossing the two out and
   by letting a visitor tap Reksio; whether that reads clearly is Adam's to

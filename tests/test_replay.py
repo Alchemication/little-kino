@@ -61,11 +61,11 @@ class TestLoadReport:
             replay.load_report(path)
 
     def test_loads_a_report_saved_on_the_site(self, tmp_path: Path) -> None:
-        url = "https://alchemication.github.io/re-kid/reksio/yard/?seed=3"
+        url = "https://alchemication.github.io/little-kino/reksio/yard/?seed=3"
         assert replay.load_report(write(tmp_path, report(replayUrl=url)))["seed"] == 3
 
     def test_rejects_a_site_game_this_repo_lacks(self, tmp_path: Path) -> None:
-        url = "https://example.org/re-kid/reksio/nosuchgame/?seed=3"
+        url = "https://example.org/little-kino/reksio/nosuchgame/?seed=3"
         with pytest.raises(ReplayError, match="isn't here"):
             replay.load_report(write(tmp_path, report(replayUrl=url)))
 
@@ -97,8 +97,8 @@ class TestLocalPage:
 
     def test_a_site_report_maps_to_this_repo(self) -> None:
         for url in [
-            "https://alchemication.github.io/re-kid/reksio/yard/?seed=1",
-            "https://alchemication.github.io/re-kid/reksio/yard/index.html?seed=1",
+            "https://alchemication.github.io/little-kino/reksio/yard/?seed=1",
+            "https://alchemication.github.io/little-kino/reksio/yard/index.html?seed=1",
             "http://localhost:8000/reksio/yard/",
         ]:
             assert replay.local_page(url) == GAME, url
@@ -119,7 +119,7 @@ class TestReplayHelpers:
         assert "held=" in replay.replay_url(report())
 
     def test_url_of_a_site_report_is_the_local_page(self) -> None:
-        site = "https://alchemication.github.io/re-kid/reksio/yard/?seed=3&rain=1"
+        site = "https://alchemication.github.io/little-kino/reksio/yard/?seed=3&rain=1"
         url = replay.replay_url(report(replayUrl=site))
         assert url.startswith(GAME.as_uri() + "?")
         assert "seed=3" in url and "rain=1" in url

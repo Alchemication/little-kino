@@ -1,4 +1,4 @@
-"""re-kid — research and build small games from childhood cartoons.
+"""Little Kino — research and build small games from childhood cartoons.
 
 Subcommands:
     list      List worlds with their claim status mix.

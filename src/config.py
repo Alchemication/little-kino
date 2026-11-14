@@ -240,7 +240,7 @@ BARK_FADE_S = 0.008
 BARK_PEAK = 0.9
 """Each bark is scaled so its loudest sample reaches this (full scale = 1)."""
 
-PLAY_STUB = "re-kid-play.html"
+PLAY_STUB = "little-kino-play.html"
 """``main.py play`` with flags writes this tiny page to the system temp folder
 and opens it; it forwards to the game with the flags in its address. Opening a
 ``file://`` address with a ``?query`` directly loses the query on macOS."""
@@ -328,7 +328,7 @@ it, as a zoomed-in still would; 640x400 left him small on the sheet."""
 
 SITE_NAME = "Little Kino"
 """The public name (Adam, 2026-11-11), as every page of the site titles itself.
-The repository and its folders keep ``re-kid`` until they are renamed."""
+The repository is ``little-kino``; the project began as re-kid."""
 
 SITE_DIR = REPO_ROOT / "site"
 """The site's own pages and assets, as written: the front page, the world
@@ -338,12 +338,12 @@ SITE_OUT = REPO_ROOT / "_site"
 """Where ``main.py site`` builds the site (gitignored); what
 ``.github/workflows/pages.yml`` uploads to GitHub Pages."""
 
-SITE_URL = "https://alchemication.github.io/re-kid/"
+SITE_URL = "https://alchemication.github.io/little-kino/"
 """The published site's address, with its closing slash. Only link previews
 need it (a preview's picture must be a full address); every link between the
 pages is relative, so a move to another address changes this line alone."""
 
-REPO_URL = "https://github.com/Alchemication/re-kid"
+REPO_URL = "https://github.com/Alchemication/little-kino"
 """The public repository the grown-ups' page points to, for the code, the
 research and a rights holder's request."""
 

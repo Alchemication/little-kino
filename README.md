@@ -1,7 +1,7 @@
-# re-kid
+# Little Kino
 
-Published as **Little Kino**: https://alchemication.github.io/re-kid/ (the
-repository keeps its working name for now).
+The site: https://alchemication.github.io/little-kino/ (the project began
+as re-kid).
 
 Small, faithful games made from nostalgic childhood cartoons — starting with
 one Polish world, Reksio, and one short game for a parent and a young child.
@@ -160,7 +160,7 @@ The site is published as **Little Kino** (Adam, 2026-11-11), and says what
 it is by what it is not: not a cartoon, not a game, a little world to visit.
 Every push to `main` that changes a game, `site/` or what its pages quote
 builds it (`main.py site`, `src/website.py`) and publishes it to GitHub Pages
-(`.github/workflows/pages.yml`): https://alchemication.github.io/re-kid/
+(`.github/workflows/pages.yml`): https://alchemication.github.io/little-kino/
 
 Three pages, and no more:
 

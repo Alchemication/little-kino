@@ -491,8 +491,8 @@ sounds he has judged are in.
    - **The grown-ups' link is plain words on the front page,** not behind
      a hold as first proposed: a visitor at a desk has to find it. Watch
      whether Eliot taps it.
-   - Not done: the repository's rename and a domain (`SITE_URL`,
-     `REPO_URL` in `src/config.py` are the two lines to change); a
+   - Not done: a domain of its own (`SITE_URL` in `src/config.py` is the
+     line to change), so the address never moves again; a
      trademark register search for the name; a nod to the song the name
      reminded Adam of (which one, he hasn't said). From a third world on:
      cards as stills with one alive at a time (each live card runs a
