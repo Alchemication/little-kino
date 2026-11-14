@@ -1,6 +1,7 @@
 """The public site's build (`src/website.py`): pages are filled from what owns
 each fact, and nothing unfit goes out — an unfilled token, a creator the
-research doesn't stand behind, a request to another site, a seventh world."""
+research doesn't stand behind, a request to another site, Polish that doesn't
+match a page's words, a seventh world."""
 
 from __future__ import annotations
 
@@ -13,7 +14,7 @@ import yaml
 
 import website
 from config import SITE_DIR, SITE_MAX_WORLDS, SITE_NAME, SITE_WORLDS, WORLDS_DIR
-from website import SiteError, build, check_front_page, check_page, fill
+from website import SiteError, build, check_front_page, check_page, check_polish, fill
 
 
 @pytest.fixture(scope="module")
@@ -48,6 +49,7 @@ class TestBuild:
         made = dossier["production"]
         assert f"{made['first_year']}–{made['last_year']}" in page
         assert made["credits"][0]["name"] in page
+        assert f"Czechy, {made['first_year']}–{made['last_year']}" in page
 
     def test_the_research_page_is_the_design_principles(self, built: Path) -> None:
         page = (built / "research.html").read_text()
@@ -203,3 +205,54 @@ class TestChecks:
         (site / "krtek.html").unlink()
         with pytest.raises(SiteError, match="no card page"):
             check_front_page(site)
+
+
+class TestPolish:
+    @staticmethod
+    def _page(polish: str, body: str = '<p data-t="a">A</p>') -> str:
+        return (
+            f"<title>{SITE_NAME}</title>{body}"
+            '<nav class="langs on-paper"></nav>'
+            f'<script type="application/json" id="pl">{polish}</script>'
+        )
+
+    def test_every_built_page_has_its_polish(self, built: Path) -> None:
+        for name in ("index.html", "grown-ups.html", "research.html"):
+            page = (built / name).read_text()
+            assert 'id="pl"' in page, name
+            check_polish(page, name)
+
+    def test_a_page_with_no_words_to_translate_needs_none(self) -> None:
+        check_polish(f"<title>{SITE_NAME}</title><p>x</p>", "card.html")
+
+    def test_a_word_without_polish_is_refused(self) -> None:
+        page = self._page('{"a": "A"}', '<p data-t="a">A</p><p data-t="b">B</p>')
+        with pytest.raises(SiteError, match="no Polish for b"):
+            check_polish(page, "p.html")
+
+    def test_a_label_and_a_scripts_string_count_as_words(self) -> None:
+        body = "<a data-t-label=\"l\" aria-label=\"L\"></a><script>Lang.t('s', 'S')</script>"
+        check_polish(self._page('{"l": "L", "s": "S"}', body), "p.html")
+        with pytest.raises(SiteError, match="no Polish for s"):
+            check_polish(self._page('{"l": "L"}', body), "p.html")
+
+    def test_polish_nothing_uses_is_refused(self) -> None:
+        with pytest.raises(SiteError, match="nothing on the page"):
+            check_polish(self._page('{"a": "A", "old": "x"}'), "p.html")
+
+    def test_empty_polish_is_refused(self) -> None:
+        with pytest.raises(SiteError, match="empty Polish for a"):
+            check_polish(self._page('{"a": " "}'), "p.html")
+
+    def test_polish_broken_by_a_filled_in_quote_is_refused(self) -> None:
+        with pytest.raises(SiteError, match="valid JSON"):
+            check_polish(self._page('{"a": "<a href="x">"}'), "p.html")
+
+    def test_words_without_a_polish_block_are_refused(self) -> None:
+        with pytest.raises(SiteError, match="no Polish"):
+            check_polish(f'<title>{SITE_NAME}</title><p data-t="a">A</p>', "p.html")
+
+    def test_polish_without_a_switch_is_refused(self) -> None:
+        page = self._page('{"a": "A"}').replace('class="langs on-paper"', "")
+        with pytest.raises(SiteError, match="no language switch"):
+            check_polish(page, "p.html")

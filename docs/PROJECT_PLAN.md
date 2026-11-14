@@ -488,9 +488,16 @@ sounds he has judged are in.
    - **The research page** is the whole of `docs/DESIGN_PRINCIPLES.md`,
      file names and all, under a note saying so. Judge whether a parent
      should get only the research section instead.
-   - **The grown-ups' link is plain words on the front page,** not behind
-     a hold as first proposed: a visitor at a desk has to find it. Watch
-     whether Eliot taps it.
+   - **The parents' button** (Adam, 2026-11-14: make it clear where
+     parents read more): "For parents: how it works", marked ⓘ, top right
+     of the front page; on a phone just "For parents". Judge whether it is
+     clear enough, and watch whether Eliot taps it.
+   - **The Polish** (Adam, 2026-11-14), all mine: the switch (EN · PL),
+     every string, and the choices in it: "ani bajka, ani gra" for the
+     tagline, "Łąka Krecika" for the meadow (the dossier has no source for
+     the name Krecik yet, so the line about the cartoon says Krtek), "ok. 5
+     min" and "twórca:" so no token needs inflecting. The research page
+     stays English, under a Polish note.
    - Not done: a domain of its own (`SITE_URL` in `src/config.py` is the
      line to change), so the address never moves again; a
      trademark register search for the name; a nod to the song the name

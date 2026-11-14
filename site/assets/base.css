@@ -120,8 +120,19 @@ body.paper a:hover { color: var(--tomato); }
 .sheet li { margin-bottom: 8px; }
 .small { font-size: 15px; color: var(--ink-soft); }
 
-/* the way back to the screen, at a page's top */
-.back { display: inline-block; margin-bottom: 26px; font-size: 15px; font-weight: 600; }
+/* a printed page's top: the way back, and the language switch */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 26px; }
+.back { font-size: 15px; font-weight: 600; }
+
+/* The language switch (assets/lang.js): two small buttons in one pill, the
+ * chosen one filled. On the screen in cream, on paper in ink. */
+.langs { display: inline-flex; flex: none; border: 2px solid currentColor; border-radius: 999px; overflow: hidden; }
+.langs button { margin: 0; padding: 4px 9px 5px; border: 0; background: none; color: inherit; font: 650 13px/1 var(--face); letter-spacing: 0.06em; cursor: pointer; }
+.langs.on-screen { color: var(--cream-dim); }
+.langs.on-screen [aria-pressed="true"] { background: var(--cream); color: var(--screen); }
+.langs.on-paper { color: var(--ink); }
+.langs.on-paper [aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.langs button:focus-visible { outline: 3px solid var(--mustard); outline-offset: -3px; }
 
 /* the last thing on a printed page: the films' end card */
 .koniec {

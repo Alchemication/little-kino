@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#efe2c2">
-<title>Little Kino, for grown-ups</title>
+<title data-t="title">Little Kino, for parents</title>
 <meta name="description" content="What Little Kino is (not a cartoon, not a game), how to play it with a small child, what it never does, and where it comes from.">
-<meta property="og:title" content="Little Kino, for grown-ups">
+<meta property="og:title" content="Little Kino, for parents">
 <meta property="og:description" content="Not a cartoon. Not a game. A little world to visit together, a few minutes at a time.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{SITE_URL}}grown-ups.html">
@@ -14,7 +14,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" href="assets/icon-192.png">
 <link rel="stylesheet" href="assets/base.css">
-<!-- The page for grown-ups, the printed programme beside the set: what
+<!-- The page for parents (the front page's "For parents" button), the
+     printed programme beside the set: what
      Little Kino is by what it is not (a cartoon, a game), Reksio to tap so
      it is shown and not only said, how a visit goes, how to play, what it
      never does, the worlds, where it comes from, the fan-work notice, and
@@ -22,7 +23,9 @@
      in by `main.py site` (src/website.py) from the game's code or the world's
      dossier, so the page can't say what they no longer do; the build fails
      on one it can't fill. Read it built (_site/), not from here. Colours,
-     type and lettering: assets/base.css. -->
+     type and lettering: assets/base.css. Its Polish is the block at the
+     end, a string for each data-t (assets/lang.js); a word changed here
+     changes there too, or the Polish says something else. -->
 <style>
   .masthead { text-align: center; }
   .masthead .lettering { font-size: clamp(48px, 13vw, 96px); }
@@ -66,125 +69,200 @@
 </head>
 <body class="paper">
 <div class="sheet">
-  <a class="back" href="index.html">← back to the screen</a>
+  <div class="topbar">
+    <a class="back" href="index.html" data-t="back">← back to the screen</a>
+    <nav class="langs on-paper" aria-label="Language" data-t-label="language"><button type="button" data-lang="en" lang="en">EN</button><button type="button" data-lang="pl" lang="pl">PL</button></nav>
+  </div>
 
   <header class="masthead">
     <h1 class="lettering on-paper" aria-label="Little Kino"><span>L</span><span>i</span><span>t</span><span>t</span><span>l</span><span>e</span><span class="gap"> </span><span>K</span><span>i</span><span>n</span><span>o</span></h1>
-    <span class="label">The programme, for grown-ups</span>
+    <span class="label" data-t="masthead">The programme, for parents</span>
   </header>
 
   <ul class="three">
     <li class="not">
-      <h3><span>A cartoon</span></h3>
-      <p>You sit and watch. It runs the same way every time, whether anyone is looking or not.</p>
+      <h3><span data-t="cartoon">A cartoon</span></h3>
+      <p data-t="cartoon-p">You sit and watch. It runs the same way every time, whether anyone is looking or not.</p>
     </li>
     <li class="not">
-      <h3><span>A game</span></h3>
-      <p>You play to win. There are points and levels, something to lose, and a reason to come back tomorrow.</p>
+      <h3><span data-t="game">A game</span></h3>
+      <p data-t="game-p">You play to win. There are points and levels, something to lose, and a reason to come back tomorrow.</p>
     </li>
     <li class="is">
-      <h3>A little world</h3>
-      <p>You visit. A dog in his yard, a mole in his meadow, one short day. Touch something and he does something with it. Nothing to win, and it ends when he goes to sleep.</p>
+      <h3 data-t="world">A little world</h3>
+      <p data-t="world-p">You visit. A dog in his yard, a mole in his meadow, one short day. Touch something and he does something with it. Nothing to win, and it ends when he goes to sleep.</p>
     </li>
   </ul>
 
   <section>
-    <span class="label">See for yourself</span>
-    <h2>This is Reksio. Tap him.</h2>
+    <span class="label" data-t="see">See for yourself</span>
+    <h2 data-t="see-h">This is Reksio. Tap him.</h2>
     <div class="set">
-      <iframe src="reksio.html" title="Reksio in his yard" tabindex="-1"></iframe>
-      <button type="button" id="tap" aria-label="Tap Reksio"></button>
+      <iframe src="reksio.html" title="Reksio in his yard" data-t-label="set" tabindex="-1"></iframe>
+      <button type="button" id="tap" aria-label="Tap Reksio" data-t-label="tap"></button>
     </div>
     <p class="heard" id="heard" aria-live="polite"></p>
-    <p>That is all a visit is made of. A child touches the bowl, the tree, the bird or the dog himself, and he answers, a little differently each time. A child who would rather watch can watch: he gets on with his day by himself.</p>
+    <p data-t="see-p">That is all a visit is made of. A child touches the bowl, the tree, the bird or the dog himself, and he answers, a little differently each time. A child who would rather watch can watch: he gets on with his day by himself.</p>
   </section>
 
   <section>
-    <span class="label">A visit</span>
-    <h2>One day, about {{DAY_MINUTES}} minutes.</h2>
+    <span class="label" data-t="visit">A visit</span>
+    <h2 data-t="visit-h">One day, about {{DAY_MINUTES}} minutes.</h2>
     <ul class="listing">
-      <li><b>{{DAY_FROM}}:00</b><span>He wakes up and comes out.</span></li>
-      <li><b>All day</b><span>Tap a place and he goes there. Tap a thing and he tries it. The weather turns, visitors come and go, the sun crosses the sky.</span></li>
-      <li><b>{{DAY_TO}}:00</b><span>He is tired and goes to bed. That is the end.</span></li>
+      <li><b>{{DAY_FROM}}:00</b><span data-t="wakes">He wakes up and comes out.</span></li>
+      <li><b data-t="all-day">All day</b><span data-t="all-day-p">Tap a place and he goes there. Tap a thing and he tries it. The weather turns, visitors come and go, the sun crosses the sky.</span></li>
+      <li><b>{{DAY_TO}}:00</b><span data-t="bed">He is tired and goes to bed. That is the end.</span></li>
     </ul>
-    <p>The day is the same length for everyone. A child who watches a snail the whole time gets as long as one who tries everything, and nothing is lost when it ends.</p>
+    <p data-t="visit-p">The day is the same length for everyone. A child who watches a snail the whole time gets as long as one who tries everything, and nothing is lost when it ends.</p>
   </section>
 
   <section>
-    <span class="label">How to play</span>
-    <h2>Together, in the daytime.</h2>
+    <span class="label" data-t="how">How to play</span>
+    <h2 data-t="how-h">Together, in the daytime.</h2>
     <ul>
-      <li><strong>Sit beside your child.</strong> There are no words on the screen, so the talking is yours: point, ask, laugh.</li>
-      <li><strong>Not before bed.</strong> His bedtime is the end of his day, not a way to settle a child. Doctors advise no screens in the hour before sleep.</li>
-      <li><strong>Turn the phone on its side.</strong> On an iPhone, add the front page to the Home Screen (Share, then Add to Home Screen) and it opens without the browser's bars.</li>
-      <li><strong>When it is over, it is over.</strong> After he falls asleep, taps do nothing. To start a new morning, hold the small sun in the bottom-left corner for {{HOLD_SECONDS}} seconds. That is a grown-up's job: a toddler's tap can't do it.</li>
-      <li><strong>Need to go?</strong> In Reksio's yard, hold his doghouse for {{HOLD_SECONDS}} seconds and the evening comes at once.</li>
+      <li data-t="how-1"><strong>Sit beside your child.</strong> There are no words on the screen, so the talking is yours: point, ask, laugh.</li>
+      <li data-t="how-2"><strong>Not before bed.</strong> His bedtime is the end of his day, not a way to settle a child. Doctors advise no screens in the hour before sleep.</li>
+      <li data-t="how-3"><strong>Turn the phone on its side.</strong> On an iPhone, add the front page to the Home Screen (Share, then Add to Home Screen) and it opens without the browser's bars.</li>
+      <li data-t="how-4"><strong>When it is over, it is over.</strong> After he falls asleep, taps do nothing. To start a new morning, hold the small sun in the bottom-left corner for {{HOLD_SECONDS}} seconds. That is a grown-up's job: a toddler's tap can't do it.</li>
+      <li data-t="how-5"><strong>Need to go?</strong> In Reksio's yard, hold his doghouse for {{HOLD_SECONDS}} seconds and the evening comes at once.</li>
     </ul>
   </section>
 
   <section>
-    <span class="label">House rules</span>
-    <h2>What it never does.</h2>
+    <span class="label" data-t="rules">House rules</span>
+    <h2 data-t="rules-h">What it never does.</h2>
     <ul class="never">
-      <li>No ads, no purchases, no accounts.</li>
-      <li>No analytics: nothing about your child's play is collected.</li>
-      <li>No scores, no losing, nothing to collect.</li>
-      <li>No streaks, and no reward for playing longer or coming back.</li>
-      <li>No countdowns and no hurry.</li>
-      <li>No "play again". It doesn't start over by itself.</li>
-      <li>No words to read.</li>
-      <li>No claim that it teaches anything.</li>
+      <li data-t="never-1">No ads, no purchases, no accounts.</li>
+      <li data-t="never-2">No analytics: nothing about your child's play is collected.</li>
+      <li data-t="never-3">No scores, no losing, nothing to collect.</li>
+      <li data-t="never-4">No streaks, and no reward for playing longer or coming back.</li>
+      <li data-t="never-5">No countdowns and no hurry.</li>
+      <li data-t="never-6">No "play again". It doesn't start over by itself.</li>
+      <li data-t="never-7">No words to read.</li>
+      <li data-t="never-8">No claim that it teaches anything.</li>
     </ul>
-    <p>We read what doctors and researchers say about short screen play for toddlers before making this, and wrote down what follows from it. <a href="research.html">Read the research and our rules</a>.</p>
+    <p data-t="rules-p">We read what doctors and researchers say about short screen play for toddlers before making this, and wrote down what follows from it. <a href="research.html">Read the research and our rules</a>.</p>
   </section>
 
   <section>
-    <span class="label">Now showing</span>
-    <h2>The worlds.</h2>
+    <span class="label" data-t="worlds">Now showing</span>
+    <h2 data-t="worlds-h">The worlds.</h2>
     <div class="world">
-      <h3>Reksio's yard</h3>
-      <p class="small">After the {{reksio.country}} cartoon {{reksio.title}}, {{reksio.years}}, created by {{reksio.creator}}.</p>
-      <p>A dog, his doghouse, a bowl, a tree, the hens next door, and whatever the weather brings.</p>
-      <a class="open" href="reksio/yard/">Open the yard</a>
+      <h3 data-t="yard">Reksio's yard</h3>
+      <p class="small" data-t="yard-after">After the {{reksio.country}} cartoon {{reksio.title}}, {{reksio.years}}, created by {{reksio.creator}}.</p>
+      <p data-t="yard-p">A dog, his doghouse, a bowl, a tree, the hens next door, and whatever the weather brings.</p>
+      <a class="open" href="reksio/yard/" data-t="yard-open">Open the yard</a>
     </div>
     <div class="world">
-      <h3>Krtek's meadow</h3>
-      <p class="small">After the {{krtek.country}} cartoon {{krtek.title}} ({{krtek.title_en}}), {{krtek.years}}, created by {{krtek.creator}}.</p>
-      <p>A mole, his molehill, a spring and an old tree, and the friends and things that turn up.</p>
-      <a class="open" href="krtek/meadow/">Open the meadow</a>
+      <h3 data-t="meadow">Krtek's meadow</h3>
+      <p class="small" data-t="meadow-after">After the {{krtek.country}} cartoon {{krtek.title}} ({{krtek.title_en}}), {{krtek.years}}, created by {{krtek.creator}}.</p>
+      <p data-t="meadow-p">A mole, his molehill, a spring and an old tree, and the friends and things that turn up.</p>
+      <a class="open" href="krtek/meadow/" data-t="meadow-open">Open the meadow</a>
     </div>
-    <p class="small" style="margin-top:14px">There will be a few more, slowly. Never more than fit on one screen.</p>
+    <p class="small" style="margin-top:14px" data-t="more">There will be a few more, slowly. Never more than fit on one screen.</p>
   </section>
 
   <section>
-    <span class="label">Where it comes from</span>
+    <span class="label" data-t="origin">Where it comes from</span>
     <h2>Baja time.</h2>
-    <p>Little Kino is made by a dad for his son Eliot, who is three and calls it <em>baja time</em>. <em>Bajka</em> is what a Polish child calls a cartoon. These are the ones his dad grew up with, from the years when a cartoon was a few minutes long and then it was over.</p>
-    <p>Each world is researched first: what the films show, who made them, how they sound, with a source for every claim. Then one home scene is built from it. The characters are drawn in code after the films, not traced from them. The sounds and music are new, made with a generative model and picked by ear. The one exception is Reksio's bark, which is his own, from the films.</p>
-    <p>The code and the research are open: <a href="{{REPO_URL}}">{{REPO_URL}}</a>.</p>
+    <p data-t="origin-1">Little Kino is made by a dad for his son Eliot, who is three and calls it <em>baja time</em>. <em>Bajka</em> is what a Polish child calls a cartoon. These are the ones his dad grew up with, from the years when a cartoon was a few minutes long and then it was over.</p>
+    <p data-t="origin-2">Each world is researched first: what the films show, who made them, how they sound, with a source for every claim. Then one home scene is built from it. The characters are drawn in code after the films, not traced from them. The sounds and music are new, made with a generative model and picked by ear. The one exception is Reksio's bark, which is his own, from the films.</p>
+    <p data-t="origin-3">The code and the research are open: <a href="{{REPO_URL}}">{{REPO_URL}}</a>.</p>
   </section>
 
   <section>
-    <span class="label">Notice</span>
-    <h2>A fan's work.</h2>
-    <p>Little Kino is a fan project, made for love and not for money. It is not affiliated with or endorsed by the studios, the creators' families, or anyone else who holds rights in these cartoons.</p>
-    <p>{{reksio.title}} was created by {{reksio.creator}}; {{krtek.title}} by {{krtek.creator}}. The characters and the films belong to them and to those who hold their rights today. Nothing here is taken from the films except Reksio's bark.</p>
-    <p>If you hold rights in either and want something changed or taken down, <a href="{{REPO_URL}}/issues">open an issue</a> and we will do it.</p>
+    <span class="label" data-t="notice">Notice</span>
+    <h2 data-t="notice-h">A fan's work.</h2>
+    <p data-t="notice-1">Little Kino is a fan project, made for love and not for money. It is not affiliated with or endorsed by the studios, the creators' families, or anyone else who holds rights in these cartoons.</p>
+    <p data-t="notice-2">{{reksio.title}} was created by {{reksio.creator}}; {{krtek.title}} by {{krtek.creator}}. The characters and the films belong to them and to those who hold their rights today. Nothing here is taken from the films except Reksio's bark.</p>
+    <p data-t="notice-3">If you hold rights in either and want something changed or taken down, <a href="{{REPO_URL}}/issues">open an issue</a> and we will do it.</p>
   </section>
 
   <div class="koniec">
     <p class="lettering on-screen" aria-label="Koniec"><span>K</span><span>o</span><span>n</span><span>i</span><span>e</span><span>c</span></p>
-    <p>the end, as Reksio's films say it</p>
+    <p data-t="koniec">the end, as Reksio's films say it</p>
   </div>
 </div>
 <script>
   // A tap on the set: he cheers (his card hears it), and the page says what happened.
-  const HEARD = ['He heard you.', 'And again, he heard you.', 'Every tap gets an answer.']
+  // (each key written out, so the build can check it has its Polish)
+  const HEARD = [() => Lang.t('heard-1', 'He heard you.'), () => Lang.t('heard-2', 'And again, he heard you.'), () => Lang.t('heard-3', 'Every tap gets an answer.')]
+  const heard = document.getElementById('heard')
   let taps = 0
   document.getElementById('tap').addEventListener('click', () => {
     document.querySelector('.set iframe').contentWindow.postMessage('cheer', '*')
-    document.getElementById('heard').textContent = HEARD[Math.min(taps++, HEARD.length - 1)]
+    heard.textContent = HEARD[Math.min(taps++, HEARD.length - 1)]()
   })
+  document.addEventListener('lang', () => { heard.textContent = ''; taps = 0 }) // the other language: start the answers over in it
 </script>
+<script type="application/json" id="pl">
+{
+  "title": "Little Kino, dla rodziców",
+  "back": "← z powrotem do ekranu",
+  "language": "Język",
+  "masthead": "Program, dla rodziców",
+  "cartoon": "Bajka",
+  "cartoon-p": "Siedzisz i oglądasz. Leci tak samo za każdym razem, czy ktoś patrzy, czy nie.",
+  "game": "Gra",
+  "game-p": "Grasz, żeby wygrać. Są punkty i poziomy, można coś stracić i jest powód, żeby jutro wrócić.",
+  "world": "Mały świat",
+  "world-p": "Wpadasz w odwiedziny. Pies na swoim podwórku, kret na swojej łące, jeden krótki dzień. Dotknij czegoś, a on coś z tym zrobi. Nie ma czego wygrać, a wszystko kończy się, kiedy on idzie spać.",
+  "see": "Sprawdź",
+  "see-h": "To jest Reksio. Dotknij go.",
+  "set": "Reksio na swoim podwórku",
+  "tap": "Dotknij Reksia",
+  "heard-1": "Usłyszał cię.",
+  "heard-2": "I znowu cię usłyszał.",
+  "heard-3": "Na każde dotknięcie jest odpowiedź.",
+  "see-p": "Z tego składa się cała wizyta. Dziecko dotyka miski, drzewa, ptaka albo samego psa, a on odpowiada, za każdym razem trochę inaczej. Dziecko, które woli patrzeć, może patrzeć: pies sam zajmie się swoim dniem.",
+  "visit": "Wizyta",
+  "visit-h": "Jeden dzień, ok. {{DAY_MINUTES}} min.",
+  "wakes": "Budzi się i wychodzi.",
+  "all-day": "Cały dzień",
+  "all-day-p": "Dotknij miejsca, a on tam pójdzie. Dotknij rzeczy, a on coś z nią zrobi. Zmienia się pogoda, goście przychodzą i odchodzą, słońce wędruje po niebie.",
+  "bed": "Jest zmęczony i idzie spać. To koniec.",
+  "visit-p": "Dzień trwa tyle samo dla każdego. Dziecko, które cały czas przygląda się ślimakowi, ma go tyle samo, co dziecko, które próbuje wszystkiego, a kiedy dzień się kończy, nic nie przepada.",
+  "how": "Jak się bawić",
+  "how-h": "Razem, za dnia.",
+  "how-1": "<strong>Usiądź obok dziecka.</strong> Na ekranie nie ma słów, więc mówienie należy do ciebie: pokazuj, pytaj, śmiejcie się.",
+  "how-2": "<strong>Nie przed snem.</strong> Jego pora spania to koniec jego dnia, a nie sposób na uśpienie dziecka. Lekarze radzą, żeby w ostatniej godzinie przed snem nie było ekranów.",
+  "how-3": "<strong>Obróć telefon poziomo.</strong> Na iPhonie dodaj stronę główną do ekranu początkowego (Udostępnij, a potem Do ekranu początkowego), a otworzy się bez pasków przeglądarki.",
+  "how-4": "<strong>Koniec to koniec.</strong> Kiedy zaśnie, dotykanie nic nie robi. Żeby zacząć nowy poranek, przytrzymaj małe słońce w lewym dolnym rogu przez {{HOLD_SECONDS}} s. To zadanie dla dorosłego: maluch nie zrobi tego jednym dotknięciem.",
+  "how-5": "<strong>Musicie kończyć?</strong> Na podwórku Reksia przytrzymaj jego budę przez {{HOLD_SECONDS}} s, a od razu zapadnie wieczór.",
+  "rules": "Zasady domu",
+  "rules-h": "Czego tu nigdy nie będzie.",
+  "never-1": "Reklam, zakupów ani kont.",
+  "never-2": "Analityki: nic o zabawie dziecka nie jest zbierane.",
+  "never-3": "Punktów, przegrywania ani niczego do zbierania.",
+  "never-4": "Serii ani nagród za dłuższą zabawę czy powroty.",
+  "never-5": "Odliczania ani pośpiechu.",
+  "never-6": "„Zagraj jeszcze raz”. Nic nie zaczyna się od nowa samo.",
+  "never-7": "Słów do czytania.",
+  "never-8": "Obietnic, że czegoś uczy.",
+  "rules-p": "Zanim to powstało, przeczytaliśmy, co lekarze i badacze mówią o krótkiej zabawie przy ekranie dla maluchów, i spisaliśmy, co z tego wynika. <a href='research.html'>Przeczytaj badania i nasze zasady</a> (po angielsku).",
+  "worlds": "W programie",
+  "worlds-h": "Światy.",
+  "yard": "Podwórko Reksia",
+  "yard-after": "Na podstawie bajki {{reksio.title}} · {{reksio.country_pl}}, {{reksio.years}} · twórca: {{reksio.creator}}",
+  "yard-p": "Pies, jego buda, miska, drzewo, kury od sąsiadów i to, co przyniesie pogoda.",
+  "yard-open": "Otwórz podwórko",
+  "meadow": "Łąka Krecika",
+  "meadow-after": "Na podstawie bajki {{krtek.title}} · {{krtek.country_pl}}, {{krtek.years}} · twórca: {{krtek.creator}}",
+  "meadow-p": "Kret, jego kopiec, źródełko, stare drzewo oraz przyjaciele i rzeczy, które się pojawiają.",
+  "meadow-open": "Otwórz łąkę",
+  "more": "Będzie ich jeszcze kilka, powoli. Nigdy więcej, niż zmieści się na jednym ekranie.",
+  "origin": "Skąd się to wzięło",
+  "origin-1": "Little Kino robi tata dla swojego syna Eliota, który ma trzy lata i mówi na to <em>baja time</em>, od <em>bajki</em>. To bajki, na których wychował się jego tata, z czasów, kiedy bajka trwała kilka minut, a potem się kończyła.",
+  "origin-2": "Każdy świat najpierw dokładnie badamy: co pokazują filmy, kto je zrobił, jak brzmią, ze źródłem przy każdym stwierdzeniu. Potem powstaje z tego jedna domowa scena. Postacie są rysowane w kodzie na wzór filmów, a nie z nich odrysowane. Dźwięki i muzyka są nowe, zrobione modelem generatywnym i wybrane na ucho. Jedyny wyjątek to szczekanie Reksia: jego własne, z filmów.",
+  "origin-3": "Kod i materiały są otwarte: <a href='{{REPO_URL}}'>{{REPO_URL}}</a>.",
+  "notice": "Informacja",
+  "notice-h": "Projekt fanowski.",
+  "notice-1": "Little Kino to projekt fanowski, robiony z miłości, a nie dla pieniędzy. Nie jest powiązany ze studiami, rodzinami twórców ani nikim innym, kto ma prawa do tych bajek, ani przez nich zatwierdzony.",
+  "notice-2": "Twórcy: {{reksio.title}} – {{reksio.creator}}; {{krtek.title}} – {{krtek.creator}}. Postacie i filmy należą do nich i do tych, którzy mają do nich prawa dziś. Nic tu nie pochodzi z filmów oprócz szczekania Reksia.",
+  "notice-3": "Jeśli masz prawa do którejś z nich i chcesz coś zmienić albo usunąć, <a href='{{REPO_URL}}/issues'>zgłoś to tutaj</a>, a zrobimy to.",
+  "koniec": "jak na końcu filmów o Reksiu"
+}
+</script>
+<script src="assets/lang.js"></script>
 </body>
 </html>

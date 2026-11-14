@@ -372,10 +372,11 @@ SITE_PRINCIPLES_DOC = REPO_ROOT / "docs" / "DESIGN_PRINCIPLES.md"
 """The doc the site's research page is rendered from, so the page parents
 read is the rules the work follows, never a second copy."""
 
-SITE_COUNTRIES = {"PL": "Polish", "CZ": "Czech"}
-"""A dossier's country code, as the site says where a cartoon is from ("the
-Polish cartoon Reksio"). A new world's country goes here; the build fails
-on a code it doesn't know."""
+SITE_COUNTRIES = {"PL": ("Polish", "Polska"), "CZ": ("Czech", "Czechy")}
+"""A dossier's country code, as the site says where a cartoon is from: in
+English an adjective ("the Polish cartoon Reksio"), in Polish the country's
+name, which the sentence never has to inflect ("bajka Reksio · Polska"). A
+new world's country goes here; the build fails on a code it doesn't know."""
 
 SITE_FACTS = {
     "DAY_MINUTES": ("reksio/games/yard/game/day.js", r"const LENGTH_S = (\d+)", 60),

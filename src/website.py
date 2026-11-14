@@ -5,7 +5,8 @@ fills the ``{{TOKEN}}`` places in the site's pages from what owns each fact (a
 game's code, a world's dossier, ``config``), and renders the research page from
 ``docs/DESIGN_PRINCIPLES.md``. It refuses to publish a page with a token left
 unfilled, a fact resting on an unsourced claim, a page that asks another site
-for anything, or a front page with more worlds than fit on one screen.
+for anything, a page whose Polish doesn't match the words it marks, or a front
+page with more worlds than fit on one screen.
 ``render_art`` photographs the link preview and the icon from their sources.
 
 Example:
@@ -15,6 +16,7 @@ Example:
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 import shutil
@@ -49,6 +51,11 @@ _OUTSIDE = re.compile(
     re.IGNORECASE,
 )
 _CARD = re.compile(r'<div class="card">')
+_POLISH = re.compile(
+    r'<script type="application/json" id="pl">(.*?)</script>', re.DOTALL
+)
+_TRANSLATED = re.compile(r'\sdata-t(?:-label)?="([\w.-]+)"')
+_ASKED = re.compile(r"""\bLang\.t\(['"]([\w.-]+)['"]""")
 _MARKER = ".nojekyll"
 _CITABLE = {Status.VERIFIED, Status.SOURCED}
 
@@ -95,8 +102,8 @@ def world_facts(world_id: str, worlds_root: Path = WORLDS_DIR) -> dict[str, str]
         worlds_root: Folder holding the worlds.
 
     Returns:
-        Tokens ``<world>.title``, ``.title_en``, ``.country``, ``.years`` and
-        ``.creator`` with their values.
+        Tokens ``<world>.title``, ``.title_en``, ``.country`` (and
+        ``.country_pl``), ``.years`` and ``.creator`` with their values.
 
     Raises:
         SiteError: A field the pages need is missing or not citable.
@@ -121,7 +128,8 @@ def world_facts(world_id: str, worlds_root: Path = WORLDS_DIR) -> dict[str, str]
     return {
         f"{world_id}.title": dossier.title,
         f"{world_id}.title_en": dossier.title_en or dossier.title,
-        f"{world_id}.country": SITE_COUNTRIES[dossier.country],
+        f"{world_id}.country": SITE_COUNTRIES[dossier.country][0],
+        f"{world_id}.country_pl": SITE_COUNTRIES[dossier.country][1],
         f"{world_id}.years": f"{made.first_year}–{made.last_year}",
         f"{world_id}.creator": made.credits[0].name,
     }
@@ -231,7 +239,7 @@ def check_page(page: str, name: str) -> None:
         SiteError: It doesn't carry the site's name, or loads something from
             another site (the pages promise parents they ask for nothing).
     """
-    title = re.search(r"<title>(.*?)</title>", page, re.DOTALL)
+    title = re.search(r"<title[^>]*>(.*?)</title>", page, re.DOTALL)
     if not title or SITE_NAME not in title.group(1):
         raise SiteError(f"{name}: its <title> must carry the name, {SITE_NAME!r}.")
     if _OUTSIDE.search(page):
@@ -239,6 +247,54 @@ def check_page(page: str, name: str) -> None:
             f"{name}: loads something from another site. Keep a copy under "
             "site/assets/ instead; the pages ask no one else for anything."
         )
+
+
+def check_polish(page: str, name: str) -> None:
+    """Check a built page has Polish for every word it marks, and no more.
+
+    A page marks what is translated with ``data-t`` (content) or
+    ``data-t-label`` (aria-label and title), or asks for it in its script with
+    ``Lang.t('key', …)``; its Polish is the JSON block ``id="pl"``
+    (``site/assets/lang.js``).
+
+    Args:
+        page: The built page, its tokens filled.
+        name: Its file name, for the error.
+
+    Raises:
+        SiteError: A key has no Polish, the Polish has a key nothing uses, a
+            string is empty, the block isn't JSON, or the page has no switch.
+    """
+    wanted = set(_TRANSLATED.findall(page)) | set(_ASKED.findall(page))
+    block = _POLISH.search(page)
+    if not wanted and not block:
+        return
+    if not block:
+        raise SiteError(
+            f"{name}: marks words to translate but has no Polish. Add a "
+            '<script type="application/json" id="pl"> block with a string for each.'
+        )
+    try:
+        polish = json.loads(block.group(1))
+    except json.JSONDecodeError as exc:
+        raise SiteError(
+            f"{name}: its Polish isn't valid JSON once filled in ({exc}). A "
+            "string may hold a bare double quote: use single ones in its HTML."
+        ) from exc
+    missing = sorted(wanted - polish.keys())
+    unused = sorted(polish.keys() - wanted)
+    empty = sorted(k for k, v in polish.items() if not str(v).strip())
+    if missing:
+        raise SiteError(f"{name}: no Polish for {', '.join(missing)}. Add it.")
+    if unused:
+        raise SiteError(
+            f"{name}: Polish for {', '.join(unused)}, which nothing on the page "
+            "uses. Remove it, or mark the element with data-t."
+        )
+    if empty:
+        raise SiteError(f"{name}: empty Polish for {', '.join(empty)}.")
+    if 'class="langs' not in page:
+        raise SiteError(f"{name}: has Polish but no language switch to reach it.")
 
 
 def build(
@@ -288,6 +344,7 @@ def build(
         page = fill(path.read_text(), values, path.name)
         if path.stem not in SITE_WORLDS:  # a card is a picture, drawn by its game
             check_page(page, path.name)
+            check_polish(page, path.name)
         path.write_text(page)
     logger.info("built %d pages and the games into %s", len(pages), out)
     return pages

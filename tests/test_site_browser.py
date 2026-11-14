@@ -1,8 +1,9 @@
 """The site's pages (`site/`), in a browser: the front page opens on Little
 Kino's worlds, each card painted, under the old-print look and alive, with no
 error, so a game's part that changes (the meadow's painting once needed its
-oak) can't leave a card half drawn without a test failing; the grown-ups'
-page shows Reksio answering a tap. What the build fills in and refuses is in
+oak) can't leave a card half drawn without a test failing; the parents'
+page shows Reksio answering a tap; the language switch works and its choice
+is kept in the browser. What the build fills in and refuses is in
 test_site.py."""
 
 from __future__ import annotations
@@ -108,3 +109,61 @@ class TestGrownUps:
             assert errors == []
         finally:
             page.close()
+
+
+class TestLanguage:
+    def _open(self, browser: object, page_name: str, locale: str = "en-US") -> tuple:
+        context = browser.new_context(
+            viewport={"width": 844, "height": 390}, locale=locale
+        )
+        page = context.new_page()
+        errors: list[str] = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto((SITE / page_name).as_uri())
+        return context, page, errors
+
+    def test_the_switch_turns_the_words_polish_and_keeps_the_choice(
+        self, browser: object
+    ) -> None:
+        context, page, errors = self._open(browser, "index.html")
+        try:
+            assert page.evaluate("document.documentElement.lang") == "en"
+            assert page.text_content(".parents") == "iFor parents: how it works"
+            page.click(".langs [data-lang=pl]")
+            assert page.evaluate("document.documentElement.lang") == "pl"
+            assert page.text_content(".name p").startswith("ani bajka, ani gra")
+            assert page.get_attribute("#reksio", "aria-label") == "Podwórko Reksia"
+            assert page.get_attribute(".parents", "href") == "grown-ups.html?lang=pl"
+            assert page.get_attribute(".langs [data-lang=pl]", "aria-pressed") == "true"
+            page.click(".parents")
+            page.wait_for_load_state()
+            assert page.title() == "Little Kino, dla rodziców"
+            page.goto(
+                (SITE / "grown-ups.html").as_uri()
+            )  # no ?lang: kept by the browser
+            assert page.evaluate("document.documentElement.lang") == "pl"
+            page.click("#tap")
+            assert page.text_content("#heard") == "Usłyszał cię."
+            page.click(".langs [data-lang=en]")
+            assert page.text_content("#heard") == ""
+            assert page.text_content(".masthead .label") == "The programme, for parents"
+            page.goto((SITE / "index.html").as_uri())
+            assert page.evaluate("document.documentElement.lang") == "en"
+            assert errors == []
+        finally:
+            context.close()
+
+    def test_a_polish_browser_opens_in_polish_and_an_address_can_ask(
+        self, browser: object
+    ) -> None:
+        context, page, errors = self._open(browser, "index.html", locale="pl-PL")
+        try:
+            assert page.evaluate("document.documentElement.lang") == "pl"
+            page.goto((SITE / "research.html").as_uri() + "?lang=en")
+            assert page.evaluate("document.documentElement.lang") == "en"
+            assert page.evaluate("document.querySelector('article').lang") == "en"
+            page.goto((SITE / "index.html").as_uri())  # the address's choice is kept
+            assert page.evaluate("document.documentElement.lang") == "en"
+            assert errors == []
+        finally:
+            context.close()

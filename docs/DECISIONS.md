@@ -36,8 +36,9 @@ how the games should feel is in `docs/DESIGN_PRINCIPLES.md`.
   "a little world to visit". The site shows it by crossing the two out and
   by letting a visitor tap Reksio; whether that reads clearly is Adam's to
   judge. The code and these docs still say "game".
-- **A small public site, in English, with a fan-work notice** (Adam,
-  2026-11-11). Three pages and no more; the front page stays one screen
+- **A small public site, in English and Polish, with a fan-work notice**
+  (Adam, 2026-11-11; Polish added 2026-11-14, and the language kept in the
+  visitor's browser). Three pages and no more; the front page stays one screen
   that never scrolls, with at most six worlds, so the collection can grow
   a little and never become a feed. The notice says it is unaffiliated and
   that a rights holder's request will be acted on. This is Adam's call

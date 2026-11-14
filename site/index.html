@@ -21,8 +21,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="assets/base.css">
 <!-- The site's front page, the screen: Little Kino's name, what it is in a
-     line, and the way to the grown-ups' page (the child needs no words: the
-     cards are the choice), then the worlds to pick from, all on one screen
+     line, the language switch, and a button to the parents' page that a
+     grown-up can't miss (the child needs no words: the cards are the
+     choice), then the worlds to pick from, all on one screen
      with nothing to scroll, however many there are (up to six: the grid
      below). Each card is a little page of its own (reksio.html, krtek.html),
      shown in a frame so each game's scripts stay apart: the scene painted by
@@ -32,16 +33,30 @@
      bare, modern picture first. A tap on one: he cheers, and his scene
      opens. `main.py site` publishes it (the {{…}} in the head are filled in
      then: only link previews read them); opened from disk, it finds the
-     games in worlds/. Colours and lettering: assets/base.css. -->
+     games in worlds/. Colours and lettering: assets/base.css; the Polish
+     for its words, the block at the end (assets/lang.js). -->
 <style>
   html, body { margin: 0; height: 100%; background: var(--screen); overflow: hidden; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
   body { display: flex; flex-direction: column; height: 100dvh; padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); font-family: var(--face); }
-  header { flex: none; display: flex; align-items: baseline; justify-content: center; gap: 4px 0.9em; flex-wrap: wrap; padding: 2px 0 10px; }
+  /* the name in the middle, the switch to its left, the parents' button to its right;
+     upright, the name on top and the two under it */
+  header { flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px 14px; padding: 0 0 10px; }
+  .langs { justify-self: start; }
+  .name { text-align: center; }
   h1 { font-size: clamp(26px, 6vmin, 44px); }
-  header p { margin: 0; font-size: clamp(13px, 2.8vmin, 19px); font-style: italic; color: var(--cream-dim); }
-  /* the grown-ups' door: words, so only someone who reads goes through */
-  header a { font-size: clamp(12px, 2.4vmin, 16px); color: var(--cream-dim); text-decoration-color: var(--rust); text-underline-offset: 3px; white-space: nowrap; }
-  header a:hover { color: var(--cream); }
+  .name p { margin: 4px 0 0; font-size: clamp(13px, 2.6vmin, 18px); font-style: italic; color: var(--cream-dim); }
+  /* The parents' door: words in a button's shape, with the sign for "information", so a
+     grown-up sees at once where to read how it works. A child, who can't read, has the cards. */
+  .parents { justify-self: end; display: inline-flex; align-items: center; gap: 7px; padding: 5px 13px 5px 6px; border: 2px solid var(--cream-dim); border-radius: 999px; color: var(--cream); font-size: clamp(13px, 2.4vmin, 16px); font-weight: 650; text-decoration: none; white-space: nowrap; }
+  .parents .i { display: grid; place-items: center; width: 1.5em; height: 1.5em; border-radius: 50%; background: var(--cream); color: var(--screen); font-weight: 900; font-style: italic; line-height: 1; }
+  .parents:hover, .parents:focus-visible { background: var(--rust); border-color: var(--cream); outline: none; }
+  @media (max-width: 899px) { .parents .more { display: none; } }
+  @media (max-width: 560px) {
+    header { grid-template-columns: auto auto; grid-template-areas: "name name" "langs parents"; }
+    .name { grid-area: name; }
+    .langs { grid-area: langs; }
+    .parents { grid-area: parents; }
+  }
   /* The worlds, always on one screen: two side by side, three or four in two
      rows, five or six in three columns; upright, in one column, or two from
      four on. */
@@ -61,13 +76,16 @@
 </head>
 <body>
 <header>
-  <h1 class="lettering on-screen" aria-label="Little Kino"><span>L</span><span>i</span><span>t</span><span>t</span><span>l</span><span>e</span><span class="gap"> </span><span>K</span><span>i</span><span>n</span><span>o</span></h1>
-  <p>not a cartoon, not a game: a little world to visit</p>
-  <a href="grown-ups.html">for grown-ups</a>
+  <nav class="langs on-screen" aria-label="Language" data-t-label="language"><button type="button" data-lang="en" lang="en">EN</button><button type="button" data-lang="pl" lang="pl">PL</button></nav>
+  <div class="name">
+    <h1 class="lettering on-screen" aria-label="Little Kino"><span>L</span><span>i</span><span>t</span><span>t</span><span>l</span><span>e</span><span class="gap"> </span><span>K</span><span>i</span><span>n</span><span>o</span></h1>
+    <p data-t="tagline">not a cartoon, not a game: a little world to visit</p>
+  </div>
+  <a class="parents" href="grown-ups.html"><span class="i" aria-hidden="true">i</span><span><span data-t="parents">For parents</span><span class="more" data-t="parents-more">: how it works</span></span></a>
 </header>
 <main>
-  <div class="card"><iframe src="reksio.html" title="Reksio's yard" tabindex="-1"></iframe><a id="reksio" aria-label="Reksio's yard"></a></div>
-  <div class="card"><iframe src="krtek.html" title="Krtek's meadow" tabindex="-1"></iframe><a id="krtek" aria-label="Krtek's meadow"></a></div>
+  <div class="card"><iframe src="reksio.html" title="Reksio's yard" data-t-label="yard" tabindex="-1"></iframe><a id="reksio" aria-label="Reksio's yard" data-t-label="yard"></a></div>
+  <div class="card"><iframe src="krtek.html" title="Krtek's meadow" data-t-label="meadow" tabindex="-1"></iframe><a id="krtek" aria-label="Krtek's meadow" data-t-label="meadow"></a></div>
 </main>
 <script>
   // Where the games are: on the site, <world>/<game>/; opened from disk, in the repo.
@@ -96,5 +114,16 @@
     })
   }
 </script>
+<script type="application/json" id="pl">
+{
+  "language": "Język",
+  "tagline": "ani bajka, ani gra: mały świat do odwiedzenia",
+  "parents": "Dla rodziców",
+  "parents-more": ": jak to działa",
+  "yard": "Podwórko Reksia",
+  "meadow": "Łąka Krecika"
+}
+</script>
+<script src="assets/lang.js"></script>
 </body>
 </html>

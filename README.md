@@ -83,7 +83,7 @@ experiments/board/      what both boards share: the page, its look (Krtek's mead
 tests/                  pytest; test_game_browser.py drives the games in Chrome
 site/                   the public site, Little Kino, as written: the front page (index.html: pick a
                         world; each card, reksio.html and krtek.html, is its game's own painting,
-                        character and old-print look, alive), the grown-ups' page (grown-ups.html),
+                        character and old-print look, alive), the parents' page (grown-ups.html),
                         the research page's frame (research.html), the manifest
   assets/               base.css (the site's colours, typeface and lettering), fonts/, the icons
                         and the link preview (rendered)
@@ -162,10 +162,11 @@ Every push to `main` that changes a game, `site/` or what its pages quote
 builds it (`main.py site`, `src/website.py`) and publishes it to GitHub Pages
 (`.github/workflows/pages.yml`): https://alchemication.github.io/little-kino/
 
-Three pages, and no more:
+Three pages, and no more, each in English and Polish:
 
-- **The front page** (`site/index.html`), the screen: the name, one line and
-  the way to the grown-ups' page, then the worlds, with nothing a child must
+- **The front page** (`site/index.html`), the screen: the name, one line,
+  the language switch, and a "For parents: how it works" button (marked ⓘ),
+  then the worlds, with nothing a child must
   read and nothing to scroll: Reksio in his yard and the mole in his meadow,
   alive, each card a page of its own in a frame (`site/reksio.html`,
   `site/krtek.html`) built from its game's parts (its painting, the
@@ -175,30 +176,45 @@ Three pages, and no more:
   holds at most six worlds (`SITE_MAX_WORLDS`), all on one screen: two side
   by side, up to four in two rows, up to six in three columns; the build
   refuses a seventh. It opens from disk too, finding the games in `worlds/`.
-- **The grown-ups' page** (`site/grown-ups.html`), the printed programme: a
+- **The parents' page** (`site/grown-ups.html`), the printed programme: a
   cartoon and a game crossed out and "a little world" left standing, Reksio
   to tap so it is shown, a visit as a listing, how to play, what it never
   does, the worlds, where it comes from, the fan-work notice, and the films'
   end card.
 - **The research page** (`site/research.html`): `docs/DESIGN_PRINCIPLES.md`,
-  rendered, never a second copy.
+  rendered, never a second copy; in English in either language, with a
+  Polish note saying so.
+
+The language: each page is written in English and carries its Polish in a
+JSON block (`<script type="application/json" id="pl">`), a string for each
+element marked `data-t` (its content) or `data-t-label` (its aria-label and
+title), and for each `Lang.t('key', …)` in the page's script;
+`site/assets/lang.js` swaps them. It opens in the language an address asks
+for (`?lang=pl`), else the one kept in the browser (localStorage, written
+when the switch is used or an address asks), else the browser's own; links
+between the pages carry it. The build refuses a page whose Polish lacks a
+string, has one nothing uses, or isn't valid JSON once filled in. The Polish
+is ours, not checked by a second speaker. The worlds have no words, so they
+are the same in both.
 
 A page states no fact it doesn't own: the day's length, its hours and the
 hold for a grown-up come from the games' scripts (`SITE_FACTS`), a cartoon's
 title, years and creator from its dossier (typed fields, and a credit only
 when its claim is `verified` or `sourced`), written in the pages as
 `{{TOKENS}}`. The build fails, publishing nothing, on a token it can't fill,
-a page that loads anything from another site, or a world without a card.
+a page that loads anything from another site, Polish that doesn't match a
+page's words, or a world without a card.
 `site/assets/base.css` is the one place the colours, the typeface (Fraunces,
 kept in `assets/fonts/`, OFL) and the lettering are defined; a page links it
 and never redeclares a colour. The look is an evening's television of about
-1975: the front page is the screen, the grown-ups' pages the programme that
+1975: the front page is the screen, the parents' pages the programme that
 lay beside the set. The icons and the link preview are rendered from
 `site/art/` (`main.py site --art`) after a change to the name or palette.
 To read the built site: `uv run python -m http.server -d _site`
 (`tests/test_site.py` checks the build, `tests/test_site_browser.py` the
 pages in Chrome). Adding a world: its card page, its card in `index.html`,
-its entry in `grown-ups.html`, and `SITE_WORLDS`.
+its entry in `grown-ups.html` (in English and in its Polish block), and
+`SITE_WORLDS`; a new country, its words in `SITE_COUNTRIES`.
 
 Each game is
 at `<site>/<world>/<game>/`; add the front page to the home screen and both

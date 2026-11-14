@@ -162,9 +162,16 @@ file layout update `README.md` and the `main.py` docstring in the same change.
     Pages (`.github/workflows/pages.yml`, `<site>/<world>/<game>/`): only
     what is committed in `game/` goes out.
 - **The public site (`site/`, built by `main.py site`, `src/website.py`):**
-  published as Little Kino. Three pages (the front page, the grown-ups'
+  published as Little Kino. Three pages (the front page, the parents'
   page, the research page) and no more; the front page never scrolls and
   holds at most `SITE_MAX_WORLDS` worlds.
+  - In English and Polish: a page is written in English and carries its
+    Polish in its `id="pl"` JSON block, keyed by the `data-t` /
+    `data-t-label` of each element or a `Lang.t('key', …)` in its script
+    (`site/assets/lang.js`). Change a word in one, change it in the other;
+    a new word gets both. The build refuses a missing or unused string.
+    Polish sentences avoid inflecting a token (a name, a title, a number):
+    "twórca: {{…}}", "ok. {{…}} min".
   - A page states no fact it doesn't own: a figure from a game's code or
     anything about a cartoon is a `{{TOKEN}}` the build fills (`SITE_FACTS`,
     the dossier's typed fields; a credit only when `verified` or
