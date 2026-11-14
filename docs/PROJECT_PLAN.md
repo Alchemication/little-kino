@@ -78,6 +78,21 @@ sounds he has judged are in.
      `STROKES`), the painted one squirms with eyes shut, and the hare
      dabs the mole's spots. Judge the pace, and the mouse standing among
      the tins while she is painted (`paint.js` `friendsPaint`).
+   - **Adam judges him in the water** (built 2026-11-14, design A of
+     three, his pick): a tap on the spring has him wade into the pool up
+     to his middle and paddle a way each time (kicks, a splash in his
+     face, ducking under with bubbles, under the waterfall, the frog),
+     then climb out dripping (`water.js`); after the paint he washes
+     there, under twice, the paint coming off into the water in swirls,
+     and shakes himself dry. Now and then, ducked under (after three
+     paddles at least, `RIDER_AFTER`, `RIDER_CHANCE`), he comes up with
+     the frog (if his splashing sent it in) or a fish on his head, says
+     "ooh" and shakes it off back into the pool (Adam's idea; the pool has
+     fish every play now, unseen). The paint story ends for good: the
+     tins go home every time, and some plays (`FRIENDS_CHANCE`, 0.35) the
+     fox is sorry and goes off a friend in the first telling; the
+     retelling is gone (Adam, 2026-11-14). Judge: the paces, whether the
+     pool's edge round him reads as water, how often the fish comes.
    - **Adam judges his tunnels kept, and his stays under** (built
      2026-11-14, designed with him): what he digs stays all day
      (`tunnels.js`), and the ground opens on all of it whenever he is

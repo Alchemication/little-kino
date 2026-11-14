@@ -10,7 +10,8 @@
 // Where he is: `x` along the meadow, and how much of him shows (`pose`):
 // 'down' (under the ground, on his way), 'under' (staying down in his
 // tunnels, seen crawling in the cutaway: underground.js), 'hill' (up to his
-// middle in a molehill), 'out'
+// middle in a molehill), 'wade' (up to his middle in the spring's pool:
+// water.js), 'out'
 // (on the grass, feet and all) or 'listen' (in his molehill, chin on his
 // hands, eyes half shut: the cricket is playing). Which way: `view` ('front',
 // 'three' or 'side') and `facing` (1 right, -1 left).
@@ -21,7 +22,7 @@ const Mole = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
   const Y = Layout.GROUND // his feet-line
   const SCALE = 1.2 // drawn at this size: about a fifth of the screen high, out on the grass
-  const SINK = { down: 240, under: 240, hill: 16, out: 0, listen: 26 } // how far below his feet-line he sits, scene units
+  const SINK = { down: 240, under: 240, hill: 16, wade: 44, out: 0, listen: 26 } // how far below his feet-line he sits, scene units
   const PEEK = 104 // coming up, how far down he is while only his hands show above the molehill
   const DIG_MS = 380 // diving down, or coming up
   const DIG_IN = { depths: [55, 110, 160], strokes: 3, strokeMs: 95, jerkMs: 170 } // digging himself in out on the grass: sunk this far at each jerk (his waist, his shoulders, just his hairs), his hands paddling this many strokes before each
@@ -342,6 +343,21 @@ const Mole = (() => {
       arms(ARMS.rim, -ARMS.rim, 200)
     }
     await sink(pose, DIG_MS, 'cubic-bezier(.3,1.6,.5,1)')
+  }
+
+  /** Step down into water where he stands, up to his middle, with a little bob as it takes him (water.js). */
+  async function wade() {
+    for (const v of all()) for (const f of v.feet) f.style.visibility = 'hidden'
+    inLayer.appendChild(root) // behind the water's near edge: it hides what is under it
+    show('front')
+    await sink('wade', 460, 'cubic-bezier(.3,1.5,.5,1)')
+  }
+
+  /** Under the water and up again (`down` further than wading), `ms` in all, held under for the middle third. */
+  async function dip(down = 130, ms = 1500) {
+    const at = SINK[state.pose]
+    const under = `translateY(${at + down}px)`
+    await Motion.endAt(body, [{ transform: `translateY(${at}px)`, easing: 'ease-in' }, { transform: under, offset: 0.3 }, { transform: under, offset: 0.65, easing: 'cubic-bezier(.3,1.5,.5,1)' }, { transform: `translateY(${at}px)` }], { duration: ms })
   }
 
   /** Dive down where he is: arms up, and in. */
@@ -720,5 +736,5 @@ const Mole = (() => {
     await Motion.endAt(root, [{ transform: from }, { transform: rootAt(x, dy) }], { duration: ms, easing })
   }
 
-  return { SCALE, state, drawnX, face, mood, calm, settle, feel, digIn, scratchHead, show, lookAt, perk, express, setFree, head, carry, paint, dots, perch, glide, wear, wearing, lean, totter, knock, wobble, ponder, handsToFace, point, wave, peekaboo, laugh, make, put, relax, sway, shakeOff, comeUp, goDown, walkTo, cheer, hop, stretch, ghost, listen }
+  return { SCALE, state, drawnX, face, mood, calm, settle, feel, digIn, scratchHead, show, lookAt, perk, express, setFree, head, carry, paint, dots, perch, glide, wear, wearing, lean, totter, knock, wobble, ponder, handsToFace, point, wave, peekaboo, laugh, make, put, relax, sway, shakeOff, comeUp, goDown, wade, dip, walkTo, cheer, hop, stretch, ghost, listen }
 })()

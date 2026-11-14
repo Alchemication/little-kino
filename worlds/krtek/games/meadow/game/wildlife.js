@@ -168,7 +168,7 @@ const Wildlife = (() => {
     })
     herd = { c, g, members, kind, facing: left ? -1 : 1, play: null, lookAll: 0 }
     visits++
-    Debug.trace('wild', { kind, n: members.length, near })
+    Debug.trace('wild', { animal: kind, n: members.length, near }) // not `kind`: the trace's own name for the event
     Ambient.add(c, { name: 'wild', id: kind, rnd: comings, draw, gone })
   }
 
@@ -295,7 +295,7 @@ const Wildlife = (() => {
     herd.g.remove()
     herd = null
     nextAt = World.state.hour + GAP_HOURS
-    Debug.trace('wild gone', { kind })
+    Debug.trace('wild gone', { animal: kind })
   }
 
   /** A tap on them: they all look up; deer and boar then make off; the żubr only looks back, chewing. */
@@ -303,7 +303,7 @@ const Wildlife = (() => {
     if (!herd) return null
     const h = herd
     h.lookAll = Clock.now() + TAP_LOOK_MS + (KINDS[h.kind].tapFlees ? 0 : 1600)
-    Debug.trace('wild tapped', { kind: h.kind })
+    Debug.trace('wild tapped', { animal: h.kind })
     if (h.kind === 'boar') Sound.grunt()
     if (h.kind === 'bison') Sound.snort()
     if (KINDS[h.kind].tapFlees) Clock.after(TAP_LOOK_MS, () => { if (herd === h) h.c.tapped = true })

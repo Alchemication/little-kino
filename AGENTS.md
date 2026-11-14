@@ -336,6 +336,7 @@ heats the laptop for minutes.
 | the meadow's friends, their drawings and faces (`friends.js`, `friendart.js`) | `"TestMeadowFriendFaces or TestMeadowEncounters or TestMeadowEgg or TestMeadowFox or TestMeadowFence"` |
 | the meadow's small life and wildlife (`critters.js`, `flock.js`, `wildlife.js`, `wildart.js`, `heron.js`, `nest.js`, `foxart.js`) | `"TestMeadowCritters or TestMeadowFireflies or TestMeadowSnail or TestMeadowWildlife"` |
 | the meadow's music, the cricket (`music.js`, `beds.js`, `cricket.js`) | `"TestMeadowMusic"` |
+| him in the spring's pool, his paddles and the wash after the paint (`water.js`) | `"TestMeadowDay or TestMeadowFox"` |
 | the meadow's wind, eclipse, church, spring, moon (`weather.js`, `eclipse.js`, `church.js`, `spring.js`, `moons.js`) | `"TestMeadowWind"`, `"TestMeadowEclipse"`, `"TestMeadowChurch"`, `"TestMeadowSpring"`, `"TestMeadowMoon"` |
 | the meadow's `day.js`, `layout.js`, or anything shared | the whole meadow file, `"Meadow"` |
 

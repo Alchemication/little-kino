@@ -145,7 +145,7 @@ class TestMeadowDay:
     ) -> None:
         m = meadow("seed=2&still&props=")  # a play with the frog
         m.wake()
-        for intent in ["paddle"] * 4 + [
+        for intent in ["paddle"] * 5 + [
             "sniff"
         ] * 4:  # the paddles first, while the frog sits
             m.do(intent)
@@ -156,7 +156,9 @@ class TestMeadowDay:
         assert all(a != b for a, b in pairwise(sniffs)), sniffs
         paddles = traced(m, "paddles")
         assert paddles[0] == "frog", "the frog on its pad joins the first paddle"
-        assert {"splash", "face"} <= set(paddles), paddles
+        assert len(set(paddles) - {"frog"}) >= 3, (
+            paddles
+        )  # in the water, a new way each time
         assert all(a != b for a, b in pairwise(paddles)), paddles
 
     @pytest.mark.parametrize("intent", ["sniff", "paddle"])
@@ -171,6 +173,50 @@ class TestMeadowDay:
             m.do("go to 400")
             m.wait_free()
             m.assert_settled()
+
+    @pytest.mark.parametrize("cut_ms", [1500, 2500, 3500, 5000])
+    def test_cut_short_in_the_pool_he_is_on_the_bank(
+        self, meadow: callable, cut_ms: int
+    ) -> None:
+        """Wading in, in the water, or wading out (water.js): a tap and he stands on
+        the bank, the water's edge round him gone."""
+        m = meadow()
+        m.wake()
+        m.do("go to 2100")  # by the spring: in at once
+        m.wait_free()
+        m.do("paddle")
+        m.play_for(cut_ms)
+        m.do("go to 1800")
+        m.wait_free()
+        assert m.page.evaluate(
+            "!Water.wading && !document.querySelector('#wade .wading, #wade .pouring')"
+        ), "the water's edge was left behind"
+        m.assert_settled()
+
+    @pytest.mark.parametrize("cut", [False, True])
+    def test_now_and_then_he_comes_up_with_a_fish_on_his_head(
+        self, meadow: callable, cut: bool
+    ) -> None:
+        """Adam, 2026-11-14: never at first; seed 3's fourth paddle ducks under and
+        brings up a fish. He shakes it off back into the water, or, cut short
+        while it sits there, it jumps off anyway: nothing is left on his head."""
+        m = meadow("seed=3&still&props=")
+        m.wake()
+        for _ in range(3):
+            m.do("paddle")
+            m.wait_free()
+        assert "comes up with" not in m.page.evaluate("meadowGame.trace()")
+        m.do("paddle")
+        m.wait("document.querySelector('.mole-hat .rider.fish')", 20_000)
+        if cut:
+            m.do("go to 1800")
+        m.wait_free()
+        assert m.page.evaluate("!document.querySelector('.mole-hat *')"), (
+            "the fish was left on his head"
+        )
+        if not cut:  # cut short, it may have climbed on while he was still under
+            assert '"who":"fish"' in m.page.evaluate("meadowGame.trace()")
+        m.assert_settled()
 
     def test_a_tap_cuts_any_move_short(self, meadow: callable) -> None:
         m = meadow()
@@ -1532,51 +1578,36 @@ class TestMeadowFox:
         assert trace.index('"alarmed":true') < trace.index(" red"), (
             "he fell in the paint before the fox came to frighten him"
         )
-        assert m.page.evaluate("meadowGame.detail('paint').ending") == "ran", (
-            "the first time, the fox runs, as in the film"
-        )
+        detail = m.page.evaluate("meadowGame.detail('paint')")
+        assert detail["ending"] == ("friends" if detail["sorry"] else "ran"), detail
+        m.wait("document.querySelectorAll('.tin').length === 0", 30_000)  # home
         m.wait_free()
         m.assert_settled()
 
-    def test_told_again_the_fox_may_end_a_friend_and_the_tins_go(
+    def test_some_plays_the_fox_ends_a_friend_and_the_tins_always_go_home(
         self, meadow: callable
     ) -> None:
-        """The tins tapped again tell the story again; as chance has it the
-        fox runs, or is sorry and goes off with the friends, and then the
-        hare and the mouse carry the tins off (seed 1: ran, then friends)."""
-        m = self.fox_at_the_nest(meadow)
-        m.wait("meadowGame.state().things.paint === 'done'", 90_000)
-        m.wait_free()
-        for _ in range(4):
-            m.do("use paint")
-            m.wait("meadowGame.state().busy", 5000)
-            m.wait_free(90_000)
-            if m.page.evaluate("meadowGame.detail('paint').ending") == "friends":
+        """Adam, 2026-11-14: the tins left on the grass invited the whole story
+        again. Now they go home every time, and some plays (drawn as it starts)
+        the fox, found out, is sorry and goes off with the friends."""
+        endings = {}
+        for seed in range(1, 12):
+            m = meadow(f"seed={seed}&still&soon&props=paint")
+            endings[seed] = m.page.evaluate("meadowGame.detail('paint').sorry")
+            m.page.close()
+            if endings[seed]:
                 break
-        detail = m.page.evaluate("meadowGame.detail('paint')")
-        assert detail["ending"] == "friends", detail
+        seed = next((k for k, v in endings.items() if v), None)
+        assert seed, f"no play of eleven ends with the fox a friend: {endings}"
+        m = meadow(f"seed={seed}&still&soon&props=paint")
+        m.wake()
+        arrived(m, "paint")
+        m.do("use paint")
+        m.wait("meadowGame.state().things.paint === 'done'", 120_000)
+        assert m.page.evaluate("meadowGame.detail('paint').ending") == "friends"
         assert "fox befriended" in m.page.evaluate("meadowGame.trace()")
-        assert not m.page.evaluate("Nest.alarmed")
-        m.wait("document.querySelectorAll('.tin').length === 0", 20_000)
-        m.assert_settled()
-
-    def test_told_again_cut_short_then_tapped_it_carries_on(
-        self, meadow: callable
-    ) -> None:
-        m = self.fox_at_the_nest(meadow)
-        m.wait("meadowGame.state().things.paint === 'done'", 90_000)
+        m.wait("document.querySelectorAll('.tin').length === 0", 30_000)
         m.wait_free()
-        m.do("use paint")
-        m.wait("document.querySelector('.friend.fox') && Nest.alarmed", 10_000)
-        m.do("go to 600")
-        m.wait_free()
-        m.wait("!Nest.alarmed && !document.querySelector('.friend.fox')", 10_000)
-        m.do("use paint")
-        m.wait("meadowGame.state().busy", 5000)
-        m.wait_free(90_000)
-        detail = m.page.evaluate("meadowGame.detail('paint')")
-        assert detail["told"] == 2 and not detail["red"], detail
-        assert not m.page.evaluate("Nest.alarmed")
         m.assert_settled()
 
     def test_his_tunnel_brings_them_past_the_fox(self, meadow: callable) -> None:

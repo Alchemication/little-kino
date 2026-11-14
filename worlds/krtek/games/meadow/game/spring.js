@@ -156,12 +156,30 @@ const Spring = (() => {
     Sound.from(to, Sound.splash) // heard from the spring: faint or not at all from far off
     World.noise('splash', to, 250)
     rings(to)
-    Clock.after(between([6000, 12000]), () => {
-      if (!frog) return
-      rings(PAD.x)
-      frog.in = false
-      Debug.ignoreCut(Motion.endAt(frog.g, [{ transform: `translate(${PAD.x}px, ${PAD.y + 10}px) scale(0.5)`, opacity: 0 }, { transform: `translate(${PAD.x}px, ${PAD.y}px)`, opacity: 1 }], { duration: 600, easing: 'ease-out' }), 'the frog climbs back')
-    })
+    Clock.after(between([6000, 12000]), climbBack)
+  }
+
+  /** The frog climbs back on its pad from the water (not while it rides on the mole's head: a little later). */
+  function climbBack() {
+    if (!frog || !frog.in) return
+    if (frog.riding) return Clock.after(2000, climbBack)
+    rings(PAD.x)
+    frog.in = false
+    Debug.ignoreCut(Motion.endAt(frog.g, [{ transform: `translate(${PAD.x}px, ${PAD.y + 10}px) scale(0.5)`, opacity: 0 }, { transform: `translate(${PAD.x}px, ${PAD.y}px)`, opacity: 1 }], { duration: 600, easing: 'ease-out' }), 'the frog climbs back')
+  }
+
+  /** Who is in the water now, to come up on the mole's head as he ducks under (water.js): the frog once it
+   * has plopped in, and a fish (the pool has fish every play, unseen; some plays one leaps). */
+  const underwater = () => [...(frog && frog.in && !frog.riding ? ['frog'] : []), 'fish']
+
+  /** The frog rides on the mole's head (true), or is back in the water at x (false), climbing out in a while. */
+  function ride(on, x = PAD.x) {
+    if (!frog) return
+    frog.riding = on
+    if (!on) {
+      rings(x)
+      Clock.after(between([4000, 8000]), climbBack)
+    }
   }
 
   /** A dragonfly darts in from out of sight, hovers here and there over the pool, and darts off. */
@@ -300,5 +318,5 @@ const Spring = (() => {
   /** A tap on the frog: in it plops. */
   const tapFrog = () => plop(true)
 
-  return { setup, tapFrog, POOL, get frog() { return frog && !frog.in } }
+  return { setup, tapFrog, rings, underwater, ride, POOL, FALL, get frog() { return frog && !frog.in } }
 })()

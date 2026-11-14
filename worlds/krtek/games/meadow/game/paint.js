@@ -1,5 +1,5 @@
 // The paint and the fox (someone helps him), after Krtek malířem, told as a
-// story that grows each time the tins are tapped again (Adam, 2026-11-01).
+// story (Adam, 2026-11-01).
 // The fox comes first, as in the film, and the paint after (Adam,
 // 2026-11-06: friends carrying tins in before anything had happened made no
 // sense). It begins with a sly snicker from off the meadow's edge: a
@@ -25,23 +25,19 @@
 // spots, in the tins' colours: each play draws the colours and who wears
 // which) and dab spots on him, and the three climb onto each other's shoulders, a
 // big striped spotted monster with its arms up; the fox, shocked, shrinks
-// small and hunched, his ruff on end, yelps and runs (the surprise, as the
-// stacked monster in the film), and the chicks settle. His friends wave and
-// go, and he jumps in the spring to wash the paint off. The tins stay.
-//
-// The tins tapped again, the story again, warier and quicker (again): the
-// fox sneaks back, the mole tumbles in again, and this time the hare and
-// the mouse come painted at once (up his tunnel again) and play ghost
-// with him: that does it.
-// Then, as chance has it, the fox runs, or (FRIENDS_CHANCE), small and found
-// out, he is sorry: ears down, eyes on the ground, a bow. The mouse dabs
-// spots on him too, he laughs, and he goes off with the hare and the mouse,
-// all friends (the film's ending turned round: Adam's idea). Then the story
+// small and hunched, his ruff on end, and, as the play has drawn it, yelps
+// and runs (the surprise, as the stacked monster in the film), or, some
+// plays (FRIENDS_CHANCE), found out, is sorry: ears down, eyes on the
+// ground, a bow; the mouse dabs spots on him too, he laughs, and he will go
+// off with the hare and the mouse, all friends (the film's ending turned
+// round: Adam's idea). The chicks settle. His friends wave and go, and he
+// wades into the spring and washes the paint off (water.js). Then the story
 // is told: the hare and the mouse come back for the tins and carry them home
-// to the garden (nothing falls from the sky or vanishes: Adam, 2026-10-23). Each play
-// draws how the fox sneaks in (on tiptoe, or creeping low) and how the
-// ghost acts (swaying, or bobbing). If bedtime comes first, he goes to bed
-// washed.
+// to the garden, every time, so nothing is left lying on the grass (Adam,
+// 2026-11-14; nothing falls from the sky or vanishes: 2026-10-23). Each play
+// draws how the fox sneaks in (on tiptoe, or creeping low), how the ghost
+// acts (swaying, or bobbing) and how it ends. If bedtime comes first, he
+// goes to bed washed.
 //
 // A tap on the nest (till the tins are down), a tin or him hurries it on; a tap elsewhere waits for the step to end, then cuts it short
 // (things.js): the friends and the fox go home, and the next tap carries
@@ -49,7 +45,7 @@
 // tins, once brought, stay where they were set down; he stays red until he
 // washes.
 
-/* global Clock, Debug, Friends, Layout, Mole, Motion, Nest, Sound, Things, Underground */
+/* global Clock, Debug, Friends, Layout, Mole, Motion, Nest, Sound, Things, Underground, Water */
 ;(() => {
   const Y = Layout.GROUND
   const S = Layout.SPRING
@@ -78,7 +74,7 @@
   const PAWS_UP = 95
   const PAWS_COWER = 40
   const GHOST_MS = 1600
-  const FRIENDS_CHANCE = 0.5 // after the first story, how often the fox ends up a friend rather than running
+  const FRIENDS_CHANCE = 0.35 // how often the fox ends up a friend rather than running off as in the film (Adam, 2026-11-14: some plays)
   const STACK_X = S + 40 // where the monster stands, between the tins and the fox
   const FRIENDS_FROM = FOX_FROM // the friends come from off to the right, from the painter's garden: the fox's side
   const STUCK_X = FOX_AT + 290 // where they stop, the fox in their way (the mouse; the hare beyond her), clear of his tail
@@ -88,7 +84,7 @@
   const IDEA_MS = 450 // the idea dawning
   const ASIDE = 110 // back up, he steps this far aside from his molehill to let them out
   const REACTS = ['jump', 'peer', 'spin'] // what the fox does as the earth bumps along under his feet: each tunnel draws two
-  const QUICK = 0.45 // coming back after a cut, or again, everyone hurries
+  const QUICK = 0.45 // coming back after a cut, everyone hurries
   const HARE_TALL = 160 // how high he stands on the hare's head, between his ears...
   const MOLE_TALL = 190 // ...and the mouse on his
   const WASH_AT = Layout.SPRING - 40
@@ -109,9 +105,9 @@
   let red = false // he fell in the tin
   let cowed = false // the monster has frightened the fox small: the trouble is over
   let cutShort = false // picked up after a cut: the fox comes back and it carries on at once
-  let told = 0 // how many times the story has ended
   let ending = null // how the last one ended: 'ran' or 'friends'
   const creeps = random() < 0.5 // this play, the fox creeps in low (else on tiptoe)
+  const sorry = random() < FRIENDS_CHANCE // this play, found out, he is sorry and goes off a friend (else he runs, as in the film)
   const m = () => Things.meadow
   const el = (...args) => m().el(...args)
 
@@ -129,9 +125,6 @@
 
   /** One of the friends, from the painter's garden off to the right (n: how far behind). */
   const callIn = (kind, n) => cast.call(kind, offRight() + n * 90, -1)
-
-  /** Paint on one of the friends at once, as this play draws it (they come painted, retold). */
-  const daub = (f) => f.daub(PAINTED[f.kind].pattern, PAINTED[f.kind].colour)
 
   /** A brush for `f`'s hand, its tip in `colour`, pointing the way it faces. */
   function drawBrush(f, colour) {
@@ -219,11 +212,11 @@
    * way. He has an idea, tunnels over to them under the fox's feet (who feels it go by), comes up by
    * them, and down they all go; back under the fox, and up they come out of his molehill behind him.
    * Each time a little different: what the fox does as it bumps by, there and back; who comes up first. */
-  async function tunnel(alive, laden = () => {}) {
+  async function tunnel(alive) {
     const [there, back] = shuffled(REACTS)
     const order = shuffled(['hare', 'mouse'])
     Debug.trace('tunnel', { there, back, first: order[0] })
-    for (const [n, kind] of ['mouse', 'hare'].entries()) laden((friends[kind] = callIn(kind, n)))
+    for (const [n, kind] of ['mouse', 'hare'].entries()) friends[kind] = callIn(kind, n)
     const { hare, mouse } = friends
     m().frame(STUCK_X) // them in sight with him
     try {
@@ -313,7 +306,7 @@
     Nest.mark('paint')
   }
 
-  const pace = (ms) => (cutShort || told ? ms * QUICK : ms) // after a cut, or told again, everyone hurries
+  const pace = (ms) => (cutShort ? ms * QUICK : ms) // after a cut, everyone hurries
 
   /** Paint splashes round x, y. */
   function splash(x, y, colour) {
@@ -400,7 +393,7 @@
     await fox.rub(3)
     if (!alive()) return
     fox.feel('sly')
-    if (!told) await fox.lick() // the first time: told again, he gets on with it
+    await fox.lick()
     if (!alive()) return
     Sound.say('tam')
     await Mole.point(fox.x)
@@ -503,6 +496,10 @@
 
   /** Up on each other's shoulders: a big striped spotted monster. The fox shrinks, yelps and runs. */
   async function monster(alive) {
+    if (cowed) { // picked up after a cut once he had cowered: he has been seen off, so on to the wash
+      ending = sorry ? 'friends' : 'ran'
+      return
+    }
     // picked up after a cut: the fox and the friends went home, so they come again first
     if (!fox) await foxComes(alive)
     if (!alive()) return
@@ -523,6 +520,12 @@
     if (!alive()) return
     cowed = true
     Debug.trace('fox cowed')
+    if (sorry) { // down off each other's shoulders first: the mouse has his spots to dab
+      await Promise.all([mouse.lift(0, 500), Mole.perch(0, 500)])
+      if (!alive()) return
+      await foxSorry(alive)
+      return
+    }
     await foxRuns(alive)
     if (!alive()) return
     Sound.say('giggle')
@@ -541,54 +544,14 @@
     for (const f of pack) cast.dismiss(f)
     friends = { hare: null, mouse: null }
     fox = null
-    await Mole.lean(-30, 600)
+    await Water.wash(alive, WASH_AT) // in, under twice, the paint coming off into the water, out and shaken dry
     if (!alive()) return
-    Sound.splash()
-    splash(Mole.state.x - 40, Y - 30, '#7fb3ea')
-    Mole.paint(null)
     red = false
     cutShort = false
-    told++
-    Debug.trace('washed', { told, ending })
-    if (ending === 'friends') fetchTins() // the story is told
+    Debug.trace('washed', { ending })
+    fetchTins() // the story is told: the tins go home, nothing left on the grass (Adam, 2026-11-14)
     Sound.say('giggle')
     await Mole.cheer()
-  }
-
-  /** The tins tapped again: the story again, quicker. The hare and the mouse come painted and play ghost
-   * with him: the fox shrinks. Then he runs, or, as chance has it, is sorry and becomes a friend. */
-  async function retold(alive) {
-    if (!tins.some((g) => g.hasAttribute('data-thing'))) return // told: the tins are being carried off
-    // the fox already a friend (a cut came after): only the wash and the tins are left
-    if (ending !== 'friends') await retell(alive)
-    if (!alive()) return
-    await wash(alive)
-  }
-
-  /** The story again, up to how it ends: the fox runs, or is sorry. */
-  async function retell(alive) {
-    if (!fox) {
-      m().music('hush')
-      await foxComes(alive)
-    }
-    if (!alive()) return
-    await tumble(alive)
-    if (!alive()) return
-    if (!friends.hare) await tunnel(alive, daub) // they come painted: he fetches them through his tunnel
-    if (!alive()) return
-    await Promise.all([m().goTo(GHOST_X), friends.hare.go(GHOST_X - 110, pace(3600), 36), friends.mouse.go(GHOST_X - 190, pace(3600))])
-    if (!alive()) return
-    friends.hare.turn(1) // round on the fox
-    friends.mouse.turn(1)
-    Sound.say('ghost')
-    Sound.boo()
-    await Promise.all([Mole.ghost(GHOST_MS, random() < 0.5), friends.hare.bob(2), friends.mouse.bob(2)])
-    if (!alive()) return
-    await foxScared(alive)
-    if (!alive()) return
-    m().music('happy')
-    if (random() < FRIENDS_CHANCE) await foxSorry(alive)
-    else await foxRuns(alive)
   }
 
   /** The hare and the mouse come back for the tins and carry them home to the painter's garden, leaving the grass free. */
@@ -641,9 +604,8 @@
     music: { 0: 'fox' }, // the fox: his sly motif (Music MOTIFS), then the effects lead; the monster sends it off (happy as the trouble lifts: things.js)
     appear,
     steps: [seen, bring, tumble, ghost, friendsPaint, monster, wash],
-    again: retold,
     restore,
     night,
-    detail: () => ({ red, painted: Mole.state.painted, fox: !!fox, cast: cast.kinds(), told, ending, creeps, tins: TINS.map((t) => t.colour), patterns: { ...PAINTED } }),
+    detail: () => ({ red, painted: Mole.state.painted, fox: !!fox, cast: cast.kinds(), ending, sorry, creeps, tins: TINS.map((t) => t.colour), patterns: { ...PAINTED } }),
   })
 })()

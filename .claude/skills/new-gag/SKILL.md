@@ -278,7 +278,9 @@ for, and update every caller, no shims.
 - A new `Debug.trace` kind: grep the tests for ` <kind> ` first. Tests
   find moments by a kind's first place in the trace, so reusing one
   breaks them (the meadow's trips under the ground first traced
-  `tunnel`, which the paint story's tests use for its own moment).
+  `tunnel`, which the paint story's tests use for its own moment). And
+  never a `kind` field in its data: it overwrites the event's own name
+  (the meadow's fish on his head was traced as `fish`, and looked missing).
 - Waiting for something moving to reach a place: wait until it has
   crossed it, never until it is "near" (within so many units). Near is a
   window a fast frame steps over, and the wait hangs: the fox waiting for

@@ -225,3 +225,6 @@ body { touch-action: manipulation; -webkit-user-select: none; user-select: none;
 /* an earthworm in the soil under the meadow (soilart.js): slowly stretching and drawing in, as worms go */
 .cutaway .worm-body { transform-box: fill-box; transform-origin: left center; animation: worm 2.8s ease-in-out infinite alternate; }
 @keyframes worm { from { transform: scaleX(1) scaleY(1); } to { transform: scaleX(0.8) scaleY(1.15); } }
+/* the falls pouring on his head as he stands under them (water.js): the streaks run down */
+#wade .pour-streak { animation: pour 0.5s linear infinite; }
+@keyframes pour { from { stroke-dashoffset: 32; } to { stroke-dashoffset: 0; } }

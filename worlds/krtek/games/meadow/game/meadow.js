@@ -6,7 +6,7 @@
 // on the grass he digs himself in first, leaving one more: hills.js), a tap on
 // the molehill he is in takes him down to stay in his tunnels (a tap on the
 // earth, he crawls there; on a molehill or the grass, he comes up there:
-// underground.js), a tap on the spring has him paddle in its pool,
+// underground.js), a tap on the spring has him wade into its pool and paddle (water.js),
 // a tap on the old oak at the meadow's left end has him peek into its
 // hollow (oak.js), a tap on the owl in it, on some plays, has him play
 // with it (owl.js), a tap on the painter's fence at its right end has him
@@ -23,7 +23,7 @@
 // gesture under way short (Mole.relax), and he is settled where it left
 // him, so he always ends free and standing.
 
-/* global Again, Autumn, Bed, Den, Hills, TunnelArt, Underground, Oak, Owl, Fence, Church, Clock, Cricket, Critters, Flock, Heron, Wildlife, Eclipse, Moons, RainPlay, Showers, Spring, Day, Debug, FilmLook, Friends, Layout, MeadowBeds, Mole, Nest, Motion, Music, Painting, Sound, Storm, Things, Swing, Turn, View, Weather, Woodpecker, World */
+/* global Again, Autumn, Bed, Den, Hills, TunnelArt, Underground, Water, Oak, Owl, Fence, Church, Clock, Cricket, Critters, Flock, Heron, Wildlife, Eclipse, Moons, RainPlay, Showers, Spring, Day, Debug, FilmLook, Friends, Layout, MeadowBeds, Mole, Nest, Motion, Music, Painting, Sound, Storm, Things, Swing, Turn, View, Weather, Woodpecker, World */
 /* exported meadowGame */
 const meadowGame = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
@@ -49,8 +49,6 @@ const meadowGame = (() => {
   const NIGHT_TINT = 0.6 // how dark the night's blue makes the meadow at its darkest (multiplied over it)
   const words = Debug.random('meadow-words')
   const paint = Debug.random('meadow-paint')
-  const FROG_HEARS_MS = 1500 // going in gently by the frog, he waits at most this long for it to plop in
-  const splashes = Debug.random('meadow-splashes') // drops off his face at the spring: their own, so nothing else shifts
   const planned = Eclipse.plan(Debug.random('meadow-eclipse')) // drawn either way, so ?eclipse= shifts nothing
   let eclipseAt = Layout.flags.eclipse ?? planned // the hour this play's eclipse starts, or null (none in a storm's play: start)
   const rainPlan = Showers.plan(Debug.random('meadow-showers'), Layout.season, { asked: Layout.flags.rain, start: Day.START }) // drawn either way, so ?rain= shifts nothing
@@ -338,7 +336,8 @@ const meadowGame = (() => {
       Debug.check('no drop or leaf of the rain\'s is in the air once he is free', !RainPlay.posing, {})
       Debug.check('the twig is down once he is free', !Fence.holding, {})
       Debug.check('nobody is left about behind the fence once he is free', Fence.about === 0, { about: Fence.about })
-      Debug.check('a mole in the ground has a molehill', m.pose === 'out' || m.pose === 'under' || Hills.at(m.x), { x: m.x, pose: m.pose })
+      Debug.check('a mole in the ground has a molehill', ['out', 'under', 'wade'].includes(m.pose) || Hills.at(m.x), { x: m.x, pose: m.pose })
+      Debug.check('a free mole is out of the water', m.pose !== 'wade' && !Water.wading, { pose: m.pose })
       Debug.check('staying under, he is in his tunnel', m.pose !== 'under' || Underground.inTunnel(m.x), { x: m.x })
     }
   }
@@ -382,6 +381,7 @@ const meadowGame = (() => {
     game.token = Symbol('cut')
     Mole.relax()
     Underground.halt()
+    Water.restore()
     if (cut) cut()
     settle()
   }
@@ -410,6 +410,7 @@ const meadowGame = (() => {
   function settle() {
     const m = Mole.state
     if (m.pose === 'out' || m.pose === 'under') return Mole.put(m.x, m.pose)
+    if (m.pose === 'wade') return Mole.put(m.x, 'out') // cut short in the pool: on the bank
     if (!Hills.at(m.x)) Hills.make(m.x, false, false)
     Mole.put(m.x, m.pose === 'listen' ? 'listen' : 'hill')
   }
@@ -525,68 +526,6 @@ const meadowGame = (() => {
     await SNIFFS[how](mine)
   }
 
-  // A tap on the spring: he paddles in its pool, a different way each time (rounds), or with the frog
-  const PADDLES = {
-    /** Splashing with his feet, leaning this way and that, and a giggle. */
-    async splash() {
-      Sound.splash()
-      World.noise('splash', Spring.POOL.x, 250)
-      await Mole.lean(-12, 500)
-      Sound.splash()
-      await Mole.lean(12, 500)
-      Sound.say('giggle', true)
-      await Mole.cheer()
-    },
-    /** One splash too big: it goes all over his face. Eyes screwed shut, a shake, and a laugh. */
-    async face() {
-      Sound.splash()
-      World.noise('splash', Spring.POOL.x, 250)
-      await Mole.lean(-14, 450)
-      Sound.splash()
-      drops(Mole.head(), 14)
-      await Mole.shakeOff(700)
-      Sound.say('giggle', true)
-      await Mole.handsToFace(600)
-    },
-  }
-
-  /** With the frog on its pad (it joins in, never twice running): gently in, so as not to scare
-   * it; it plops in anyway, right beside him, and splashes him; a start, and a jump of joy. */
-  async function withFrog(mine) {
-    Mole.show('three', 1)
-    await Mole.lean(10, 700)
-    World.noise('splash', Spring.POOL.x, 250) // the smallest splash: the frog hears it (spring.js) and plops in
-    for (let i = 0; i < FROG_HEARS_MS / 100 && Spring.frog; i++) await Clock.wait(100)
-    await Clock.wait(300)
-    if (!mine()) return
-    drops(Mole.head(), 8)
-    Sound.say('fright', true)
-    await Mole.shakeOff(500)
-    Sound.say('giggle', true)
-    await Mole.cheer()
-  }
-  const nextPaddle = rounds(Object.keys(PADDLES), Debug.random('meadow-paddles'))
-  let lastPaddle = null
-
-  async function paddle(mine) {
-    const how = Spring.frog && lastPaddle !== 'frog' ? 'frog' : nextPaddle()
-    lastPaddle = how
-    Debug.trace('paddles', { how })
-    await goTo(Spring.POOL.x - 40)
-    if (how === 'frog' && !Spring.frog) return PADDLES.splash() // in the water by the time he got there
-    await (how === 'frog' ? withFrog(mine) : PADDLES[how]())
-  }
-
-  /** Drops of water flung up round a point (his head), falling away. */
-  function drops(at, n) {
-    for (let i = 0; i < n; i++) {
-      const d = el('circle', { class: 'splash-drop', cx: at.x, cy: at.y + 20, r: 4 + splashes() * 4 }, layers.top)
-      const dx = (splashes() - 0.5) * 120
-      const up = 30 + splashes() * 50
-      d.animate([{ transform: 'translate(0, 0)', opacity: 1 }, { transform: `translate(${dx / 2}px, ${-up}px)`, opacity: 1, offset: 0.4 }, { transform: `translate(${dx}px, 60px)`, opacity: 0 }], { duration: 700, easing: 'ease-out' }).finished.then(() => d.remove(), () => d.remove())
-    }
-  }
-
   async function homeToListen() {
     await intoHome()
     Mole.listen(true)
@@ -670,7 +609,7 @@ const meadowGame = (() => {
     [/^wake$/, () => wake()],
     [/^tap mole$/, () => answer('tap mole', tapMole, RainPlay.restore)],
     [/^sniff$/, () => answer('sniff', sniff)],
-    [/^paddle$/, () => answer('paddle', paddle)],
+    [/^paddle$/, () => answer('paddle', Water.paddle, Water.restore)], // in the spring's pool (water.js)
     [/^peek$/, () => answer('peek', RainPlay.dripping ? RainPlay.drips : Oak.peek, () => { Oak.restore(); Owl.restore(); RainPlay.restore() })], // a call in the arch may have woken the owl; just after rain the chestnut drips
     [/^puddle (\d)$/, (m) => answer('puddle', (alive) => RainPlay.stomp(Number(m[1]), alive), RainPlay.restore)],
     [/^owl$/, () => answer('owl', Owl.visit, Owl.restore)],
@@ -881,6 +820,7 @@ const meadowGame = (() => {
   Spring.setup(document.getElementById('spring'), () => game.hour)
   Nest.setup(document.getElementById('spring'), () => game.hour)
   RainPlay.setup({ things: document.getElementById('things'), front: document.getElementById('oak-front'), sky: document.getElementById('far-things'), ground: document.getElementById('oak-ground') }, { goTo, rounds, run, free: upFree })
+  Water.setup(document.getElementById('wade'), { goTo, rounds })
   Oak.setup(document.getElementById('oak'), document.getElementById('oak-front'), document.getElementById('oak-ground'), { goTo, rounds, dropHat })
   Owl.setup(document.getElementById('oak'), { goTo, rounds })
   Swing.setup(document.getElementById('oak'), { goTo, rounds }) // autumn's swing under the chestnut
