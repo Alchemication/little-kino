@@ -41,7 +41,7 @@ const Spring = (() => {
   const EVERY_MS = [20000, 45000] // between one bit of life and the next (Adam, 2026-11-08: too much going on at once; 9-20 s before)
   const NIGHT_FROM = 18.8 // they all go quiet by sunset
   const DIM = 0.5 // none of it comes in a light this low (an eclipse)
-  const FROG_HEARS = ['splash', 'vroom'] // what has the frog plop in: a splash near it, the car going by
+  const FROG_HEARS = ['splash', 'vroom', 'burrow'] // what has the frog plop in: a splash near it, the car going by, the mole's tunnel passing under its pool
   const FROG_LISTENS_MS = 250
   const DRINK_Y = POOL.y + 8 // where a bird stands to drink, at the water's edge
   const BULLFINCH = {
@@ -49,7 +49,7 @@ const Spring = (() => {
     stayMs: [3000, 5000], // over by the time it has drunk: down, a drink, and off (a drink under way is always finished)
     hours: [8.4, NIGHT_FROM], dark: 0.5, wet: 'avoid',
     feeds: 'drink', hungerMs: [0, 0], feedMs: [2200, 3000], // comes thirsty; two dips
-    startledBy: ['bell', 'splash', 'vroom', 'rumble'],
+    startledBy: ['bell', 'splash', 'vroom', 'rumble', 'burrow'], // the ground stirring under it too
     band: [POOL.y - 320, POOL.y - 160], roam: 1400, // sees the pool from out of sight
     haunt: [POOL.x - 700, POOL.x + 700],
   }

@@ -25,7 +25,7 @@
 // calls halt(), which keeps what was dug as far as he got and leaves him
 // where he is drawn.
 
-/* global Clock, Debug, Den, Hills, Layout, Mole, Motion, Sound, TunnelArt, Tunnels */
+/* global Clock, Debug, Den, Hills, Layout, Mole, Motion, Sound, TunnelArt, Tunnels, World */
 /* exported Underground */
 const Underground = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
@@ -39,6 +39,8 @@ const Underground = (() => {
   const DIG_UP_MS = 450 // digging the way up where there is no molehill yet
   const SHAFT_DROP = 90 // how far up the shaft he is seen as he drops in or climbs out
   const WRIGGLE_MS = 500 // a tap where he is: a happy wriggle
+  const BURROW_EVERY_MS = 250 // going along, his bump makes a soft noise this often…
+  const BURROW_REACH = 170 // …heard this far: the earth's life and the meadow above mind it (soillife.js, spring.js, critters.js)
   const HOME = Layout.HOME
   const NAP_MS = 2600 // a snooze on his pillow in his den
   const TURN_MS = 350 // turning round before he lies down, each way
@@ -55,6 +57,7 @@ const Underground = (() => {
   let going = null // the trip under way: { from, x, dir, followers, leg } (a cut keeps what was dug)
   let facing = -1 // which way he last went (1 right)
   let extra = null // a stretch being dug: its earth shown already
+  let rustle = null // stops the bump's noise
 
   const el = (tag, attrs = {}, parent) => {
     const e = document.createElementNS(SVG, tag)
@@ -105,6 +108,10 @@ const Underground = (() => {
     movers = TunnelArt.movers(from, dir, Math.min(from, x), Math.max(from, x), followers)
     bump = el('ellipse', { cx: 0, cy: 0, rx: 30, ry: 12, fill: '#6e4a24' }, bumpLayer)
     bump.style.transform = bumpAt(from)
+    rustle = Clock.every(BURROW_EVERY_MS, () => {
+      const at = burrowX()
+      if (at !== null) World.noise('burrow', at, BURROW_REACH)
+    })
     const mine = (going = { from, x, dir, followers, leg: null })
     Debug.trace('digs along', { from: Math.round(from), to: Math.round(x), dug: legs.filter((l) => l.dug).length, new: legs.filter((l) => !l.dug).length })
     try {
@@ -133,6 +140,8 @@ const Underground = (() => {
     if (leg && !leg.dug) Tunnels.dig(net, leg.from, x)
     going = null
     extra = null
+    rustle?.()
+    rustle = null
     bump?.getAnimations().forEach((a) => a.cancel())
     bump?.remove()
     bump = null

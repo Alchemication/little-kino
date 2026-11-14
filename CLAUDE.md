@@ -333,7 +333,7 @@ heats the laptop for minutes.
 | the owl in the oak (`owl.js`) | `"TestMeadowOwl or TestMeadowOak"` |
 | the meadow's autumn (`autumn.js`, the woodpecker `woodpecker.js`, the hedgehog `hedgehog.js`, `hedgeart.js`) | `"TestMeadowAutumn"`, the hedgehog also `"TestMeadowEncounters and hedgehog"` |
 | the painter's fence at the meadow's right end (`fence.js`) | `"TestMeadowFence"` |
-| the mole (`mole.js`, `moleart.js`), his tunnels and stays under (`underground.js`, `tunnels.js`, `tunnelart.js`, `soilart.js`), his molehills (`hills.js`), taps on him or the meadow (`meadow.js`) | `"TestMeadowDay or TestMeadowWalking or TestMeadowMolehills or TestMeadowUnderground or TestMeadowTapHim or TestMeadowTapsWait"` |
+| the mole (`mole.js`, `moleart.js`), his tunnels and stays under (`underground.js`, `tunnels.js`, `tunnelart.js`, `soilart.js`, the earth's life `soillife.js`), his molehills (`hills.js`), taps on him or the meadow (`meadow.js`) | `"TestMeadowDay or TestMeadowWalking or TestMeadowMolehills or TestMeadowUnderground or TestMeadowTapHim or TestMeadowTapsWait"` |
 | him left alone in the meadow (`alone.js`, `acts.js`, his watering `watering.js`) | `"TestMeadowAlone"` (and `alone.test.js`); `acts.js` is shared: the yard's `"TestActs or TestLeftAlone"` too |
 | the meadow's view or screen (`view.js`, `painting.js`, `game.css`) | `"TestMeadowView or TestMeadowScreens or TestMeadowUnderground"` |
 | the meadow's friends, their drawings and faces (`friends.js`, `friendart.js`) | `"TestMeadowFriendFaces or TestMeadowEncounters or TestMeadowEgg or TestMeadowFox or TestMeadowFence"` |

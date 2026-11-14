@@ -23,7 +23,7 @@
 // gesture under way short (Mole.relax), and he is settled where it left
 // him, so he always ends free and standing.
 
-/* global Again, Alone, Watering, Autumn, Bed, Den, Hills, TunnelArt, Underground, Water, Oak, Owl, Fence, Church, Clock, Cricket, Critters, Flock, Heron, Wildlife, Eclipse, Moons, RainPlay, Showers, Spring, Day, Debug, FilmLook, Friends, Layout, MeadowBeds, Mole, Nest, Motion, Music, Painting, Sound, Storm, Things, Swing, Turn, View, Weather, Woodpecker, World */
+/* global Again, Alone, Watering, SoilLife, Autumn, Bed, Den, Hills, TunnelArt, Underground, Water, Oak, Owl, Fence, Church, Clock, Cricket, Critters, Flock, Heron, Wildlife, Eclipse, Moons, RainPlay, Showers, Spring, Day, Debug, FilmLook, Friends, Layout, MeadowBeds, Mole, Nest, Motion, Music, Painting, Sound, Storm, Things, Swing, Turn, View, Weather, Woodpecker, World */
 /* exported meadowGame */
 const meadowGame = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
@@ -107,6 +107,7 @@ const meadowGame = (() => {
     makeTufts()
     Mole.make(layers.mole, document.getElementById('mole-out'))
     Underground.setup(document.getElementById('tunnels'), document.getElementById('deep'), document.getElementById('tunnels'))
+    SoilLife.setup(document.getElementById('soil-life'), () => tulipHeads.map(({ x, base, bend }) => ({ x, base, bend }))) // the earth's small life, the tulips' bulbs
     Mole.put(HOME, 'down')
   }
 
@@ -634,6 +635,7 @@ const meadowGame = (() => {
     [/^tap butterfly (\d+)$/, (m) => tapButterfly(Number(m[1]))],
     [/^tap firefly (\d+)$/, (m) => lookAfter(Critters.tapFirefly(Number(m[1])))],
     [/^tap frog$/, () => Spring.tapFrog()],
+    [/^tap soil (worm|beetle|ants|bulb)(?: (\d+))?$/, (m) => soilTap(m[1], Number(m[2]))],
     [/^tap snail$/, () => tapSnail()],
     [/^tap wild$/, () => lookAfter(Wildlife.tap())],
     [/^tap flock (\d+)$/, (m) => lookAfter(Flock.tap(Number(m[1])))],
@@ -670,6 +672,11 @@ const meadowGame = (() => {
     })
   }
 
+  /** A tap on something in the earth: it answers (soillife.js), and down there with it, he says "ooh". */
+  function soilTap(what, n) {
+    if (SoilLife.tap(what, n) && Mole.state.pose === 'under' && !game.gesture) Sound.say('ooh', true)
+  }
+
   /** A tap on the snail: into its shell it goes, and, if he is free, he looks at it: "ooh". */
   const tapSnail = () => lookAfter(Critters.tapSnail())
 
@@ -691,7 +698,7 @@ const meadowGame = (() => {
   function waits(intent) {
     const busy = Things.stepping
     if (!busy || game.gesture !== busy || Things.byHimself === busy) return false
-    if (intent.startsWith(`use ${busy}`) || intent === 'stop' || intent.startsWith('tap butterfly') || intent.startsWith('tap firefly') || intent === 'tap frog' || intent === 'tap snail' || /^tap (wild|flock|heron)/.test(intent)) return false
+    if (intent.startsWith(`use ${busy}`) || intent === 'stop' || intent.startsWith('tap butterfly') || intent.startsWith('tap firefly') || intent === 'tap frog' || intent === 'tap snail' || intent.startsWith('tap soil') || /^tap (wild|flock|heron)/.test(intent)) return false
     game.queued = intent
     const to = intent.match(/^(?:go|dig) to (\d+)$/)
     if (to) Mole.lookAt(Number(to[1]))
@@ -759,6 +766,8 @@ const meadowGame = (() => {
     if (thing) return choice ? `use ${thing.dataset.thing} ${choice.dataset.choice}` : `use ${thing.dataset.thing}`
     // a tap on what he holds up waiting (the egg) is a tap on it; on him while an encounter plays,
     // a tap on that encounter (it plays on, not cut short)
+    const soil = target.closest('[data-soil]')
+    if (soil) return `tap soil ${soil.dataset.soil}` // the earth's small life (soillife.js)
     if (Mole.state.pose === 'under' && target.closest('.den-room')) return 'rest' // his den: in, and a rest on his pillow
     if (Mole.state.pose === 'under' && p.y > TunnelArt.TOP) return `crawl to ${Math.round(clampX(View.toWorld(p.x)))}` // the earth he is in: along it
     if (target.closest('.mole-carry') && Things.holder()) return `use ${Things.holder()}`
@@ -821,6 +830,7 @@ const meadowGame = (() => {
     irisCircle.setAttribute('cx', String(Math.round(Mole.drawnX() - camX)))
     World.set({ view: { x0: View.left, x1: View.right } })
     TunnelArt.depth(View.dive > 0.01) // the earth all along, while the view is down in it
+    SoilLife.show(View.dive > 0.01) // and its small life
   }, () => Mole.state.pose === 'under') // staying under: the view slides down into the earth
   new ResizeObserver(() => {
     View.fit(svg)

@@ -222,9 +222,17 @@ body { touch-action: manipulation; -webkit-user-select: none; user-select: none;
 .chicks.scared .chick-0 { transform: translate(3px, 1px) rotate(-14deg); }
 .chicks.scared .chick-1 { transform: translate(-1px, 1px) rotate(-10deg); }
 .chicks.scared .chick-2 { transform: translate(-5px, 1px) rotate(-8deg); }
-/* an earthworm in the soil under the meadow (soilart.js): slowly stretching and drawing in, as worms go */
-.cutaway .worm-body { transform-box: fill-box; transform-origin: left center; animation: worm 2.8s ease-in-out infinite alternate; }
+/* the small life in the earth (soillife.js), seen with the view down in it: a worm slowly stretching and drawing in, drawn right in when it minds something; the beetle trundling to and fro along the roots, stopping; the ants going round their nest, hurrying */
+.soil-life .worm-body { transform-box: fill-box; transform-origin: left center; animation: worm 2.8s ease-in-out infinite alternate; }
 @keyframes worm { from { transform: scaleX(1) scaleY(1); } to { transform: scaleX(0.8) scaleY(1.15); } }
+.soil-worm.minding .worm-body { animation: none; transform: scaleX(0.42) scaleY(1.3); transition: transform 0.4s; }
+.beetle-walk { animation: beetle 18s linear infinite; }
+@keyframes beetle { 0% { transform: translateX(0) scaleX(1); } 49.9% { transform: translateX(var(--run)) scaleX(1); } 50% { transform: translateX(var(--run)) scaleX(-1); } 99.9% { transform: translateX(0) scaleX(-1); } 100% { transform: translateX(0) scaleX(1); } }
+.soil-beetle.minding .beetle-walk { animation-play-state: paused; }
+.ant-orbit { animation: ants 7s linear infinite; }
+@keyframes ants { to { transform: rotate(360deg); } }
+.soil-ants.minding .ant-orbit { animation-duration: 2s; }
+@media (prefers-reduced-motion: reduce) { .soil-life .worm-body, .beetle-walk, .ant-orbit { animation: none; } }
 /* the falls pouring on his head as he stands under them (water.js): the streaks run down */
 #wade .pour-streak { animation: pour 0.5s linear infinite; }
 @keyframes pour { from { stroke-dashoffset: 32; } to { stroke-dashoffset: 0; } }

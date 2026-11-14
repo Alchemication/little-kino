@@ -393,9 +393,16 @@ sounds he has judged are in.
       first: `underground.js` `restInDen`); left alone under at dusk he
       lies down there till a tap or bedtime (his call: not before the
       last hour); bedtime under, he sleeps there; mornings he is seen in
-      it and climbs up his shaft (`WAKE_MS`). Next, his pick, in order:
-      life down there that answers him, finds while digging (and a store
-      room in the den for them), the surface feeling him pass. Still open: no sound for
+      it and climbs up his shaft (`WAKE_MS`). **Adam judges the earth's
+      life** (built 2026-11-14, his picks 1A+C and 3A): worms, a beetle
+      under the bed, an ants' nest, the tulips' bulbs (`soillife.js`,
+      shown with the view down); his bump makes a soft `burrow` noise
+      (`underground.js`) that they mind (a worm draws in, the beetle stops,
+      the ants hurry), and so does the meadow above: the tulip over him
+      wobbles, the snail and the bullfinch at the pool start, the frog
+      plops in. A tap on a bulb nods its tulip. Next, his picks: him
+      underground moving more naturally (Adam, 2026-11-14), then finds
+      while digging, carried home to a shelf in his den. Still open: no sound for
       crawling or digging under (his call).
    7. **Adam plays the meadow with Eliot** before any LLM work (Adam,
       2026-10-26).

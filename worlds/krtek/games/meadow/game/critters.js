@@ -66,7 +66,7 @@ const Critters = (() => {
     speed: 12, flee: 1, turn: 2, // a crawl
     stayMs: [90000, 90000], // as long as the grass stays wet: the wet sends it home first
     hours: [8.3, 19], dark: 0.3, wet: 'likes',
-    startledBy: ['vroom', 'splash', 'rumble'], freezeMs: [3000, 5000], // into its shell
+    startledBy: ['vroom', 'splash', 'rumble', 'burrow'], freezeMs: [3000, 5000], // into its shell: the mole's tunnel passing under it too
     band: [700, 706], roam: 220, // along the top of the grass, shell and all showing
   }
   const SNAIL_HAUNT = 260 // it keeps this near its shelter: out from among the stems, where it shows

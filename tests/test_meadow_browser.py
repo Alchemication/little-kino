@@ -957,6 +957,46 @@ class TestMeadowUnderground:
         assert (s["x"], s["pose"]) == (900, "down"), s
         assert not m.errors, m.errors
 
+    def test_the_earths_life_minds_him_going_by(self, meadow: callable) -> None:
+        """Adam, 2026-11-14: life down there that answers him. As his bump goes by,
+        a worm near draws in (soillife.js, on the world model's noises); under the
+        bed, a tulip above wobbles."""
+        m = meadow()
+        self.under(m)
+        m.page.evaluate(
+            "() => { window.wobbled = false; Clock.every(40, () => {"
+            " if ([...document.querySelectorAll('.tulip-bend')].some((b) => b.getAnimations().length)) wobbled = true }) }"
+        )
+        m.do("crawl to 1400")  # under the flower bed, past the worm at 1370
+        m.wait_free()
+        assert m.page.evaluate("!!document.querySelector('.soil-worm.minding')"), (
+            "no worm minded him"
+        )
+        assert m.page.evaluate("wobbled"), "no tulip wobbled as he went under the bed"
+        assert (
+            m.page.evaluate("document.getElementById('soil-life').style.display") == ""
+        )
+        assert not m.errors, m.errors
+
+    def test_a_tap_on_a_bulb_and_its_tulip_nods(self, meadow: callable) -> None:
+        m = meadow()
+        self.under(m)
+        m.do("crawl to 1150")
+        m.wait_free()
+        box = m.page.evaluate(
+            "(() => { const r = document.querySelector('.soil-bulb').getBoundingClientRect();"
+            " return { x: r.x + r.width / 2, y: r.y + r.height * 0.4 } })()"
+        )
+        m.page.mouse.click(box["x"], box["y"])  # a real tap on the bulb
+        m.wait("meadowGame.trace().includes('tap soil bulb')")
+        assert m.page.evaluate(
+            "[...document.querySelectorAll('.tulip-bend')].some((b) => b.getAnimations().length)"
+        ), "its tulip did not nod"
+        m.do("tap soil worm 1")
+        assert m.page.evaluate("!!document.querySelector('.soil-worm.minding')")
+        assert m.state()["pose"] == "under", "a tap on the earth's life is not a crawl"
+        assert not m.errors, m.errors
+
     def test_bedtime_under_he_goes_home_along_his_tunnel(
         self, meadow: callable
     ) -> None:

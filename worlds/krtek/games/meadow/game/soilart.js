@@ -2,7 +2,7 @@
 // layers, as it lies in a meadow (Adam, 2026-11-14: closer to how it looks in
 // nature): dark topsoil just under the grass, the grass's fine roots hanging
 // into it, brown earth under that with a root or two reaching down, pebbles
-// and pale flecks of stone, now and then an earthworm, paler clay under
+// and pale flecks of stone (its life, worms and all: soillife.js), paler clay under
 // that, and deeper still a stony layer; under the old oak, its big roots
 // spread through it all. Each layer lies at the same depth wherever it is
 // drawn: the strip the cutaway shows under the grass is the top of the deep
@@ -33,8 +33,6 @@ const SoilArt = (() => {
   const STONE_EVERY = 48 // a place for a pebble about this often along each row
   const STONES = ['#8d8074', '#a59a8a', '#6f655b', '#9a8a73']
   const FLECK_EVERY = 30
-  const WORM_EVERY = 520 // a place for a worm about this often…
-  const WORM_CHANCE = 0.6
   const CRUMB_EVERY = 9 // crumbs of earth along a tunnel's walls
 
   const el = (tag, attrs = {}, parent) => {
@@ -76,7 +74,6 @@ const SoilArt = (() => {
     hairs(g, l, r, top)
     roots(g, l, r, top)
     oakRoots(g, l, r, top, deep)
-    worms(g, l, r, top)
   }
 
   /** Which layer is y down from the top (an index into LAYERS)? */
@@ -161,22 +158,6 @@ const SoilArt = (() => {
       })
       el('path', { d: main, stroke: '#b89a72', 'stroke-width': 2.6, fill: 'none', 'stroke-linecap': 'round' }, g)
       el('path', { d: forks.join(' '), stroke: '#b89a72', 'stroke-width': 1.4, fill: 'none', 'stroke-linecap': 'round' }, g)
-    }
-  }
-
-  /** Now and then an earthworm, curled in the earth, slowly stretching and drawing in (game.css .worm). */
-  function worms(g, l, r, top) {
-    for (let i = Math.ceil(l / WORM_EVERY); i * WORM_EVERY < r; i++) {
-      if (at(i, 24) > WORM_CHANCE) continue
-      const x = i * WORM_EVERY + at(i, 25) * WORM_EVERY
-      if (x < l + 50 || x > r - 50) continue
-      const y = top + TOPSOIL + 12 + at(i, 26) * 26
-      const dir = at(i, 27) < 0.5 ? -1 : 1
-      const worm = el('g', { class: 'worm', transform: `translate(${f(x)} ${f(y)}) scale(${dir} 1)` }, g)
-      const body = el('g', { class: 'worm-body' }, worm)
-      body.style.animationDelay = `${f(-at(i, 28) * 4)}s` // each its own moment
-      el('path', { d: 'M-22 2 c6 -10 12 6 20 -2 s12 -8 18 -2', stroke: '#c97a7a', 'stroke-width': 5, fill: 'none', 'stroke-linecap': 'round' }, body)
-      el('path', { d: 'M-10 -2 l0 4 M-4 -2 l0 4 M8 -6 l0 4', stroke: '#9e5656', 'stroke-width': 0.8 }, body) // its rings
     }
   }
 
