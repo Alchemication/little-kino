@@ -8,26 +8,25 @@
 // standing as he is drawn: nothing is frozen on an animation's last frame.
 //
 // Where he is: `x` along the meadow, and how much of him shows (`pose`):
-// 'down' (under the ground), 'hill' (up to his middle in a molehill), 'out'
+// 'down' (under the ground, on his way), 'under' (staying down in his
+// tunnels, seen crawling in the cutaway: underground.js), 'hill' (up to his
+// middle in a molehill), 'out'
 // (on the grass, feet and all) or 'listen' (in his molehill, chin on his
 // hands, eyes half shut: the cricket is playing). Which way: `view` ('front',
 // 'three' or 'side') and `facing` (1 right, -1 left).
 
-/* global Clock, Debug, Layout, MoleArt, Motion, TunnelArt */
+/* global Clock, Debug, Layout, MoleArt, Motion */
 /* exported Mole */
 const Mole = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
   const Y = Layout.GROUND // his feet-line
   const SCALE = 1.2 // drawn at this size: about a fifth of the screen high, out on the grass
-  const SINK = { down: 240, hill: 16, out: 0, listen: 26 } // how far below his feet-line he sits, scene units
+  const SINK = { down: 240, under: 240, hill: 16, out: 0, listen: 26 } // how far below his feet-line he sits, scene units
   const PEEK = 104 // coming up, how far down he is while only his hands show above the molehill
   const DIG_MS = 380 // diving down, or coming up
   const DIG_IN = { depths: [55, 110, 160], strokes: 3, strokeMs: 95, jerkMs: 170 } // digging himself in out on the grass: sunk this far at each jerk (his waist, his shoulders, just his hairs), his hands paddling this many strokes before each
   const SCRATCH = { rubs: 3, rubMs: 150 } // scratching his head: rubs to and fro, each this long
   const SNAP_MS = 90 // pose to pose: how quickly he moves from one held pose to the next
-  const TUNNEL_MS_PER_UNIT = 2.2 // tunnelling: slow enough to watch him crawl along it in the cutaway (tunnelart.js; Adam, 2026-11-11)
-  const TUNNEL_MIN_MS = 800 // the shortest tunnel takes this long
-  const TUNNEL_SHUT_MS = 250 // the ground closing over it again
   // His gaits, in scene units and ms: a walk with short quick steps, a bob and an arm swinging, and
   // on a long trip a run, longer and quicker, leaning forward (the films: he walks, sometimes runs low)
   const WALK = { step: 38, stepMs: 210, reach: 9, lift: 7, bounce: 5, swing: 22, lean: 0 }
@@ -73,8 +72,7 @@ const Mole = (() => {
   let lift = 0 // how far up he stands (on someone's shoulders, in the car)
   let views = null // moleart.js's three views
   let free = () => false // the meadow says when he is free to look about by himself
-  let root, body, tilt, tunnel, inLayer, outLayer, carrySlot, hatSlot
-  let bump = null // the bump of earth over him as he tunnels
+  let root, body, tilt, inLayer, outLayer, carrySlot, hatSlot
 
   const el = (tag, attrs = {}, parent) => {
     const e = document.createElementNS(SVG, tag)
@@ -83,11 +81,12 @@ const Mole = (() => {
     return e
   }
   const cur = () => views[state.view]
+  const hidden = () => state.pose === 'down' || state.pose === 'under' // nothing of him shows above the ground
   const all = () => Object.values(views)
 
-  /** Draw him into `layer` (behind the molehills, so they hide his lower half), out on the grass into
-   * `grass` (in front of them), and the tunnel bumps into `ground`. */
-  function make(layer, grass, ground) {
+  /** Draw him into `layer` (behind the molehills, so they hide his lower half), and out on the grass into
+   * `grass` (in front of them). */
+  function make(layer, grass) {
     inLayer = layer
     outLayer = grass
     root = el('g', { class: 'mole' }, layer)
@@ -100,7 +99,6 @@ const Mole = (() => {
     mood('content')
     carrySlot = el('g', { class: 'mole-carry' }, art) // what he holds up over his head
     hatSlot = el('g', { class: 'mole-hat' }, art) // what sits on his head
-    tunnel = el('g', { class: 'tunnel' }, ground)
     blink()
     glance()
     lookAbout()
@@ -169,7 +167,7 @@ const Mole = (() => {
 
   function blink() {
     Clock.after(2200 + life() * 3500, () => {
-      if (state.pose !== 'listen' && state.pose !== 'down') {
+      if (state.pose !== 'listen' && !hidden()) {
         Debug.ignoreCut(Motion.endAt(cur().lids, [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)', offset: 0.5 }, { transform: 'scaleY(0)' }], { duration: 160 }), 'blink')
       }
       blink()
@@ -213,7 +211,6 @@ const Mole = (() => {
       state.x = x
       root.style.transform = rootAt(x, lift)
     }
-    for (const b of [...tunnel.children]) b.remove()
     for (const v of all()) for (const a of v.arms) a.style.transform = ''
     tilt.style.transform = ''
     laugh(false)
@@ -287,7 +284,7 @@ const Mole = (() => {
   /** The face that goes with a word he says (WORDS), held a moment, then his resting face again. */
   function express(word) {
     const f = WORDS[word]
-    if (!f || state.pose === 'down') return
+    if (!f || hidden()) return
     if (f.perk) perk(f.perk)
     if (!f.face && !f.lids) return
     const mine = (faceToken = Symbol(word))
@@ -304,7 +301,7 @@ const Mole = (() => {
   /** A face (FACES) held ms, then his resting face again: a moment's feeling with no word (an effort, a worry). A word
    * or a newer feeling takes over; a cut (relax) ends it. */
   function feel(name, ms) {
-    if (state.pose === 'down' || laughing) return
+    if (hidden() || laughing) return
     const mine = (faceToken = Symbol(name))
     mood(glad(name))
     Clock.after(ms, () => {
@@ -336,7 +333,7 @@ const Mole = (() => {
       return
     }
     show('front')
-    if (state.pose === 'down') {
+    if (hidden()) {
       const [l, r] = views.front.arms
       l.style.transform = `rotate(${ARMS.up}deg)`
       r.style.transform = `rotate(${-ARMS.up}deg)`
@@ -396,40 +393,6 @@ const Mole = (() => {
       hand.style.transform = ''
       v.view.insertBefore(hand, behind)
     }
-  }
-
-  /** He tunnels from where he is to x: a bump of earth runs under the grass, and under it the ground
-   * opens to show him crawling along the tunnel as he digs it (tunnelart.js), `followers`
-   * ([{ draw(g), scale }]) coming behind him. */
-  async function tunnelTo(x, followers = []) {
-    const from = state.x
-    const ms = Math.max(TUNNEL_MIN_MS, Math.abs(x - from) * TUNNEL_MS_PER_UNIT)
-    const cut = TunnelArt.cut(tunnel, from, x, followers)
-    bump = el('ellipse', { cx: 0, cy: 0, rx: 30, ry: 12, fill: '#6e4a24' }, tunnel)
-    bump.style.transform = `translate(${from}px, ${Y + 14}px)`
-    state.x = x // he is on his way there: a cut leaves him there
-    const along = { duration: ms, easing: 'ease-in-out' }
-    try {
-      await Promise.all([
-        Motion.endAt(bump, [{ transform: `translate(${from}px, ${Y + 14}px)` }, { transform: `translate(${x}px, ${Y + 14}px)` }], along),
-        Motion.endAt(cut.run, [{ transform: 'translateX(0px)' }, { transform: `translateX(${x - from}px)` }], along),
-        ...cut.dug.map((path) => Motion.endAt(path, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], along)),
-        Motion.endAt(cut.el, [{ opacity: 0 }, { opacity: 1 }], { duration: Math.min(300, ms / 3) }),
-      ])
-      await Motion.endAt(cut.el, [{ opacity: 1 }, { opacity: 0 }], { duration: TUNNEL_SHUT_MS })
-    } finally {
-      bump.remove()
-      bump = null
-      cut.el.remove()
-    }
-    root.style.transform = rootAt(x)
-  }
-
-  /** Where the bump of his tunnel is drawn now, or null when he isn't tunnelling (for whoever it passes under). */
-  function burrowX() {
-    const b = bump
-    const t = b && getComputedStyle(b).transform
-    return t && t !== 'none' ? new DOMMatrixReadOnly(t).e : null
   }
 
   /** Walk along the grass to x (he is out), in profile, his feet stepping; on a long trip he runs, low. */
@@ -757,5 +720,5 @@ const Mole = (() => {
     await Motion.endAt(root, [{ transform: from }, { transform: rootAt(x, dy) }], { duration: ms, easing })
   }
 
-  return { SCALE, state, drawnX, face, mood, calm, settle, feel, digIn, scratchHead, show, lookAt, perk, express, setFree, head, carry, paint, dots, perch, glide, wear, wearing, lean, totter, knock, wobble, ponder, handsToFace, point, wave, peekaboo, laugh, make, put, relax, sway, shakeOff, comeUp, goDown, tunnelTo, burrowX, walkTo, cheer, hop, stretch, ghost, listen }
+  return { SCALE, state, drawnX, face, mood, calm, settle, feel, digIn, scratchHead, show, lookAt, perk, express, setFree, head, carry, paint, dots, perch, glide, wear, wearing, lean, totter, knock, wobble, ponder, handsToFace, point, wave, peekaboo, laugh, make, put, relax, sway, shakeOff, comeUp, goDown, walkTo, cheer, hop, stretch, ghost, listen }
 })()

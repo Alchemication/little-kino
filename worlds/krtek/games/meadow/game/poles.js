@@ -39,7 +39,7 @@
 // (things.js): a pole in his hands is stood up where he is, the bulldozer
 // stands where it was going, and the next tap carries on with it.
 
-/* global Clock, Debug, Layout, Mole, Motion, Painting, Sound, Things, View, World */
+/* global Clock, Debug, Layout, Mole, Motion, Painting, Sound, Things, Underground, View, World */
 ;(() => {
   const Y = Layout.GROUND
   // the line as the bulldozer shoots it, from just ahead of it to by his flowers...
@@ -653,7 +653,7 @@
       if (!alive()) return
       await dig(alive, DIG_IN.rx.at(-1) / PIT.rx) // under there, digging: earth flying out, the hole widening on
       if (!alive()) return
-      await Mole.tunnelTo(PIT_X - PIT.rx - 60) // out of its way, beyond the pit, by the last pole
+      await Underground.tunnelTo(PIT_X - PIT.rx - 60) // out of its way, beyond the pit, by the last pole
       if (!alive()) return
       Sound.pop()
       await Mole.comeUp('out')

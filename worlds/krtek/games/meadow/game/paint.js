@@ -49,7 +49,7 @@
 // tins, once brought, stay where they were set down; he stays red until he
 // washes.
 
-/* global Clock, Debug, Friends, Layout, Mole, Motion, Nest, Sound, Things */
+/* global Clock, Debug, Friends, Layout, Mole, Motion, Nest, Sound, Things, Underground */
 ;(() => {
   const Y = Layout.GROUND
   const S = Layout.SPRING
@@ -263,7 +263,7 @@
     }
     if (!alive()) return
     const behind = order.map((kind) => ({ draw: (g) => Friends.sketch(kind, g), scale: CRAWL[kind] })) // after him along the tunnel, in the order they went in
-    await Promise.all([Mole.tunnelTo(DOOR_NEAR, behind), feels(back, alive)])
+    await Promise.all([Underground.tunnelTo(DOOR_NEAR, behind), feels(back, alive)])
     if (!alive()) return
     Sound.pop()
     await Mole.comeUp('hill')
@@ -281,9 +281,9 @@
   /** The fox, as the bump of the tunnel goes by under his feet: a jump, a puzzled look down, or a spin round. */
   async function feels(how, alive) {
     // the bump on its way, then past him (or the tunnel done: it went by between two looks)
-    while (alive() && Mole.burrowX() === null) await Clock.wait(40)
-    const dir = Math.sign(FOX_AT - Mole.burrowX())
-    while (alive() && Mole.burrowX() !== null && (FOX_AT - Mole.burrowX()) * dir > 0) await Clock.wait(40)
+    while (alive() && Underground.burrowX() === null) await Clock.wait(40)
+    const dir = Math.sign(FOX_AT - Underground.burrowX())
+    while (alive() && Underground.burrowX() !== null && (FOX_AT - Underground.burrowX()) * dir > 0) await Clock.wait(40)
     if (!alive() || !fox) return
     Debug.trace('fox feels', { how })
     fox.feel('shock')

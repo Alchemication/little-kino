@@ -78,12 +78,31 @@ sounds he has judged are in.
      `STROKES`), the painted one squirms with eyes shut, and the hare
      dabs the mole's spots. Judge the pace, and the mouse standing among
      the tins while she is painted (`paint.js` `friendsPaint`).
+   - **Adam judges his tunnels kept, and his stays under** (built
+     2026-11-14, designed with him): what he digs stays all day
+     (`tunnels.js`), and the ground opens on all of it whenever he is
+     under, lingering a moment after he comes up (`tunnelart.js`
+     `LINGER_MS`, `SHUT_MS`). A tap on the molehill he is in takes him
+     down to stay (`underground.js`); a tap on the earth, he crawls there,
+     quickly along what is dug (`PACE.crawl`) and slowly digging on
+     (`PACE.dig`); a tap on a molehill or the grass brings him up there;
+     anything else, he comes up first; left alone, he comes up himself
+     (`ALONE_MS`, in a molehill within `UP_NEAR`). While he is down nothing
+     arrives (the stage is elsewhere), a waiting visitor waits, showers
+     and the eclipse wait; at dusk and bedtime he goes home along his
+     tunnel. The soil is drawn closer to nature (`soilart.js`: topsoil
+     with root hairs, roots, pebbles, a worm, clay; Adam, 2026-11-14).
+     Judge: the paces, whether a child finds the way down and back up,
+     and the soil. Open: in the strip under the grass the tunnel fills
+     most of the earth, so the soil shows mostly past its ends; a view
+     that slides down when he stays under (6d) would give it room.
+     No sound yet for crawling or digging under (his call).
    - **Adam judges the tunnel seen, and the fox's music** (2026-11-11, from
      his play of the paint story). Whenever he tunnels, the ground opens in
      a cutaway and he crawls along the tunnel as he digs it, the hare and
      the mouse behind him on the way back under the fox (`tunnelart.js`,
-     `mole.js` `tunnelTo`). It is slower so it can be watched
-     (`TUNNEL_MS_PER_UNIT` 0.9 to 2.2): judge the pace, the crawlers'
+     `underground.js` `tunnelTo`). It is slower so it can be watched
+     (`PACE.dig`, was 0.9, now 2.2 ms a unit): judge the pace, the crawlers'
      size (`paint.js` `CRAWL`), and how it looks under the umbrella, the
      molehill tap and the bulldozer's pit, which use it too. Music, for
      his ears: the glad theme now waits until the fox cowers (`paint.js`
@@ -96,7 +115,7 @@ sounds he has judged are in.
      both games for cause and effect; `meadow.js` `burrow`): a tap on a
      molehill and he tunnels to it; out on the grass he digs himself in
      first and leaves a molehill there, so there are soon a few to send
-     him between; tapped in his own, he comes up in another. Judge: the tunnel's pace (the item above), and whether six molehills (`MAX_HILLS`) clutter
+     him between; tapped in his own, he now goes down to stay (above). Judge: the tunnel's pace (the item above), and whether six molehills (`MAX_HILLS`) clutter
      the meadow.
    - `TestMeadowOak::test_a_tap_on_it_peeks_a_new_way_each_time` failed once
      under load (2026-11-08) with one other, and not in four runs after:
@@ -350,7 +369,9 @@ sounds he has judged are in.
       about under the meadow, and meets other animals there. A second
       layer of the scene, not a gag: a view down into the earth, its
       painting, animals drawn after the films, and a way in and out a
-      toddler gets at once. Sketch designs for Adam after the fox.
+      toddler gets at once. Sketch designs for Adam after the fox. The
+      way in and out, and the tunnels kept, are built (above): its levels
+      join `tunnels.js` (each run has a depth), its painting `soilart.js`.
    7. **Adam plays the meadow with Eliot** before any LLM work (Adam,
       2026-10-26).
    8. If the meadow feels more alive: the LLM director behind the player's

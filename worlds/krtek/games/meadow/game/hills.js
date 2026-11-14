@@ -2,10 +2,12 @@
 // where he dug himself in or came up (the oldest sinks back once there are
 // too many). A tap on one sends him to it under the grass (burrow): what he
 // did stays, and can be used again (Adam, 2026-11-10: the world should
-// answer a touch). meadow.js says what a tap means and runs burrow as his
-// gesture, so a new tap cuts it short like any other.
+// answer a touch); a tap on the one he is in takes him down to stay
+// (underground.js). meadow.js says what a tap means and runs burrow as his
+// gesture, so a new tap cuts it short like any other. Every molehill has a
+// shaft down to his tunnels (tunnels.js), drawn when the ground opens.
 
-/* global Debug, Layout, Mole, Motion, Sound */
+/* global Debug, Layout, Mole, Motion, Sound, Underground */
 /* exported Hills */
 const Hills = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
@@ -14,12 +16,13 @@ const Hills = (() => {
   const SIZE = { home: [240, 64], other: [180, 50] } // a molehill's width and height: his home's is bigger
   const REACH = 8 // a tap this far above or below a molehill (scene units) still means it: lower is the grass, to walk on
   const NEAR = 50 // within this of a molehill's middle, he is in it
+  const BESIDE = 150 // out on the grass this near a molehill, a tap on it has him step onto it and go down
   const COVERS = 70 // a molehill this near x stands there: no second one beside it
-  const burrows = Debug.random('meadow-burrows') // which other molehill he comes up in, tapped in his own
 
   const hills = [] // those he has left about, oldest first: { x, g }
   let layer, grass, paint
   let dropHat = () => {}
+  let changed = () => {} // a molehill made or sunk: its shaft too
 
   const el = (tag, attrs = {}, parent) => {
     const e = document.createElementNS(SVG, tag)
@@ -29,9 +32,10 @@ const Hills = (() => {
   }
 
   /** Drawn in `layer`, behind `grass` (the grass in front stays in front of every molehill), its clods from
-   * `random`; `dropHat()` has whatever is on his head fall off as he dives. */
+   * `random`; `dropHat()` has whatever is on his head fall off as he dives; `changed()` hears a molehill made or sunk. */
   function setup(hooks) {
     ;({ layer, grass, random: paint, dropHat } = hooks)
+    changed = hooks.changed || changed
   }
 
   const path = (w, h) => `M${-w / 2} 6 C${-w * 0.42} ${-h * 0.7} ${-w * 0.22} ${-h} 0 ${-h} C${w * 0.22} ${-h} ${w * 0.42} ${-h * 0.7} ${w / 2} 6 Z`
@@ -48,14 +52,19 @@ const Hills = (() => {
       el('circle', { cx: (paint() - 0.5) * w * 0.75, cy: -paint() * h * 0.8, r: 4 + paint() * 7, fill: paint() < 0.5 ? '#38250a' : '#8a5d2e' }, inner)
     }
     if (grow) Debug.ignoreCut(Motion.endAt(inner, [{ transform: 'scaleY(0.05)' }, { transform: 'scaleY(1)' }], { duration: 320, easing: 'cubic-bezier(.3,1.5,.5,1)' }), 'hill grows')
-    if (big) return
-    hills.push({ x, g })
-    if (hills.length > MAX) sink(hills.shift())
+    if (!big) {
+      hills.push({ x, g })
+      if (hills.length > MAX) sink(hills.shift())
+    }
+    changed()
   }
 
   function sink(h) {
     Motion.endAt(h.g, [{ transform: `translate(${h.x}px, ${GROUND + 80}px)` }], { duration: 900, easing: 'ease-in' }).then(() => h.g.remove(), () => h.g.remove())
   }
+
+  /** Where the molehills stand: his home's, then those he left, oldest first. */
+  const xs = () => [HOME, ...hills.map((h) => h.x)]
 
   /** Does a molehill stand at x (his home's, or one he left)? */
   const at = (x) => Math.abs(x - HOME) < COVERS || hills.some((h) => Math.abs(h.x - x) < COVERS)
@@ -68,24 +77,25 @@ const Hills = (() => {
   }
 
   /**
-   * A tap on a molehill: he tunnels to it. Down he goes where he is (out on the grass he digs himself in,
-   * step by step, and leaves a molehill there: one more to tap), the bump of his tunnel runs under the grass,
-   * and up he pops in it. Tapped in the one he is in, he comes up in another he has left about; with no
-   * other, a jump of joy.
+   * A tap on a molehill. The one he is in (or stands beside, out on the grass): down he goes, and stays
+   * (underground.js). Another: he tunnels to it. Down he goes where he is (out on the grass he digs himself
+   * in, step by step, and leaves a molehill there: one more to tap), the bump of his tunnel runs under the
+   * grass, and up he pops in it. Staying under already: along his tunnel to it, and up.
    */
   async function burrow(x, alive) {
     x = Layout.clampX(x)
     const m = Mole.state
-    const pick = burrows() // drawn either way
-    if (m.pose !== 'out' && Math.abs(x - m.x) < NEAR) {
-      const others = [HOME, ...hills.map((h) => h.x)].filter((hx) => Math.abs(hx - m.x) >= NEAR)
-      if (!others.length) return Mole.cheer()
-      x = others[Math.floor(pick * others.length)]
-    }
-    Debug.trace('burrows', { from: Math.round(m.x), to: Math.round(x) })
+    if (m.pose === 'under') return Underground.upAt(x)
     const kept = hills.findIndex((h) => Math.abs(h.x - x) < NEAR)
     if (kept >= 0) hills.push(...hills.splice(kept, 1)) // the one he is going to is the newest now: a new one never sinks it
     Mole.lookAt(x) // he looks first: the tap was heard
+    if (Math.abs(x - m.x) < (m.pose === 'out' ? BESIDE : NEAR)) {
+      if (m.pose === 'out') await Mole.walkTo(x)
+      if (!alive()) return
+      dropHat()
+      return Underground.goUnder()
+    }
+    Debug.trace('burrows', { from: Math.round(m.x), to: Math.round(x) })
     dropHat()
     Sound.dig()
     if (m.pose === 'out') {
@@ -93,7 +103,7 @@ const Hills = (() => {
       await Mole.digIn()
     } else await Mole.goDown()
     if (!alive()) return
-    await Mole.tunnelTo(x)
+    await Underground.tunnelTo(x)
     if (!alive()) return
     if (!at(x)) make(x)
     Sound.pop()
@@ -102,5 +112,5 @@ const Hills = (() => {
     Sound.say('giggle', true) // now and then: here I am
   }
 
-  return { setup, make, at, under, burrow, /** How many he has left about (not his home's). */ get count() { return hills.length } }
+  return { setup, make, at, xs, under, burrow, /** How many he has left about (not his home's). */ get count() { return hills.length } }
 })()

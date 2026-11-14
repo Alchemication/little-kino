@@ -1,13 +1,14 @@
-// His tunnel, seen: while he tunnels, the ground under the grass opens in a
-// cutaway, as the films show the earth (dark, with pale flecks: Krtek a
-// autíčko 0:50), and his tunnel is dug through it as he goes: down from
-// where he went in, along, and up to where he will come out, with him
-// crawling at its front and whoever follows him behind (Adam, 2026-11-11:
-// without it they went into the ground in one place and came out in another).
+// His tunnels, seen: when he is under the ground, the earth under the grass
+// opens in a cutaway (its soil: soilart.js), and shows all he has dug this
+// play (tunnels.js): each run, dug out of the earth, crumbs along its walls,
+// and the shaft down from every molehill; what he digs now is dug through it
+// as he goes, with him crawling at its front and whoever follows him behind
+// (Adam, 2026-11-11: without it they went into the ground in one place and
+// came out in another). Once he is up, it lingers a moment and closes.
 //
-// Only drawing here: mole.js moves it (tunnelTo) and takes it away.
+// Only drawing here: underground.js says what to show and moves it.
 
-/* global Debug, Layout, MoleArt */
+/* global Clock, Layout, MoleArt, Motion, SoilArt, Tunnels */
 /* exported TunnelArt */
 const TunnelArt = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
@@ -16,15 +17,19 @@ const TunnelArt = (() => {
   const DEEP = 172 // how far down it shows: to the foot of the picture
   const RUN_Y = Y + 106 // the tunnel's middle, where it runs along
   const BORE = 104 // how wide the tunnel is: room for the hare on all fours
-  const SIDE = 110 // the earth shown either side of the two ends
+  const SIDE = 110 // the earth shown beyond each end of what is dug
   const FLOOR = RUN_Y + BORE / 2 - 8 // where feet go
-  const EARTH = '#2b1d12'
-  const WALL = '#8a5a2c'
-  const AIR = '#d9a25a' // the tunnel's inside: the den's ochre, a little darker
+  const WALL = '#6b4526' // the earth packed hard round the tunnel, darker than its inside
+  const AIR = [['0', '#9c6535'], ['0.4', '#c48a4f'], ['1', '#dcae6e']] // the tunnel's inside, in the den's ochre: shaded under its roof, lightest on its floor
   const FOLLOW_GAP = 104 // each one behind the one ahead
   const CRAWLER = 1.3 // his small crawling figure, drawn up to fill the tunnel's height
-  const random = Debug.random('tunnel-art') // the flecks: its own stream
-  let cuts = 0 // how many have been drawn, for each one's own clip
+  const OPEN_MS = 300 // the ground opening
+  const LINGER_MS = 1500 // once he is up, it stays open this long (Adam, 2026-11-14: they vanished at once)…
+  const SHUT_MS = 1200 // …then closes this slowly
+
+  let root, earthG, tunnelsG, crumbsG, digG, moversG, clipRect
+  let shown = false // open, or opening: the child can see it
+  let shutting = null // the timer before it closes
 
   const el = (tag, attrs = {}, parent) => {
     const e = document.createElementNS(SVG, tag)
@@ -49,43 +54,119 @@ const TunnelArt = (() => {
     return g
   }
 
-  /**
-   * The cutaway for a tunnel from `from` to `to`, drawn into `layer`, nothing dug yet. It gives back:
-   * - el: all of it (fade it in and out);
-   * - dug: the tunnel's paths from the foot of the way down, each of length 1 (pathLength): show 0 to
-   *   1 of them (stroke-dashoffset 1 to 0) as he digs;
-   * - run: what moves along it, drawn at the tunnel's start, facing the way he goes: translate it by
-   *   the distance dug. He is at its front; `followers` ([{ draw(g), scale }]) come behind him in turn.
-   */
-  function cut(layer, from, to, followers = []) {
-    const dir = to < from ? -1 : 1
-    const [l, r] = [Math.min(from, to) - SIDE, Math.max(from, to) + SIDE]
-    const g = el('g', { class: 'cutaway' }, layer)
-    el('path', { d: `M${l + 26} ${TOP} H${r - 26} Q${r} ${TOP} ${r} ${TOP + 26} V${TOP + DEEP} H${l} V${TOP + 26} Q${l} ${TOP} ${l + 26} ${TOP} Z`, fill: EARTH }, g)
-    for (let i = 0; i < (r - l) / 26; i++) {
-      const [x, y, s] = [l + 14 + random() * (r - l - 28), TOP + 10 + random() * (DEEP - 20), 3 + random() * 4]
-      el('path', { d: `M${x} ${y} l${s} ${-s * 0.6} l${s * 0.4} ${s} Z`, fill: '#cbb894', opacity: 0.5 }, g)
-    }
-    // the way down where he went in is there already; along, and up to where he comes out, is dug as he goes
-    const tube = { fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }
-    const down = `M${from} ${TOP + 4} V${RUN_Y}`
-    const along = { ...tube, d: `M${from} ${RUN_Y} H${to} V${TOP + 4}`, pathLength: 1, 'stroke-dasharray': 1, 'stroke-dashoffset': 1 }
-    el('path', { ...tube, d: down, stroke: WALL, 'stroke-width': BORE + 10 }, g)
-    const dug = [el('path', { ...along, stroke: WALL, 'stroke-width': BORE + 10 }, g)]
-    el('path', { ...tube, d: down, stroke: AIR, 'stroke-width': BORE }, g)
-    dug.push(el('path', { ...along, stroke: AIR, 'stroke-width': BORE }, g))
-    // only those in the tunnel show: who follows him is out of sight until it passes the way down
-    const clip = el('clipPath', { id: `tunnel-${++cuts}` }, g)
-    el('rect', { x: Math.min(from, to) - BORE / 2, y: TOP, width: Math.abs(to - from) + BORE, height: DEEP }, clip)
-    const run = el('g', { class: 'tunnellers' }, el('g', { 'clip-path': `url(#${clip.id})` }, g))
-    const facing = el('g', { transform: `translate(${from} ${FLOOR}) scale(${-dir} 1)` }, run) // drawn facing left: turned the way they go
-    followers.forEach(({ draw, scale }, n) => {
-      const f = el('g', { transform: `translate(${(n + 1) * FOLLOW_GAP} 0) scale(${scale})` }, facing)
-      draw(f)
-    })
-    crawler(facing)
-    return { el: g, dug, run }
+  /** Drawn into `layer`, shut. */
+  function setup(layer) {
+    root = el('g', { class: 'cutaway' }, layer)
+    root.style.display = 'none'
+    const shade = el('linearGradient', { id: 'tunnel-air', gradientUnits: 'userSpaceOnUse', x1: 0, x2: 0, y1: RUN_Y - BORE / 2, y2: RUN_Y + BORE / 2 }, el('defs', {}, root))
+    for (const [offset, colour] of AIR) el('stop', { offset, 'stop-color': colour }, shade)
+    earthG = el('g', {}, root)
+    tunnelsG = el('g', {}, root)
+    digG = el('g', {}, root)
+    crumbsG = el('g', {}, root)
+    const clip = el('clipPath', { id: 'tunnel-movers' }, root)
+    clipRect = el('rect', { y: TOP, height: DEEP }, clip)
+    moversG = el('g', { 'clip-path': 'url(#tunnel-movers)' }, root)
   }
 
-  return { cut, FOLLOW_GAP }
+  const tube = { fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }
+  const shaft = (x) => `M${x} ${TOP + 4} V${RUN_Y}`
+  const along = (a, b) => `M${a} ${RUN_Y} H${b}`
+
+  /** A tube along `d`: its wall, then its inside over it. */
+  function bore(d, parent, more = {}) {
+    return [el('path', { ...tube, ...more, d, stroke: WALL, 'stroke-width': BORE + 12 }, parent), el('path', { ...tube, ...more, d, stroke: 'url(#tunnel-air)', 'stroke-width': BORE }, parent)]
+  }
+
+  /**
+   * Draw what is dug (`net`, tunnels.js) and the shafts down from the molehills at `shafts` (x's), with
+   * earth round them all; `extra` ([a, b]): a stretch about to be dug, its earth shown already.
+   */
+  function draw(net, shafts, extra = null) {
+    earthG.replaceChildren()
+    tunnelsG.replaceChildren()
+    crumbsG.replaceChildren()
+    for (const [l, r] of Tunnels.earth(net, shafts, SIDE, extra)) SoilArt.draw(earthG, l, r, TOP, DEEP)
+    const runs = Tunnels.runs(net)
+    const ds = [...shafts.map(shaft), ...runs.map((r) => along(r.from, r.to))]
+    if (ds.length) bore(ds.join(' '), tunnelsG)
+    SoilArt.crumbs(crumbsG, runs, shafts, RUN_Y, BORE + 12, TOP)
+  }
+
+  /**
+   * Tunnel being dug now, along from a to b (`up` true: the shaft up at b too), nothing of it shown yet:
+   * its paths, each of length 1 (pathLength): show 0 to 1 of them (stroke-dashoffset 1 to 0) as he digs.
+   */
+  function digging(a, b, up = false) {
+    return bore(`${along(a, b)}${up ? ` V${TOP + 4}` : ''}`, digG, { pathLength: 1, 'stroke-dasharray': 1, 'stroke-dashoffset': 1 })
+  }
+
+  /** The way up at x, being dug: as digging(), a shaft. */
+  const diggingUp = (x) => bore(`M${x} ${RUN_Y} V${TOP + 4}`, digG, { pathLength: 1, 'stroke-dasharray': 1, 'stroke-dashoffset': 1 })
+
+  /** What was being dug is drawn as dug now (draw() has it): its own paths go. */
+  const dug = () => digG.replaceChildren()
+
+  /**
+   * Who moves along the tunnel, drawn at x, facing the way he goes (`dir`), only between `lo` and `hi`
+   * (who follows him is out of sight until it passes the way down): him at the front, `followers`
+   * ([{ draw(g), scale }]) behind him in turn. Translate the group it gives back by the distance gone.
+   */
+  function movers(x, dir, lo, hi, followers = []) {
+    moversG.replaceChildren()
+    clipRect.setAttribute('x', String(lo - BORE / 2))
+    clipRect.setAttribute('width', String(hi - lo + BORE))
+    const run = el('g', { class: 'tunnellers' }, moversG)
+    const facing = el('g', { transform: `translate(${x} ${FLOOR}) scale(${-dir} 1)` }, run) // drawn facing left: turned the way they go
+    followers.forEach(({ draw: drawOne, scale }, n) => {
+      const f = el('g', { transform: `translate(${(n + 1) * FOLLOW_GAP} 0) scale(${scale})` }, facing)
+      drawOne(f)
+    })
+    crawler(facing)
+    return run
+  }
+
+  /** Nobody in the tunnel. */
+  const empty = () => moversG.replaceChildren()
+
+  /** Open the ground (it may be closing: it opens again). */
+  function open() {
+    if (shutting) Clock.cancel(shutting)
+    shutting = null
+    const from = root.style.display === 'none' ? 0 : Number(getComputedStyle(root).opacity) // closing: from as far as it got
+    shown = true
+    root.getAnimations().forEach((a) => a.cancel())
+    root.style.display = ''
+    if (from < 1) Motion.endAt(root, [{ opacity: from }, { opacity: 1 }], { duration: OPEN_MS * (1 - from) })
+    else root.style.opacity = '1'
+  }
+
+  /** He is up: it lingers, then closes, and nobody is left in it. */
+  function shut() {
+    if (!shown) return
+    if (shutting) Clock.cancel(shutting)
+    const close = () => {
+      shutting = null
+      shown = false
+      const gone = () => {
+        if (shown) return // opened again meanwhile
+        root.style.display = 'none'
+        empty()
+        dug()
+        earthG.replaceChildren() // nothing drawn while shut: open() draws it again
+        tunnelsG.replaceChildren()
+        crumbsG.replaceChildren()
+      }
+      Motion.endAt(root, [{ opacity: 0 }], { duration: SHUT_MS, easing: 'ease-in' }).then(gone, () => 'opened again: open() cancelled the closing')
+    }
+    shutting = Clock.after(LINGER_MS, close)
+  }
+
+  return {
+    setup, draw, digging, diggingUp, dug, movers, empty, open, shut,
+    /** Is it open (or opening, or lingering) for the child to see? */
+    get shown() { return shown },
+    /** The earth's top: a tap below it, he staying under, is a tap on the earth. */
+    TOP,
+  }
 })()

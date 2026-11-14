@@ -3,8 +3,10 @@
 // meadow sends him waddling there (the view follows him, view.js), a tap on
 // him gets a word and a hop, a tap on the flower bed (behind his molehill)
 // has him sniff a flower, a tap on a molehill has him tunnel to it (and out
-// on the grass he digs himself in first, leaving one more: hills.js), a tap on the
-// spring has him paddle in its pool,
+// on the grass he digs himself in first, leaving one more: hills.js), a tap on
+// the molehill he is in takes him down to stay in his tunnels (a tap on the
+// earth, he crawls there; on a molehill or the grass, he comes up there:
+// underground.js), a tap on the spring has him paddle in its pool,
 // a tap on the old oak at the meadow's left end has him peek into its
 // hollow (oak.js), a tap on the owl in it, on some plays, has him play
 // with it (owl.js), a tap on the painter's fence at its right end has him
@@ -21,7 +23,7 @@
 // gesture under way short (Mole.relax), and he is settled where it left
 // him, so he always ends free and standing.
 
-/* global Again, Autumn, Bed, Den, Hills, Oak, Owl, Fence, Church, Clock, Cricket, Critters, Flock, Heron, Wildlife, Eclipse, Moons, RainPlay, Showers, Spring, Day, Debug, FilmLook, Friends, Layout, MeadowBeds, Mole, Nest, Motion, Music, Painting, Sound, Storm, Things, Swing, Turn, View, Weather, Woodpecker, World */
+/* global Again, Autumn, Bed, Den, Hills, TunnelArt, Underground, Oak, Owl, Fence, Church, Clock, Cricket, Critters, Flock, Heron, Wildlife, Eclipse, Moons, RainPlay, Showers, Spring, Day, Debug, FilmLook, Friends, Layout, MeadowBeds, Mole, Nest, Motion, Music, Painting, Sound, Storm, Things, Swing, Turn, View, Weather, Woodpecker, World */
 /* exported meadowGame */
 const meadowGame = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
@@ -76,6 +78,9 @@ const meadowGame = (() => {
   const game = { awake: false, ended: false, dayStart: 0, hour: Day.START, lastInput: 0, gesture: null, queued: null, busy: 0.3, eclipse: null, evening: false, dim: false, watching: null } // eclipse: when it began (Clock); evening: the cricket's dusk has come; watching: the butterfly he follows with his eyes
   let tulipHeads = []
 
+  /** Free, and up where he can see what goes on (not staying down in his tunnels). */
+  const upFree = () => game.awake && !game.ended && !game.gesture && Mole.state.pose !== 'under'
+
   const el = (tag, attrs = {}, parent) => {
     const e = document.createElementNS(SVG, tag)
     for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v)
@@ -98,11 +103,12 @@ const meadowGame = (() => {
       oak: document.getElementById('oak'),
       garden: document.getElementById('garden'),
     }, (ctm ? ctm.a : 1) * (window.devicePixelRatio || 1))
-    Hills.setup({ layer: layers.front, grass: frontGround, random: paint, dropHat })
+    Hills.setup({ layer: layers.front, grass: frontGround, random: paint, dropHat, changed: () => Underground.redraw() })
     Hills.make(HOME, true, false)
     makeBed()
     makeTufts()
-    Mole.make(layers.mole, document.getElementById('mole-out'), document.getElementById('tunnels'))
+    Mole.make(layers.mole, document.getElementById('mole-out'))
+    Underground.setup(document.getElementById('tunnels'), document.getElementById('tunnels'))
     Mole.put(HOME, 'down')
   }
 
@@ -158,7 +164,7 @@ const meadowGame = (() => {
     const h = (game.hour = Day.hour(Clock.now() - game.dayStart, Layout.dayMs || Day.DAY_MS))
     World.set({ hour: h })
     if (eclipseAt !== null && game.eclipse === null && h >= eclipseAt && h <= Eclipse.LATEST && Things.open(h)) startEclipse() // it waits for the stage to be free (things.js), or comes not at all
-    if (Showers.due(shower, h, { raining: !!Storm.phase, held: encounterOut() })) startShower()
+    if (Showers.due(shower, h, { raining: !!Storm.phase, held: encounterOut() || Mole.state.pose === 'under' })) startShower()
     drawSky(h, eclipseCover())
     drawMeadow(h)
     watchButterflies()
@@ -173,7 +179,7 @@ const meadowGame = (() => {
     Debug.trace('eclipse', { starts: Day.clock(game.hour) })
     Music.cue('hush') // the music steps back: the cricket will have the dim
     Clock.after(ECLIPSE_LOOK_MS / DAY_PACE, () => {
-      if (!(game.awake && !game.ended && !game.gesture)) return
+      if (!upFree()) return
       Mole.perk(1.4)
       Mole.lookAt(View.x + sunX) // the sky stays put as the view moves
       Sound.say('ooh', true)
@@ -198,7 +204,7 @@ const meadowGame = (() => {
     Debug.trace('wolf', { up: Math.round(m.up * 100) / 100 })
     Sound.howl()
     Clock.after(900, () => {
-      if (!(game.awake && !game.ended && !game.gesture)) return
+      if (!upFree()) return
       Mole.perk(1.2)
       Mole.lookAt(View.x + tonight.x)
     })
@@ -214,7 +220,7 @@ const meadowGame = (() => {
     Debug.trace('shower', { how: kind, at: Day.clock(game.hour) })
     Storm.gather(kind)
     Clock.after(SHOWER_LOOK_MS, () => {
-      if (!(game.awake && !game.ended && !game.gesture)) return
+      if (!upFree()) return
       Mole.perk(kind === 'drizzle' ? 0.8 : 1.3)
       Mole.lookAt(View.x + 800)
       if (kind === 'downpour') Sound.say('ooh', true)
@@ -306,17 +312,19 @@ const meadowGame = (() => {
     irisCircle.setAttribute('r', String(share >= 1 ? IRIS_OPEN : Math.round(share * IRIS_FULL)))
     const alone = !Debug.still && !game.gesture && Clock.now() - game.lastInput > HOME_AT_DUSK_MS
     if (Day.phase(h) === 'dusk' && alone && Mole.state.pose !== 'listen') run('home to listen', homeToListen)
+    else if (Mole.state.pose === 'under' && !Debug.still && !game.gesture && Clock.now() - game.lastInput > Underground.ALONE_MS) run('up', Underground.upNear) // never left down there
     if (Day.phase(h) === 'bedtime') bedtime()
   }
 
   function stateNow() {
     const m = Mole.state
-    return { hour: Day.clock(game.hour), awake: game.awake, ended: game.ended, x: Math.round(m.x), view: Math.round(View.x), pose: m.pose, busy: game.gesture, carrying: m.carrying, hills: Hills.count, things: Things.state(), owl: Owl.state, woodpecker: Woodpecker.state, eclipse: Math.round(eclipseCover() * 100) / 100, rain: Storm.phase ? Storm.kind : null, moon: tonight.kind }
+    return { hour: Day.clock(game.hour), awake: game.awake, ended: game.ended, x: Math.round(m.x), view: Math.round(View.x), pose: m.pose, busy: game.gesture, carrying: m.carrying, hills: Hills.count, tunnels: Underground.runs, things: Things.state(), owl: Owl.state, woodpecker: Woodpecker.state, eclipse: Math.round(eclipseCover() * 100) / 100, rain: Storm.phase ? Storm.kind : null, moon: tonight.kind }
   }
 
   function checkRules() {
     const m = Mole.state
     Debug.check('the mole is in the meadow', m.x >= DIG.from - 1 && m.x <= DIG.to + 1, { x: m.x })
+    Debug.check('he stays under only while the ground is open', m.pose !== 'under' || TunnelArt.shown, {})
     Debug.check('the chicks peep the alarm only while the fox is about', !Nest.alarmed || !!document.querySelector('.friend.fox'), {})
     if (game.awake && !game.ended && !game.gesture) {
       Debug.check('a free mole stands', m.pose !== 'down', { pose: m.pose })
@@ -330,7 +338,8 @@ const meadowGame = (() => {
       Debug.check('no drop or leaf of the rain\'s is in the air once he is free', !RainPlay.posing, {})
       Debug.check('the twig is down once he is free', !Fence.holding, {})
       Debug.check('nobody is left about behind the fence once he is free', Fence.about === 0, { about: Fence.about })
-      Debug.check('a mole in the ground has a molehill', m.pose === 'out' || Hills.at(m.x), { x: m.x, pose: m.pose })
+      Debug.check('a mole in the ground has a molehill', m.pose === 'out' || m.pose === 'under' || Hills.at(m.x), { x: m.x, pose: m.pose })
+      Debug.check('staying under, he is in his tunnel', m.pose !== 'under' || Underground.inTunnel(m.x), { x: m.x })
     }
   }
 
@@ -342,6 +351,7 @@ const meadowGame = (() => {
     if (game.gesture) Debug.trace('cut', { gesture: game.gesture, by: name })
     cutShort()
     if (name !== Things.holder()) Things.putDown() // something else to do: the egg he holds up waiting goes down first
+    if (Mole.state.pose === 'under' && !UNDER.has(name)) fn = upFirst(fn)
     game.gesture = name
     const mine = Symbol(name)
     game.token = mine
@@ -355,6 +365,15 @@ const meadowGame = (() => {
     })
   }
 
+  // What he does staying under himself; anything else, he comes up first (upFirst)
+  const UNDER = new Set(['crawl', 'go', 'dig', 'stop', 'up', 'home to listen'])
+
+  /** `fn`, after he has come up where he is from his tunnels. */
+  const upFirst = (fn) => async (alive) => {
+    await Underground.upAt(Mole.state.x)
+    if (alive()) await fn(alive)
+  }
+
   /** Cut the gesture under way short: he stops where it was taking him, and
    * whatever it moved is put back (its onCut), then he is settled. */
   function cutShort() {
@@ -362,6 +381,7 @@ const meadowGame = (() => {
     game.onCut = null
     game.token = Symbol('cut')
     Mole.relax()
+    Underground.halt()
     if (cut) cut()
     settle()
   }
@@ -378,6 +398,7 @@ const meadowGame = (() => {
   async function intoHome() {
     const m = Mole.state
     if (Math.abs(m.x - HOME) < 50 && (m.pose === 'hill' || m.pose === 'listen')) return
+    if (m.pose === 'under') return Underground.upAt(HOME) // along his tunnel, home
     await goTo(HOME)
     Sound.dig()
     await Mole.goDown()
@@ -388,7 +409,7 @@ const meadowGame = (() => {
   /** After a cut: he stands where he was going, with a molehill under him if he is in the ground. */
   function settle() {
     const m = Mole.state
-    if (m.pose === 'out') return Mole.put(m.x, 'out')
+    if (m.pose === 'out' || m.pose === 'under') return Mole.put(m.x, m.pose)
     if (!Hills.at(m.x)) Hills.make(m.x, false, false)
     Mole.put(m.x, m.pose === 'listen' ? 'listen' : 'hill')
   }
@@ -402,7 +423,7 @@ const meadowGame = (() => {
     dropHat()
     Sound.dig()
     await Mole.goDown()
-    await Mole.tunnelTo(x)
+    await Underground.tunnelTo(x)
     if (!Hills.at(x)) Hills.make(x)
     Sound.pop()
     await Mole.comeUp('hill')
@@ -658,7 +679,8 @@ const meadowGame = (() => {
     [/^leaves$/, () => answer('leaves', Autumn.play)], // autumn's: what flies up lands where it was going
     [/^fence$/, () => answer('fence', Fence.play, Fence.restore)],
     [/^use ([a-z]+)(?: ([a-z]+))?$/, (m) => Things.use(m[1], true, m[2] || null) || answer('tap mole', tapMole)],
-    [/^go to (\d+)$/, (m) => answer('go', () => goTo(Number(m[1])))],
+    [/^go to (\d+)$/, (m) => answer('go', () => (Mole.state.pose === 'under' ? Underground.upAt(clampX(Number(m[1]))) : goTo(Number(m[1]))))], // under: up there
+    [/^crawl to (\d+)$/, (m) => answer('crawl', () => (Mole.state.pose === 'under' ? Underground.crawlTo(clampX(Number(m[1]))) : goTo(Number(m[1]))))],
     [/^stop$/, () => run('stop', async () => {})],
     [/^dig to (\d+)$/, (m) => answer('dig', (alive) => Hills.burrow(Number(m[1]), alive))], // a tap on a molehill
     [/^tap butterfly (\d+)$/, (m) => tapButterfly(Number(m[1]))],
@@ -690,7 +712,7 @@ const meadowGame = (() => {
   function noticeArrival(name) {
     Mole.perk(1.3)
     const thing = document.querySelector(`[data-thing="${name}"]`)
-    if (!thing || !(game.awake && !game.ended && !game.gesture)) return
+    if (!thing || !upFree()) return
     const box = thing.getBoundingClientRect()
     const at = scenePoint({ clientX: box.left + box.width / 2, clientY: box.top }).x + View.x
     Debug.trace('points', { at: Math.round(at), thing: name })
@@ -705,7 +727,7 @@ const meadowGame = (() => {
 
   /** He looks at a little creature tapped where it is, if he is free: "ooh". */
   function lookAfter(at) {
-    if (!at || !(game.awake && !game.ended && !game.gesture)) return
+    if (!at || !upFree()) return
     Mole.lookAt(at.x)
     Sound.say('ooh', true)
   }
@@ -789,6 +811,7 @@ const meadowGame = (() => {
     if (thing) return choice ? `use ${thing.dataset.thing} ${choice.dataset.choice}` : `use ${thing.dataset.thing}`
     // a tap on what he holds up waiting (the egg) is a tap on it; on him while an encounter plays,
     // a tap on that encounter (it plays on, not cut short)
+    if (Mole.state.pose === 'under' && p.y > TunnelArt.TOP) return `crawl to ${Math.round(clampX(View.toWorld(p.x)))}` // the earth he is in: along it
     if (target.closest('.mole-carry') && Things.holder()) return `use ${Things.holder()}`
     if (target.closest('.mole')) return game.gesture && Things.get(game.gesture) ? `use ${game.gesture}` : 'tap mole'
     if (target.closest('#sun') && eclipseCover()) return 'tap sun'
@@ -821,12 +844,12 @@ const meadowGame = (() => {
     e.preventDefault()
     if (e.repeat) return // a key held down repeats: he is already going
     // an arrow held: he walks that way until it is let go (keyup)
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') perform(`go to ${e.key === 'ArrowLeft' ? DIG.from : DIG.to}`)
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') perform(`${Mole.state.pose === 'under' ? 'crawl' : 'go'} to ${e.key === 'ArrowLeft' ? DIG.from : DIG.to}`)
     else if (e.key === ' ') perform(PLACES.find(([near]) => near(x))?.[1] || 'tap mole') // by a place: its answer; else a word from him
     else perform('tap mole')
   })
   document.addEventListener('keyup', (e) => {
-    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && game.gesture === 'go') perform('stop')
+    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && (game.gesture === 'go' || game.gesture === 'crawl')) perform('stop')
   })
 
   // ------------------------------------------------------------ start
@@ -856,7 +879,7 @@ const meadowGame = (() => {
   Friends.setup(document.getElementById('friends'))
   Spring.setup(document.getElementById('spring'), () => game.hour)
   Nest.setup(document.getElementById('spring'), () => game.hour)
-  RainPlay.setup({ things: document.getElementById('things'), front: document.getElementById('oak-front'), sky: document.getElementById('far-things'), ground: document.getElementById('oak-ground') }, { goTo, rounds, run, free: () => game.awake && !game.ended && !game.gesture })
+  RainPlay.setup({ things: document.getElementById('things'), front: document.getElementById('oak-front'), sky: document.getElementById('far-things'), ground: document.getElementById('oak-ground') }, { goTo, rounds, run, free: upFree })
   Oak.setup(document.getElementById('oak'), document.getElementById('oak-front'), document.getElementById('oak-ground'), { goTo, rounds, dropHat })
   Owl.setup(document.getElementById('oak'), { goTo, rounds })
   Swing.setup(document.getElementById('oak'), { goTo, rounds }) // autumn's swing under the chestnut
@@ -864,7 +887,7 @@ const meadowGame = (() => {
     goTo,
     rounds,
     heard: (x) => { // it drummed: if he's free, his hairs spring up and he looks up at it (as at the church bell)
-      if (!(game.awake && !game.ended && !game.gesture)) return
+      if (!upFree()) return
       Mole.perk(1.2)
       Mole.lookAt(x)
     },
@@ -875,7 +898,7 @@ const meadowGame = (() => {
       haze: document.getElementById('haze'),
       high: document.getElementById('sky'),
       onGeese: () => Clock.after(4000, () => { // he hears them, and looks up
-        if (!(game.awake && !game.ended && !game.gesture)) return
+        if (!upFree()) return
         Mole.perk(1.2)
         Mole.lookAt(Mole.state.x - 300)
       }),
@@ -886,7 +909,7 @@ const meadowGame = (() => {
   // the church bell on the hour: if he's free, his hairs spring up and he looks up at it (as Reksio at the cuckoo)
   Cricket.setup(document.getElementById('crickets'))
   Church.setup(document.getElementById('distant'), () => {
-    if (!(game.awake && !game.ended && !game.gesture)) return
+    if (!upFree()) return
     Mole.perk(1.2)
     Mole.lookAt(View.fromDistant(Church.X))
   })
@@ -896,7 +919,7 @@ const meadowGame = (() => {
   // the wind: a strong gust's leaves or seeds, and he turns to watch them go by, if he is free
   Weather.setup(document.getElementById('critters'), {
     onWatch: () => {
-      if (!(game.awake && !game.ended && !game.gesture)) return
+      if (!upFree()) return
       Mole.perk(1.2)
       Mole.lookAt(World.state.view.x1)
     },
@@ -911,12 +934,12 @@ const meadowGame = (() => {
     goTo,
     digTo,
     el,
-    free: () => game.awake && !game.ended && !game.gesture,
+    free: upFree, // under, he goes to nothing by himself: a waiting visitor waits
     canBreakOff: () => game.awake && !game.ended && game.gesture !== 'wake', // whatever he is doing, but not still coming up in the morning
     alone: () => Clock.now() - game.lastInput,
     busyWith: () => game.gesture,
     /** The eclipse is on: it holds the stage, so no encounter arrives (one story at a time). */
-    elsewhere: () => (game.eclipse !== null && !Eclipse.over(eclipseMs())) || (!!Storm.phase && Storm.kind !== 'storm'), // the eclipse on, or a shower: no encounter comes in it
+    elsewhere: () => (game.eclipse !== null && !Eclipse.over(eclipseMs())) || (!!Storm.phase && Storm.kind !== 'storm') || Mole.state.pose === 'under', // the eclipse on, a shower, or he is down in his tunnels: no encounter comes
     music: (part) => Music.cue(part),
     /** His tulips, left to right: { x, base, bend } (bend: turned about its foot, to knock one over). */
     tulips: () => tulipHeads.map(({ x, base, bend }) => ({ x, base, bend })),

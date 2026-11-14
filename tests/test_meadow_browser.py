@@ -667,7 +667,8 @@ class TestMeadowMolehills:
         m.wait_free()
         s = m.state()
         assert (s["x"], s["pose"], s["hills"]) == (900, "hill", 1), s
-        assert m.page.evaluate("!document.querySelector('.cutaway')")
+        assert s["tunnels"] == [[900, 1500]], "what he dug is kept"
+        m.wait("!TunnelArt.shown", 10_000)  # the ground closes after a moment
         assert m.page.evaluate("meadowGame.trace().includes(' dig in ')"), (
             "he went down without digging himself in"
         )
@@ -678,20 +679,15 @@ class TestMeadowMolehills:
         assert (s["pose"], s["hills"]) == ("hill", 1), s
         m.assert_settled()
 
-    def test_tapped_in_his_own_he_comes_up_in_another(self, meadow: callable) -> None:
+    def test_tapped_in_his_own_he_goes_down_and_stays(self, meadow: callable) -> None:
         m = meadow()
         m.wake()
-        m.do("dig to 900")  # no other yet: a jump of joy where he is
-        m.wait_free()
-        assert m.state()["x"] == 900 and m.state()["hills"] == 0, m.state()
-        m.do("go to 1500")
-        m.wait_free()
         m.do("dig to 900")
         m.wait_free()
-        m.do("dig to 900")  # in it now, and one left at 1500
-        m.wait_free()
-        assert m.state()["x"] == 1500, m.state()
-        m.assert_settled()
+        s = m.state()
+        assert (s["x"], s["pose"]) == (900, "under"), s
+        assert m.page.evaluate("TunnelArt.shown"), "the ground is shut over him"
+        assert not m.errors, m.errors
 
     @pytest.mark.parametrize("cut_ms", [150, 700, 1300, 2000, 2400])
     def test_cut_short_anywhere_he_ends_standing(
@@ -707,6 +703,121 @@ class TestMeadowMolehills:
         m.wait_free()
         assert m.state()["x"] == 1200, m.state()
         m.assert_settled()
+
+
+class TestMeadowUnderground:
+    """Down in his tunnels (underground.js): what he digs stays all day; a tap
+    on his own molehill takes him down to stay, a tap on the earth sends him
+    crawling, a molehill or the grass brings him up; nothing arrives while he
+    is down."""
+
+    def under(self, m: Meadow) -> None:
+        m.wake()
+        m.do("dig to 900")  # his home's: down he goes
+        m.wait("meadowGame.state().pose === 'under' && !meadowGame.state().busy")
+
+    def test_he_crawls_along_digs_on_and_comes_up_on_the_grass(
+        self, meadow: callable
+    ) -> None:
+        m = meadow()
+        self.under(m)
+        m.do("crawl to 1400")
+        m.wait_free()
+        s = m.state()
+        assert (s["x"], s["pose"], s["tunnels"]) == (1400, "under", [[900, 1400]]), s
+        m.do("crawl to 1100")  # back along what he dug: quick, nothing new
+        m.wait_free()
+        assert m.state()["tunnels"] == [[900, 1400]], m.state()
+        m.do("go to 1700")  # the grass above, further on: he digs there and comes up
+        m.wait_free()
+        s = m.state()
+        assert (s["x"], s["pose"], s["hills"]) == (1700, "hill", 1), s
+        assert s["tunnels"] == [[900, 1700]], s
+        m.wait("!TunnelArt.shown", 10_000)
+        m.do("dig to 900")  # a trip home: the ground opens on all he has dug
+        m.wait("TunnelArt.shown")
+        m.wait_free()
+        assert m.state()["tunnels"] == [[900, 1700]], "what he dug was forgotten"
+        assert " digs along " in m.page.evaluate("meadowGame.trace()")
+        m.assert_settled()
+
+    def test_a_real_tap_on_the_earth_has_him_crawl_there(
+        self, meadow: callable
+    ) -> None:
+        m = meadow()
+        self.under(m)
+        box = m.page.evaluate(
+            "(() => { const r = document.getElementById('world').getBoundingClientRect();"
+            " return { x: r.x + r.width * 0.75, y: r.y + r.height * 0.95 } })()"
+        )
+        m.page.mouse.click(box["x"], box["y"])
+        m.wait("meadowGame.trace().includes('crawl to')")
+        m.wait_free()
+        s = m.state()
+        assert s["pose"] == "under" and s["x"] > 900, s
+        assert not m.errors, m.errors
+
+    @pytest.mark.parametrize("cut_ms", [100, 400, 900])
+    def test_cut_short_crawling_he_stays_where_he_got(
+        self, meadow: callable, cut_ms: int
+    ) -> None:
+        m = meadow()
+        self.under(m)
+        m.do("crawl to 1900")  # all of it earth to dig
+        m.play_for(cut_ms)
+        m.do("crawl to 600")
+        m.wait_free()
+        s = m.state()
+        assert (s["x"], s["pose"]) == (600, "under"), s
+        (run,) = s["tunnels"]
+        assert run[0] == 600 and 900 < run[1] < 1900, s  # dug as far as he got
+        assert not m.errors, m.errors
+
+    def test_anything_else_he_comes_up_for_first(self, meadow: callable) -> None:
+        m = meadow()
+        self.under(m)
+        m.do("crawl to 1300")
+        m.wait_free()
+        m.do("sniff")
+        m.wait_free()
+        trace = m.page.evaluate("meadowGame.trace()")
+        assert trace.rindex(' gesture {"name":"sniff"}') < trace.rindex(" sniffs "), (
+            trace[-800:]
+        )
+        assert m.state()["hills"] == 1, "he didn't come up through a molehill"
+        m.assert_settled()
+
+    def test_nothing_arrives_while_he_is_down(self, meadow: callable) -> None:
+        m = meadow(f"{STILL}&props=car")
+        self.under(m)
+        assert not m.page.evaluate("Things.open(12)"), "the stage is open under him"
+        m.do("go to 900")  # up again
+        m.wait_free()
+        assert m.page.evaluate("Things.open(12)")
+
+    def test_left_alone_he_comes_up_by_himself(self, meadow: callable) -> None:
+        m = meadow("seed=1&props=")
+        self.under(m)
+        m.do("crawl to 1300")
+        m.wait_free()
+        m.wait("meadowGame.state().pose === 'hill'", 40_000)
+        trace = m.page.evaluate("meadowGame.trace()")
+        assert ' gesture {"name":"up"}' in trace, trace[-600:]
+        assert m.state()["x"] == 900, "not the molehill near him"
+        m.assert_settled()
+
+    def test_bedtime_under_he_goes_home_along_his_tunnel(
+        self, meadow: callable
+    ) -> None:
+        m = meadow(f"{STILL}&props=&day=12")
+        self.under(m)
+        m.do("crawl to 1800")
+        m.wait_free()
+        m.wait("meadowGame.state().ended", 60_000)
+        m.wait("!meadowGame.state().busy", 20_000)
+        s = m.state()
+        assert (s["x"], s["pose"]) == (900, "down"), s  # home, and down to bed
+        assert not m.errors, m.errors
 
 
 class TestMeadowRain:
@@ -1375,9 +1486,7 @@ class TestMeadowFox:
             60_000,
         )
         m.wait("meadowGame.state().things.paint === 'done'", 90_000)
-        assert m.page.evaluate("!document.querySelector('.cutaway')"), (
-            "the ground stayed open"
-        )
+        m.wait("!TunnelArt.shown", 10_000)  # the ground closes after a moment
         m.wait_free()
         m.assert_settled()
 

@@ -222,3 +222,6 @@ body { touch-action: manipulation; -webkit-user-select: none; user-select: none;
 .chicks.scared .chick-0 { transform: translate(3px, 1px) rotate(-14deg); }
 .chicks.scared .chick-1 { transform: translate(-1px, 1px) rotate(-10deg); }
 .chicks.scared .chick-2 { transform: translate(-5px, 1px) rotate(-8deg); }
+/* an earthworm in the soil under the meadow (soilart.js): slowly stretching and drawing in, as worms go */
+.cutaway .worm-body { transform-box: fill-box; transform-origin: left center; animation: worm 2.8s ease-in-out infinite alternate; }
+@keyframes worm { from { transform: scaleX(1) scaleY(1); } to { transform: scaleX(0.8) scaleY(1.15); } }
