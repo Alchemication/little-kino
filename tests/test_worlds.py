@@ -74,6 +74,34 @@ class TestValidateWorld:
         assert any("not valid YAML" in e for e in report.errors)
 
 
+class TestValidateGuide:
+    def _guide(self, root: Path, data: object) -> None:
+        game = root / "demo/games/g"
+        game.mkdir(parents=True)
+        (game / "guide.yaml").write_text(yaml.safe_dump(data, allow_unicode=True))
+
+    def test_a_valid_guide_passes(self, worlds_root: Path) -> None:
+        line = {"en": "A bowl.", "pl": "Miska.", "covers": ["bowl"]}
+        heading = {"en": "Some days", "pl": "Niektórych dni"}
+        self._guide(worlds_root, {"sections": [{"heading": heading, "lines": [line]}]})
+        assert validate_world("demo", worlds_root).errors == []
+
+    def test_a_line_without_its_polish_is_reported(self, worlds_root: Path) -> None:
+        heading = {"en": "Some days", "pl": "Niektórych dni"}
+        self._guide(
+            worlds_root, {"sections": [{"heading": heading, "lines": [{"en": "A."}]}]}
+        )
+        errors = validate_world("demo", worlds_root).errors
+        assert any(e.startswith("games/g/guide.yaml") and "pl" in e for e in errors)
+
+    def test_an_empty_section_is_reported(self, worlds_root: Path) -> None:
+        heading = {"en": "Some days", "pl": "Niektórych dni"}
+        self._guide(worlds_root, {"sections": [{"heading": heading, "lines": []}]})
+        assert any(
+            "guide.yaml" in e for e in validate_world("demo", worlds_root).errors
+        )
+
+
 class TestValidateCatalogue:
     def _write_catalogue(self, root: Path, catalogue: dict) -> None:
         path = root / "demo" / "episodes" / "index.yaml"

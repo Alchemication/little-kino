@@ -27,6 +27,7 @@ from config import (
     BRIEF_NAME,
     EPISODES_FILE,
     GAMES_DIR,
+    GUIDE_NAME,
     INTRO_FILE,
     SOURCES_FILE,
     WORLD_FILE,
@@ -37,6 +38,7 @@ from schema.breakdown import Breakdown
 from schema.brief import GameBrief
 from schema.common import PRIMARY_SOURCE_KINDS, Claim, Status
 from schema.episode import EpisodeCatalogue
+from schema.guide import Guide
 from schema.world import SourceRegistry, WorldDossier
 
 
@@ -196,6 +198,15 @@ def validate_world(world_id: str, root: Path = WORLDS_DIR) -> WorldReport:
         except yaml.YAMLError as exc:
             report.errors.append(f"{label}: not valid YAML: {exc}")
             files_ok = False
+
+    for path in sorted((base / GAMES_DIR).glob(f"*/{GUIDE_NAME}")):
+        label = f"{GAMES_DIR}/{path.parent.name}/{GUIDE_NAME}"
+        try:
+            load_model(path, Guide)
+        except ValidationError as exc:
+            report.errors.extend(_format_validation_error(label, exc))
+        except yaml.YAMLError as exc:
+            report.errors.append(f"{label}: not valid YAML: {exc}")
 
     if report.dossier is None or report.registry is None:
         return report

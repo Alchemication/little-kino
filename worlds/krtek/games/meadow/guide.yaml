@@ -1,0 +1,58 @@
+# What a day in Krtek's meadow can hold, for the grown-ups' page (schema.guide).
+# A picture, not a catalogue: say what kind of thing happens, with examples,
+# and list every moment that might worry a small child, with how it ends.
+# `covers` names the game's parts a line speaks for; the site's build fails
+# when a part that comes some days or in one season has no line.
+sections:
+- heading:
+    en: Every day
+    pl: Każdego dnia
+  lines:
+  - en: He wakes in his den under the molehill and comes up into the morning. In the evening a cricket plays him a tune, and he goes back down to sleep.
+    pl: Budzi się w swojej norce pod kopcem i wychodzi na poranek. Wieczorem świerszcz gra mu na skrzypcach, a on schodzi z powrotem spać.
+  - en: His tulips, the spring and its pool, the old tree at the left end and the painter's fence at the right are always there. Tap one and he does something there, different each time. He sniffs the tulips, wades in and splashes, peeks into the tree's hollow, and plays the fence's palings like a xylophone.
+    pl: Tulipany, źródełko z sadzawką, stare drzewo po lewej i płot malarza po prawej są zawsze. Dotknij któregoś, a on coś tam zrobi, za każdym razem co innego. Wącha tulipany, brodzi i chlapie się w wodzie, zagląda do dziupli, gra na sztachetach jak na cymbałkach.
+  - en: Tap a molehill and he goes underground. The view slides down into the earth, with worms, a beetle, ants and the tulips' bulbs. Tap the earth and he digs there; his tunnels stay all day, and now and then he finds something, a button or an old key, and takes it to his den.
+    pl: Dotknij kopca, a zejdzie pod ziemię. Widok zjeżdża w dół, do ziemi, gdzie są dżdżownice, żuk, mrówki i cebulki tulipanów. Dotknij ziemi, a będzie tam kopał; jego korytarze zostają na cały dzień, a czasem coś znajduje, guzik albo stary klucz, i zanosi to do norki.
+  - en: Tap him and he laughs, waves or plays peekaboo. Left alone, he potters about his home, and at midday he waters his tulips. A church bell far off rings the hours.
+    pl: Dotknij go, a zaśmieje się, pomacha albo zrobi a kuku. Zostawiony sam sobie, krząta się przy domu, a w południe podlewa tulipany. Daleki dzwon kościelny wybija godziny.
+- heading:
+    en: Some days
+    pl: Niektórych dni
+  lines:
+  - en: Two or three visitors a day, mostly different ones from the last visit. A broken toy car, which he mends and rides. A little rain cloud he pushes over the drooping flowers. A bulldozer shooting poles at his flowers, which he sends away. A fox after the chicks in a nest, whom he and his friends scare off with paint; some days the fox ends up a friend.
+    pl: Dwóch, trzech gości dziennie, zwykle innych niż ostatnio. Zepsuty samochodzik, który naprawia i którym jeździ. Mała chmurka, którą przepycha nad zwiędłe kwiaty. Spychacz, który wbija tyczki w stronę jego kwiatów, a on go odprawia. Lis, który czyha na pisklęta w gnieździe, a krecik z przyjaciółmi płoszy go farbą; czasem lis zostaje ich przyjacielem.
+    covers: [car, rain, poles, paint]
+  - en: In spring, an egg nobody knows. Your child picks whom he shows it to, until the hen comes for it. In autumn, a cold hedgehog with no bed, whom he helps gather leaves.
+    pl: Wiosną jajko, którego nikt nie zna. Dziecko wybiera, komu je pokazać, aż przybiegnie kura. Jesienią zmarznięty jeż bez posłania, któremu pomaga zebrać liście.
+    covers: [egg, hedgehog]
+  - en: Far off, one kind of wildlife each visit. Deer, wild boar or a bison, little birds in the far trees, or a heron fishing at the pond.
+    pl: Daleko, przy każdej wizycie inne dzikie zwierzęta. Sarny, dziki albo żubr, ptaszki w dalekich drzewach albo czapla łowiąca w stawie.
+    covers: [herd, flock, heron]
+- heading:
+    en: Weather and seasons
+    pl: Pogoda i pory roku
+  lines:
+  - en: Each visit is in spring or in autumn. In spring an owl sleeps in the old oak and wakes in the evening.
+    pl: Każda wizyta wypada wiosną albo jesienią. Wiosną w starym dębie śpi sowa, która budzi się wieczorem.
+    covers: [owl]
+  - en: Autumn turns the meadow gold. A swing hangs under the chestnut, a woodpecker drums on it, geese go over, and now and then a shower leaves puddles to stomp in.
+    pl: Jesień złoci łąkę. Pod kasztanowcem wisi huśtawka, dzięcioł stuka w pień, przelatują gęsi, a czasem deszcz zostawia kałuże do skakania.
+    covers: [swing, woodpecker]
+  - en: A breeze comes and goes all day. The moon is a different one each evening, and under a full one a wolf howls once, softly, far off.
+    pl: Przez cały dzień wieje lekki wiatr. Księżyc jest co wieczór inny, a przy pełni raz, cicho i daleko, zawyje wilk.
+- heading:
+    en: Moments to know about
+    pl: Chwile, o których warto wiedzieć
+  lines:
+  - en: The storm, some days. Big grey clouds, dimmer light, rain, and soft thunder far off. He puts up his umbrella and his friends come under it; squeezed out, he pops up in a new molehill under it. Then it passes.
+    pl: Burza, niektórych dni. Duże szare chmury, ciemniej, deszcz i cichy grzmot w oddali. Rozkłada parasol, a przyjaciele chowają się pod nim; kiedy go wypchną, wychodzi spod ziemi nowym kopcem pod parasolem. Potem burza mija.
+    covers: [storm]
+  - en: The eclipse, some days around midday. The moon covers the sun and the light falls to about dusk for a minute, never to night. The cricket comes out to play, then the sun comes back.
+    pl: Zaćmienie, niektórych dni koło południa. Księżyc zasłania słońce i przez minutę robi się szaro jak o zmierzchu, nigdy jak w nocy. Wychodzi świerszcz i gra, a potem słońce wraca.
+  - en: The bulldozer is big and noisy, flattens the wild flowers and knocks over two of his tulips. He is worried, then clever, and it goes away. He stands his tulips up again, and the wild flowers grow back.
+    pl: Spychacz jest duży i głośny, przygniata polne kwiaty i przewraca dwa tulipany. Krecik się martwi, potem wpada na pomysł i spychacz odjeżdża. Krecik stawia tulipany z powrotem, a polne kwiaty odrastają.
+    covers: [poles]
+  - en: The fox rears up over the nest and growls, and the chicks tremble. He never gets them. The mole and his friends scare him off, and nobody is hurt.
+    pl: Lis staje nad gniazdem i warczy, a pisklęta drżą. Nigdy ich nie dopada. Krecik z przyjaciółmi go płoszą i nikomu nic się nie dzieje.
+    covers: [paint]

@@ -1,0 +1,63 @@
+# What a day in Reksio's yard can hold, for the grown-ups' page (schema.guide).
+# A picture, not a catalogue: say what kind of thing happens, with examples,
+# and list every moment that might worry a small child, with how it ends.
+# `covers` names the game's parts a line speaks for; the site's build fails
+# when a part that comes some days or in one season has no line.
+sections:
+- heading:
+    en: Every day
+    pl: Każdego dnia
+  lines:
+  - en: He wakes in his doghouse in the morning and goes back to sleep in it at night.
+    pl: Rano budzi się w budzie, a wieczorem wraca do niej spać.
+  - en: The doghouse, the house with a cuckoo clock in its window, the water tap, the gate and a bird on the wall are always there. Each answers a tap, and some tell a little story over a few taps (the tap runs, then only drips, then needs a good knock).
+    pl: Buda, dom z zegarem z kukułką w oknie, kran, furtka i ptaszek na murze są zawsze. Każde odpowiada na dotknięcie, a niektóre opowiadają małą historię przez kilka dotknięć (z kranu leci woda, potem tylko kapie, potem trzeba mocno zapukać).
+  - en: Tap Reksio and he barks; often someone near answers, the bird, the hen or the mouse, or a dog far beyond the gate. Press and hold him and he stretches out long, like a dachshund.
+    pl: Dotknij Reksia, a zaszczeka; często ktoś mu odpowiada, ptaszek, kura albo mysz, czy pies daleko za furtką. Przytrzymaj go palcem, a wyciągnie się długi jak jamnik.
+  - en: Left alone, he gets on with his day. He sniffs about, scratches, chases his tail and naps.
+    pl: Zostawiony sam sobie, żyje swoim dniem. Węszy, drapie się, goni własny ogon, drzemie.
+- heading:
+    en: Some days
+    pl: Niektórych dni
+  lines:
+  - en: Each day puts out a few more things, mostly different ones from the last visit, among them his bowl (licked empty, it may stick on his head), a mound where he digs up a bone and buries it again, and a red film strip he stamps into a reel.
+    pl: Każdy dzień dokłada kilka rzeczy, zwykle innych niż ostatnio, na przykład miskę (wylizana do dna potrafi utknąć mu na głowie), kopczyk ziemi, w którym wykopuje kość i zakopuje ją znowu, i czerwoną taśmę filmową, którą odbija łapami w szpulę.
+    covers: [bowl, dig, film]
+  - en: Or someone who needs him. A mouse by a trap, which he springs so that she gets the cheese, with nobody caught. A snail or a squirrel under a fruit tree, for whom he shakes the fruit down. A hen whose egg ends up on the wall, which he fetches with a ladder.
+    pl: Albo ktoś, kto go potrzebuje. Mysz przy pułapce, którą on zatrzaskuje tak, że ser dostaje się myszy i nikt nie zostaje złapany. Ślimak albo wiewiórka pod drzewem owocowym, dla których strząsa owoce. Kura, której jajko ląduje na murze, a on przynosi je po drabinie.
+    covers: [trap, tree, hen]
+  - en: A blackberry bramble, where he flicks berries up and catches them.
+    pl: Krzak jeżyn, z którego podrzuca jeżyny i łapie je w locie.
+    covers: [berries]
+- heading:
+    en: Weather and seasons
+    pl: Pogoda i pory roku
+  lines:
+  - en: Most days bring a shower. After it come puddles, a snail and worms, and mushrooms by a puddle. He carries the good ones to the boy's basket and leaves the red fly agaric alone; he never eats any.
+    pl: Większość dni przynosi deszcz. Po nim są kałuże, ślimak, dżdżownice i grzyby przy kałuży. Prawdziwki zanosi do koszyka chłopca, czerwonego muchomora omija; żadnego nie zjada.
+  - en: Some mornings start in fog, gone before noon. The moon is a different one each evening.
+    pl: Niektóre poranki zaczynają się we mgle, która znika przed południem. Księżyc jest co wieczór inny.
+  - en: Most visits are in summer, with flowers he sniffs until he sneezes, and a fly, a bee or a spider about.
+    pl: Najczęściej jest lato, z kwiatami, które wącha, aż kichnie, i z muchą, pszczołą albo pająkiem w pobliżu.
+    covers: [flowers, fly, bee, spider]
+  - en: Some visits are in winter, with snow, ice, sparrows at his bowl, and his boy, who builds a snowman with Reksio's help.
+    pl: Czasem jest zima, ze śniegiem, lodem, wróblami przy misce i chłopcem, który z pomocą Reksia lepi bałwana.
+    covers: [snowman]
+- heading:
+    en: Moments to know about
+    pl: Chwile, o których warto wiedzieć
+  lines:
+  - en: The bowl stuck on his head. He bumps about and sits glum for a few seconds, then the bird comes and pulls it off, and he is delighted.
+    pl: Miska na głowie. Chodzi po omacku i siada smutny na kilka sekund, potem przylatuje ptaszek, ściąga ją, a Reksio się cieszy.
+    covers: [bowl]
+  - en: His tail caught in the bramble. He pulls and sulks until a bumblebee buzzes up behind him; he jumps in fright, and the jump frees him. The bee never notices him.
+    pl: Ogon zaczepiony o jeżyny. Ciągnie i się dąsa, aż za nim zabrzęczy trzmiel; Reksio podskakuje ze strachu i ten skok go uwalnia. Trzmiel w ogóle go nie zauważa.
+    covers: [berries]
+  - en: An apple may fall on his head, and he sits down dazed for a moment.
+    pl: Jabłko może spaść mu na głowę, wtedy na chwilę siada oszołomiony.
+    covers: [tree]
+  - en: On the ice, he or the boy may slip and sit down hard. The boy helps him up first, then they laugh about it together.
+    pl: Na lodzie on albo chłopiec może się poślizgnąć i usiąść z impetem. Chłopiec najpierw pomaga mu wstać, a potem śmieją się razem.
+  - en: The spider may catch the fly in its web and wrap it up.
+    pl: Pająk może złapać muchę w sieć i ją owinąć.
+    covers: [spider, fly]

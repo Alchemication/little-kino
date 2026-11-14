@@ -3,8 +3,10 @@
 ``build`` copies each game folder and ``site/`` into one folder to publish,
 fills the ``{{TOKEN}}`` places in the site's pages from what owns each fact (a
 game's code, a world's dossier, ``config``), and renders the research page from
-``docs/DESIGN_PRINCIPLES.md``. It refuses to publish a page with a token left
-unfilled, a fact resting on an unsourced claim, a page that asks another site
+``docs/DESIGN_PRINCIPLES.md`` and each shown game's guide for parents from its
+``guide.yaml``. It refuses to publish a page with a token left
+unfilled, a fact resting on an unsourced claim, a guide that leaves out
+part of its game, a page that asks another site
 for anything, a page whose Polish doesn't match the words it marks, or a front
 page with more worlds than fit on one screen.
 ``render_art`` photographs the link preview and the icon from their sources.
@@ -16,6 +18,7 @@ Example:
 
 from __future__ import annotations
 
+import html
 import json
 import logging
 import re
@@ -24,11 +27,13 @@ from pathlib import Path
 
 from config import (
     GAMES_DIR,
+    GUIDE_NAME,
     REPO_URL,
     SITE_ART_DIR,
     SITE_COUNTRIES,
     SITE_DIR,
     SITE_FACTS,
+    SITE_GUIDE_PARTS,
     SITE_ICON_SIZES,
     SITE_MAX_WORLDS,
     SITE_NAME,
@@ -40,6 +45,7 @@ from config import (
     WORLDS_DIR,
 )
 from schema.common import Status
+from schema.guide import Guide
 from schema.world import WorldDossier
 from worlds import load_model, world_dir
 
@@ -157,6 +163,97 @@ def research_body(doc: Path = SITE_PRINCIPLES_DOC) -> str:
     )
 
 
+def game_parts(world_id: str, worlds_root: Path = WORLDS_DIR) -> set[str]:
+    """Find what a shown world's game brings only some days or in one season.
+
+    Args:
+        world_id: A world in ``SITE_WORLDS`` and ``SITE_GUIDE_PARTS``.
+        worlds_root: Folder holding the worlds.
+
+    Returns:
+        The names of its parts, as its scripts name them.
+
+    Raises:
+        SiteError: The world has no entry, or a pattern finds nothing.
+    """
+    if world_id not in SITE_GUIDE_PARTS:
+        raise SiteError(
+            f"{world_id}: SITE_GUIDE_PARTS in src/config.py doesn't say where its "
+            "game lists what comes some days. Add it, so its guide can be checked."
+        )
+    game = world_dir(world_id, worlds_root) / GAMES_DIR / SITE_WORLDS[world_id] / "game"
+    names: set[str] = set()
+    for glob, pattern in SITE_GUIDE_PARTS[world_id]:
+        found = [
+            m
+            for f in sorted(game.glob(glob))
+            for m in re.findall(pattern, f.read_text())
+        ]
+        if not found:
+            raise SiteError(
+                f"{world_id}: nothing in {glob} matches {pattern!r}; it moved or was "
+                "renamed: update SITE_GUIDE_PARTS in src/config.py."
+            )
+        for text in found:
+            if text.startswith("{"):
+                names.update(re.findall(r"(\w+)\s*:", text))
+            elif text.startswith("["):
+                names.update(re.findall(r"'(\w+)'", text))
+            else:
+                names.add(text)
+    return names
+
+
+def guide(world_id: str, worlds_root: Path = WORLDS_DIR) -> tuple[str, str]:
+    """Render a shown world's guide for parents, once in each language.
+
+    Args:
+        world_id: A world in ``SITE_WORLDS``.
+        worlds_root: Folder holding the worlds.
+
+    Returns:
+        The guide as HTML in English, and in Polish.
+
+    Raises:
+        SiteError: The game has no guide, the guide leaves out one of the
+            parts its game brings some days, or names one its game doesn't have.
+    """
+    folder = world_dir(world_id, worlds_root) / GAMES_DIR / SITE_WORLDS[world_id]
+    path = folder / GUIDE_NAME
+    if not path.is_file():
+        raise SiteError(
+            f"{world_id}: no guide for parents at {path}. Write one "
+            "(schema.guide.Guide); the grown-ups' page shows it under the world."
+        )
+    model = load_model(path, Guide)
+    left_out = sorted(game_parts(world_id, worlds_root) - model.covered())
+    if left_out:
+        raise SiteError(
+            f"{path}: nothing covers {', '.join(left_out)}. Add a line a parent "
+            "would read (or add the name to a line's covers), so the guide keeps up."
+        )
+    scripts = " ".join(f.read_text() for f in (folder / "game").glob("*.js"))
+    unknown = sorted(n for n in model.covered() if not re.search(rf"\b{n}\b", scripts))
+    if unknown:
+        raise SiteError(
+            f"{path}: covers {', '.join(unknown)}, which its game's scripts never "
+            "name. Fix the name, or take the line out if the part is gone."
+        )
+
+    def render(lang: str) -> str:
+        parts = []
+        for section in model.sections:
+            items = "".join(
+                f"<li>{html.escape(getattr(line, lang), quote=False)}</li>"
+                for line in section.lines
+            )
+            heading = html.escape(getattr(section.heading, lang), quote=False)
+            parts.append(f"<h4>{heading}</h4><ul>{items}</ul>")
+        return "".join(parts)
+
+    return render("en"), render("pl")
+
+
 def tokens(worlds_root: Path = WORLDS_DIR) -> dict[str, str]:
     """Gather every value a page may ask for.
 
@@ -165,7 +262,9 @@ def tokens(worlds_root: Path = WORLDS_DIR) -> dict[str, str]:
 
     Returns:
         Token names with their values: the site's addresses, the code's
-        figures, each shown world's facts, and the research page's body.
+        figures, each shown world's facts and guide (``<world>.guide``, and
+        ``<world>.guide_pl`` escaped to sit in the Polish block's JSON), and
+        the research page's body.
     """
     values = {
         "SITE_URL": SITE_URL,
@@ -175,6 +274,9 @@ def tokens(worlds_root: Path = WORLDS_DIR) -> dict[str, str]:
     values.update(code_facts(worlds_root))
     for world_id in SITE_WORLDS:
         values.update(world_facts(world_id, worlds_root))
+        english, polish = guide(world_id, worlds_root)
+        values[f"{world_id}.guide"] = english
+        values[f"{world_id}.guide_pl"] = json.dumps(polish, ensure_ascii=False)[1:-1]
     return values
 
 

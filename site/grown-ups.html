@@ -65,6 +65,18 @@
   .open { grid-column: 2; grid-row: 1 / span 3; align-self: center; padding: 10px 18px 11px; border: 2px solid var(--ink); border-radius: 999px; background: var(--bottle); color: var(--paper) !important; font-weight: 750; text-decoration: none; box-shadow: 3px 3px 0 var(--ink); white-space: nowrap; }
   .open:hover { background: var(--tomato); }
   @media (max-width: 520px) { .world { grid-template-columns: 1fr; } .open { grid-column: 1; grid-row: auto; justify-self: start; margin-top: 10px; } }
+
+  /* a world's guide: what a day there can hold, folded until asked for */
+  .guide { grid-column: 1 / -1; margin-top: 12px; }
+  .guide summary { cursor: pointer; font-weight: 750; color: var(--bottle); list-style: none; }
+  .guide summary::-webkit-details-marker { display: none; }
+  .guide summary::before { content: "▸"; display: inline-block; width: 1.1em; transition: transform 0.2s; }
+  .guide[open] summary::before { transform: rotate(90deg); }
+  .guide summary:focus-visible { outline: 3px solid var(--mustard); outline-offset: 3px; }
+  .guide h4 { margin: 16px 0 4px; font-size: 17px; font-weight: 850; }
+  .guide ul { margin: 0; padding-left: 1.2em; }
+  .guide li { margin: 4px 0; line-height: 1.45; }
+  @media (prefers-reduced-motion: reduce) { .guide summary::before { transition: none; } }
 </style>
 </head>
 <body class="paper">
@@ -147,17 +159,26 @@
   <section>
     <span class="label" data-t="worlds">Now showing</span>
     <h2 data-t="worlds-h">The worlds.</h2>
+    <p data-t="worlds-p">Under each, what a day there can hold, and the moments worth knowing about before you start. No one day holds all of it, and none of it has to be found.</p>
     <div class="world">
       <h3 data-t="yard">Reksio's yard</h3>
       <p class="small" data-t="yard-after">After the {{reksio.country}} cartoon {{reksio.title}}, {{reksio.years}}, created by {{reksio.creator}}.</p>
       <p data-t="yard-p">A dog, his doghouse, a bowl, a tree, the hens next door, and whatever the weather brings.</p>
       <a class="open" href="reksio/yard/" data-t="yard-open">Open the yard</a>
+      <details class="guide">
+        <summary data-t="yard-guide">What can happen in the yard</summary>
+        <div data-t="yard-guide-body">{{reksio.guide}}</div>
+      </details>
     </div>
     <div class="world">
       <h3 data-t="meadow">Krtek's meadow</h3>
       <p class="small" data-t="meadow-after">After the {{krtek.country}} cartoon {{krtek.title}} ({{krtek.title_en}}), {{krtek.years}}, created by {{krtek.creator}}.</p>
       <p data-t="meadow-p">A mole, his molehill, a spring and an old tree, and the friends and things that turn up.</p>
       <a class="open" href="krtek/meadow/" data-t="meadow-open">Open the meadow</a>
+      <details class="guide">
+        <summary data-t="meadow-guide">What can happen in the meadow</summary>
+        <div data-t="meadow-guide-body">{{krtek.guide}}</div>
+      </details>
     </div>
     <p class="small" style="margin-top:14px" data-t="more">There will be a few more, slowly. Never more than fit on one screen.</p>
   </section>
@@ -242,14 +263,19 @@
   "rules-p": "Zanim to powstało, przeczytaliśmy, co lekarze i badacze mówią o krótkiej zabawie przy ekranie dla maluchów, i spisaliśmy, co z tego wynika. <a href='research.html'>Przeczytaj badania i nasze zasady</a> (po angielsku).",
   "worlds": "W programie",
   "worlds-h": "Światy.",
+  "worlds-p": "Pod każdym: co może przynieść tamtejszy dzień i chwile, o których warto wiedzieć przed startem. Żaden dzień nie mieści wszystkiego i niczego nie trzeba szukać.",
   "yard": "Podwórko Reksia",
   "yard-after": "Na podstawie bajki {{reksio.title}} · {{reksio.country_pl}}, {{reksio.years}} · twórca: {{reksio.creator}}",
   "yard-p": "Pies, jego buda, miska, drzewo, kury od sąsiadów i to, co przyniesie pogoda.",
   "yard-open": "Otwórz podwórko",
+  "yard-guide": "Co może się wydarzyć na podwórku",
+  "yard-guide-body": "{{reksio.guide_pl}}",
   "meadow": "Łąka Krecika",
   "meadow-after": "Na podstawie bajki {{krtek.title}} · {{krtek.country_pl}}, {{krtek.years}} · twórca: {{krtek.creator}}",
   "meadow-p": "Kret, jego kopiec, źródełko, stare drzewo oraz przyjaciele i rzeczy, które się pojawiają.",
   "meadow-open": "Otwórz łąkę",
+  "meadow-guide": "Co może się wydarzyć na łące",
+  "meadow-guide-body": "{{krtek.guide_pl}}",
   "more": "Będzie ich jeszcze kilka, powoli. Nigdy więcej, niż zmieści się na jednym ekranie.",
   "origin": "Skąd się to wzięło",
   "origin-1": "Little Kino robi tata dla swojego syna Eliota, który ma trzy lata i mówi na to <em>baja time</em>, od <em>bajki</em>. To bajki, na których wychował się jego tata, z czasów, kiedy bajka trwała kilka minut, a potem się kończyła.",

@@ -178,6 +178,11 @@ file layout update `README.md` and the `main.py` docstring in the same change.
     `sourced`). The build fails on one it can't fill; never type the value
     in. The research page is `docs/DESIGN_PRINCIPLES.md` rendered: edit the
     doc.
+  - Each world on the parents' page has its game's guide folded under it
+    (`games/<game>/guide.yaml`): what a day can hold, by example, and every
+    moment that might worry a small child, with how it ends. A new gag in
+    a pool or a season fails the build until a guide line covers it; a new
+    moment to know about gets its line too.
   - `site/assets/base.css` is the only place the site's colours, typeface
     and lettering are defined. Never redeclare a colour in a page.
   - No page loads anything from another site (fonts, scripts, analytics):

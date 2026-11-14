@@ -563,6 +563,13 @@ sounds he has judged are in.
      the name Krecik yet, so the line about the cartoon says Krtek), "ok. 5
      min" and "twórca:" so no token needs inflecting. The research page
      stays English, under a Polish note.
+   - **The worlds' guides** (Adam, 2026-11-14: what can happen, for a
+     parent before a visit), folded under each world on the grown-ups'
+     page, from each game's `guide.yaml`: every day, some days, weather and
+     seasons, moments to know about. The words and the Polish are mine.
+     Judge whether the picture is the right size (representative, not a
+     list to complete), and whether any "moment to know about" is missing
+     or needless.
    - Not done: a domain of its own (`SITE_URL` in `src/config.py` is the
      line to change), so the address never moves again; a
      trademark register search for the name; a nod to the song the name

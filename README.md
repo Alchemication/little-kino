@@ -65,6 +65,7 @@ worlds/<id>/
   audio/intro/          measurements, spectrograms, mark clips (generated, gitignored)
   media/, frames/       downloaded video and contact sheets (gitignored)
   games/<game>/brief.yaml  game brief (schema.brief.GameBrief)
+  games/<game>/guide.yaml  what a day there can hold, for parents, in English and Polish (schema.guide.Guide)
   games/<game>/samples.yaml  instrument samples a game uses (schema.samples.SampleSet)
   games/<game>/effects.yaml  recorded sound effects picked by ear (schema.effects.EffectSet)
   games/<game>/effects/      the picked takes, as made (packed into game/effects.js)
@@ -179,8 +180,10 @@ Three pages, and no more, each in English and Polish:
 - **The parents' page** (`site/grown-ups.html`), the printed programme: a
   cartoon and a game crossed out and "a little world" left standing, Reksio
   to tap so it is shown, a visit as a listing, how to play, what it never
-  does, the worlds, where it comes from, the fan-work notice, and the films'
-  end card.
+  does, the worlds (each with its guide folded under it: what a day there
+  can hold, and the moments a parent may want to know about first, with how
+  each ends), where it comes from, the fan-work notice, and the films' end
+  card.
 - **The research page** (`site/research.html`): `docs/DESIGN_PRINCIPLES.md`,
   rendered, never a second copy; in English in either language, with a
   Polish note saying so.
@@ -201,7 +204,13 @@ A page states no fact it doesn't own: the day's length, its hours and the
 hold for a grown-up come from the games' scripts (`SITE_FACTS`), a cartoon's
 title, years and creator from its dossier (typed fields, and a credit only
 when its claim is `verified` or `sourced`), written in the pages as
-`{{TOKENS}}`. The build fails, publishing nothing, on a token it can't fill,
+`{{TOKENS}}`. A world's guide is its game's `guide.yaml`, rendered into the
+page in both languages: a picture of a day, not a catalogue, and each line
+names the game's parts it covers. Everything a game brings only some days
+or in one season (its props, encounters, creatures, far wildlife; where its
+scripts list them is `SITE_GUIDE_PARTS`) must be covered, and a line may
+cover only what the scripts name, so a new gag in a pool fails the build
+until its guide has a line. The build fails, publishing nothing, on a token it can't fill,
 a page that loads anything from another site, Polish that doesn't match a
 page's words, or a world without a card.
 `site/assets/base.css` is the one place the colours, the typeface (Fraunces,
@@ -213,8 +222,8 @@ lay beside the set. The icons and the link preview are rendered from
 To read the built site: `uv run python -m http.server -d _site`
 (`tests/test_site.py` checks the build, `tests/test_site_browser.py` the
 pages in Chrome). Adding a world: its card page, its card in `index.html`,
-its entry in `grown-ups.html` (in English and in its Polish block), and
-`SITE_WORLDS`; a new country, its words in `SITE_COUNTRIES`.
+its entry in `grown-ups.html` (in English and in its Polish block), its
+game's `guide.yaml` and its lists in `SITE_GUIDE_PARTS`, and `SITE_WORLDS`; a new country, its words in `SITE_COUNTRIES`.
 
 Each game is
 at `<site>/<world>/<game>/`; add the front page to the home screen and both

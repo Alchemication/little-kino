@@ -89,6 +89,12 @@ GAMES_DIR = "games"
 BRIEF_NAME = "brief.yaml"
 """A game's brief inside its folder (``schema.brief.GameBrief``)."""
 
+GUIDE_NAME = "guide.yaml"
+"""A game's guide for parents inside its folder (``schema.guide.Guide``): what
+a day there can hold, in English and Polish, rendered onto the grown-ups'
+page. Kept apart from the brief, which holds the design, not words for a
+parent."""
+
 SHARED_DIR = REPO_ROOT / "shared"
 """Game scripts every game may use (the clock and debug tools first). Each game
 gets a copy of the ones its page loads (``main.py shared``), so a game folder
@@ -392,3 +398,22 @@ SITE_FACTS = {
 script under ``worlds/`` that owns the number, the pattern that finds it, and
 what to divide it by for the page's unit (seconds to minutes, milliseconds to
 seconds). The build fails when a pattern no longer matches."""
+
+SITE_GUIDE_PARTS = {
+    "reksio": (
+        ("layout.js", r"const OFFERS = (\{.*\})"),
+        ("layout.js", r"const IN_SEASON = (\{.*\})"),
+        ("layout.js", r"const CREATURE_POOL = (\[.*\])"),
+    ),
+    "krtek": (
+        ("*.js", r"Things\.add\(\{\s*name: '(\w+)'"),
+        ("layout.js", r"const IN_SEASON = (\{.*\})"),
+        ("layout.js", r"const FAR_LIFE = (\[.*\])"),
+    ),
+}
+"""Where each shown world's game lists what comes only on some days or in one
+season (its props, encounters, creatures, far wildlife): a glob of its
+scripts and a pattern whose group is a name, or a one-line object (its keys)
+or array (its quoted names). Every name found must be covered by a line of
+the game's guide, so the grown-ups' page can't fall behind a new gag; the
+build fails when a pattern finds nothing (it moved: fix it here)."""

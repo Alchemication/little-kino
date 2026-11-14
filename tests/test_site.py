@@ -1,7 +1,8 @@
 """The public site's build (`src/website.py`): pages are filled from what owns
 each fact, and nothing unfit goes out — an unfilled token, a creator the
 research doesn't stand behind, a request to another site, Polish that doesn't
-match a page's words, a seventh world."""
+match a page's words, a seventh world, a parents' guide that has fallen behind
+its game."""
 
 from __future__ import annotations
 
@@ -161,6 +162,95 @@ class TestFacts:
 
         with pytest.raises(SiteError, match="SITE_COUNTRIES"):
             website.world_facts("reksio", self._world(tmp_path, elsewhere))
+
+
+class TestGuide:
+    """Each shown game's guide for parents (``guide.yaml``), rendered and checked."""
+
+    def _game(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        lines: list[dict],
+        script: str = "const POOL = ['bowl', 'tree']",
+    ) -> Path:
+        """A world whose game lists `script`'s parts, with a guide of `lines`."""
+        game = tmp_path / "w/games/g"
+        (game / "game").mkdir(parents=True)
+        (game / "game/layout.js").write_text(script)
+        section = {"heading": {"en": "Some days", "pl": "Niektórych dni"}}
+        (game / "guide.yaml").write_text(
+            yaml.safe_dump({"sections": [section | {"lines": lines}]})
+        )
+        monkeypatch.setattr(website, "SITE_WORLDS", {"w": "g"})
+        monkeypatch.setattr(
+            website, "SITE_GUIDE_PARTS", {"w": (("*.js", r"const POOL = (\[.*\])"),)}
+        )
+        return tmp_path
+
+    def test_the_built_page_carries_each_guide_in_both_languages(
+        self, built: Path
+    ) -> None:
+        page = (built / "grown-ups.html").read_text()
+        assert page.count('<details class="guide">') == len(SITE_WORLDS)
+        assert "<h4>Moments to know about</h4>" in page
+        polish = json.loads(
+            re.search(r'id="pl">(.*?)</script>', page, re.DOTALL).group(1)
+        )
+        assert "<h4>Chwile, o których warto wiedzieć</h4>" in polish["yard-guide-body"]
+
+    def test_every_part_of_the_real_games_is_covered(self) -> None:
+        for world in SITE_WORLDS:
+            english, polish = website.guide(world)
+            assert "<li>" in english and "<li>" in polish
+
+    def test_a_part_without_a_line_is_refused(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        root = self._game(
+            tmp_path,
+            monkeypatch,
+            [{"en": "A bowl.", "pl": "Miska.", "covers": ["bowl"]}],
+        )
+        with pytest.raises(SiteError, match="nothing covers tree"):
+            website.guide("w", root)
+
+    def test_a_line_for_a_part_the_game_lacks_is_refused(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        line = {"en": "All.", "pl": "Wszystko.", "covers": ["bowl", "tree", "kite"]}
+        with pytest.raises(SiteError, match="covers kite"):
+            website.guide("w", self._game(tmp_path, monkeypatch, [line]))
+
+    def test_a_moved_list_stops_the_build(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        root = self._game(
+            tmp_path, monkeypatch, [{"en": "A.", "pl": "A."}], "const X = 1"
+        )
+        with pytest.raises(SiteError, match="SITE_GUIDE_PARTS"):
+            website.guide("w", root)
+
+    def test_a_game_without_a_guide_is_refused(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        root = self._game(tmp_path, monkeypatch, [{"en": "A.", "pl": "A."}])
+        (root / "w/games/g/guide.yaml").unlink()
+        with pytest.raises(SiteError, match="no guide"):
+            website.guide("w", root)
+
+    def test_its_words_are_escaped_for_the_page(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        line = {
+            "en": "Bowl & tree <3",
+            "pl": 'Miska "i" drzewo',
+            "covers": ["bowl", "tree"],
+        }
+        english, polish = website.guide("w", self._game(tmp_path, monkeypatch, [line]))
+        assert "Bowl &amp; tree &lt;3" in english
+        page = '{"k": "' + json.dumps(polish)[1:-1] + '"}'
+        assert 'Miska "i" drzewo' in json.loads(page)["k"]
 
 
 class TestChecks:
