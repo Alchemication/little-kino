@@ -26,8 +26,10 @@ const TunnelArt = (() => {
   const OPEN_MS = 300 // the ground opening
   const LINGER_MS = 1500 // once he is up, it stays open this long (Adam, 2026-11-14: they vanished at once)…
   const SHUT_MS = 1200 // …then closes this slowly
+  const FOOT = 1300 // the deep earth reaches down to here: past the foot of a view slid all the way down (view.js DOWN)
 
   let root, earthG, tunnelsG, crumbsG, digG, moversG, clipRect
+  let deep = null // the earth all along the meadow, under the cutaway: shown while the view is slid down
   let shown = false // open, or opening: the child can see it
   let shutting = null // the timer before it closes
 
@@ -54,8 +56,11 @@ const TunnelArt = (() => {
     return g
   }
 
-  /** Drawn into `layer`, shut. */
-  function setup(layer) {
+  /** Drawn into `layer`, shut; the earth all along into `deepLayer`, hidden. */
+  function setup(layer, deepLayer) {
+    deep = deepLayer
+    deep.style.display = 'none'
+    SoilArt.draw(deep, -200, Layout.WORLD_W + 200, TOP, FOOT - TOP)
     root = el('g', { class: 'cutaway' }, layer)
     root.style.display = 'none'
     const shade = el('linearGradient', { id: 'tunnel-air', gradientUnits: 'userSpaceOnUse', x1: 0, x2: 0, y1: RUN_Y - BORE / 2, y2: RUN_Y + BORE / 2 }, el('defs', {}, root))
@@ -162,8 +167,14 @@ const TunnelArt = (() => {
     shutting = Clock.after(LINGER_MS, close)
   }
 
+  /** Show the earth all along (the view sliding down into it), or hide it (the view back up). */
+  function depth(on) {
+    const display = on ? '' : 'none'
+    if (deep && deep.style.display !== display) deep.style.display = display
+  }
+
   return {
-    setup, draw, digging, diggingUp, dug, movers, empty, open, shut,
+    setup, draw, depth, digging, diggingUp, dug, movers, empty, open, shut,
     /** Is it open (or opening, or lingering) for the child to see? */
     get shown() { return shown },
     /** The earth's top: a tap below it, he staying under, is a tap on the earth. */

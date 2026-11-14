@@ -806,6 +806,33 @@ class TestMeadowUnderground:
         assert m.state()["x"] == 900, "not the molehill near him"
         m.assert_settled()
 
+    def test_the_view_slides_down_while_he_stays_and_back_up_after(
+        self, meadow: callable
+    ) -> None:
+        m = meadow()
+        m.wake()
+        m.do("go to 1500")
+        m.wait_free()
+        m.page.evaluate(
+            "() => { window.deepest = 0; Clock.every(40, () => { deepest = Math.max(deepest, View.dive) }) }"
+        )
+        m.do("dig to 900")  # a trip home: the view stays up
+        m.wait("meadowGame.state().x === 900 && !meadowGame.state().busy")
+        assert m.page.evaluate("deepest") == 0, "the view slid down on a trip"
+        m.do("dig to 900")  # down to stay
+        m.wait("View.dive > 0.99")
+        assert m.page.evaluate("document.getElementById('deep').style.display") == ""
+        top = m.page.evaluate(
+            "Number(document.getElementById('world').getAttribute('viewBox').split(' ')[1])"
+        )
+        assert top > 200, "the view is not down in the earth"
+        m.do("go to 900")  # up again
+        m.wait("View.dive === 0")
+        assert (
+            m.page.evaluate("document.getElementById('deep').style.display") == "none"
+        )
+        m.assert_settled()
+
     def test_bedtime_under_he_goes_home_along_his_tunnel(
         self, meadow: callable
     ) -> None:

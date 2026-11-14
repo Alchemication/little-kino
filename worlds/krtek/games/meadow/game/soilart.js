@@ -2,26 +2,35 @@
 // layers, as it lies in a meadow (Adam, 2026-11-14: closer to how it looks in
 // nature): dark topsoil just under the grass, the grass's fine roots hanging
 // into it, brown earth under that with a root or two reaching down, pebbles
-// and pale flecks of stone, now and then an earthworm, and a band of paler
-// clay at the foot. The films show only dark earth with pale flecks (Krtek a
-// autíčko 0:50); the rest is ours.
+// and pale flecks of stone, now and then an earthworm, paler clay under
+// that, and deeper still a stony layer; under the old oak, its big roots
+// spread through it all. Each layer lies at the same depth wherever it is
+// drawn: the strip the cutaway shows under the grass is the top of the deep
+// earth the view slides down into (view.js). The films show only dark
+// earth with pale flecks (Krtek a autíčko 0:50); the rest is ours.
 //
 // Drawn from where each thing lies, never from a random stream, so a redraw
 // (the ground opening again, a molehill made) puts every stone back where it
 // was. Only drawing here: the deeper underground to come paints its own
 // layers here too.
 
+/* global Layout */
 /* exported SoilArt */
 const SoilArt = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
-  const SOIL = { top: '#2a1a0e', earth: '#4a301b', clay: '#6e5236' } // topsoil, earth, the clay at the foot
-  const TOPSOIL = 34 // how deep the dark topsoil goes
-  const CLAY_FROM = 132 // the clay starts about this far down
+  // its layers, top down: [how far down each starts, its colour, how much its edge waves]
+  const LAYERS = [[0, '#2a1a0e', 0], [34, '#4a301b', 12], [140, '#6e5236', 16], [330, '#5b4c3e', 22]] // topsoil, earth, clay, the stony layer
+  const TOPSOIL = LAYERS[1][0]
+  const STONY = LAYERS[3][0]
+  const STONE_ROW = 56 // pebbles lie in rows this far apart…
+  const STONE_CHANCE = [0.4, 0.3, 0.25, 0.6] // …this often in each layer…
+  const STONE_SIZE = [8, 11, 10, 20] // …and up to this big (the stony layer's are stones)
+  const OAK_ROOTS = [[-1, 0.9, 300], [-1, 0.35, 240], [-0.3, 0.1, 330], [0.4, 0.2, 280], [1, 0.5, 260], [1, 1, 210]] // under the oak: which way each spreads (and how far out, a share of OAK_SPREAD), how deep
+  const OAK_SPREAD = 320 // its roots reach about this far either side of its trunk: about as wide as its crown
   const HAIR_EVERY = 11 // a tuft of the grass's root hairs about this often
   const ROOT_EVERY = 170 // a place for a bigger root about this often…
   const ROOT_CHANCE = 0.45 // …and this often there is one
-  const STONE_EVERY = 48 // a place for a pebble about this often…
-  const STONE_CHANCE = 0.55
+  const STONE_EVERY = 48 // a place for a pebble about this often along each row
   const STONES = ['#8d8074', '#a59a8a', '#6f655b', '#9a8a73']
   const FLECK_EVERY = 30
   const WORM_EVERY = 520 // a place for a worm about this often…
@@ -42,29 +51,36 @@ const SoilArt = (() => {
   }
   const f = (v) => v.toFixed(1)
 
-  /** A wavy line from l to r about y, `amp` up and down, the same every time. */
+  /** A wavy line from l to r about y, `amp` up and down: its bends on a fixed grid, so two drawings over the
+   * same ground (the cutaway's, the deep earth's) meet without a seam. */
   function wavy(l, r, y, amp, salt) {
-    const pts = []
-    for (let x = l; x < r; x += 40) pts.push(`${f(x)} ${f(y + (at(Math.round(x / 40), salt) - 0.5) * amp)}`)
-    pts.push(`${f(r)} ${f(y)}`)
+    const height = (x) => f(y + (at(Math.round(x / 40), salt) - 0.5) * amp)
+    const pts = [`${f(l)} ${height(l)}`]
+    for (let x = Math.ceil(l / 40) * 40; x < r; x += 40) pts.push(`${f(x)} ${height(x)}`)
+    pts.push(`${f(r)} ${height(r)}`)
     return pts
   }
 
   /** The soil between l and r, from `top` down `deep`, into `g`: its top corners rounded off. */
   function draw(g, l, r, top, deep) {
     const bottom = top + deep
-    const outline = `M${l + 26} ${top} H${r - 26} Q${r} ${top} ${r} ${top + 26} V${bottom} H${l} V${top + 26} Q${l} ${top} ${l + 26} ${top} Z`
-    el('path', { d: outline, fill: SOIL.earth }, g)
-    const clay = wavy(l, r, top + CLAY_FROM, 16, 1)
-    el('path', { d: `M${clay.join(' L')} L${r} ${bottom} L${l} ${bottom} Z`, fill: SOIL.clay, opacity: 0.85 }, g)
-    const under = wavy(l, r, top + TOPSOIL, 12, 2).reverse()
-    el('path', { d: `M${l + 26} ${top} H${r - 26} Q${r} ${top} ${r} ${top + 26} L${under.join(' L')} L${l} ${top + 26} Q${l} ${top} ${l + 26} ${top} Z`, fill: SOIL.top }, g)
+    const corner = `M${l + 26} ${top} H${r - 26} Q${r} ${top} ${r} ${top + 26}`
+    el('path', { d: `${corner} V${bottom} H${l} V${top + 26} Q${l} ${top} ${l + 26} ${top} Z`, fill: LAYERS[0][1] }, g)
+    LAYERS.slice(1).forEach(([from, colour, amp], n) => {
+      if (from >= deep) return
+      const edge = wavy(l, r, top + from, amp, n + 1)
+      el('path', { d: `M${edge.join(' L')} L${r} ${bottom} L${l} ${bottom} Z`, fill: colour }, g)
+    })
     flecks(g, l, r, top, deep)
     stones(g, l, r, top, deep)
     hairs(g, l, r, top)
     roots(g, l, r, top)
+    oakRoots(g, l, r, top, deep)
     worms(g, l, r, top)
   }
+
+  /** Which layer is y down from the top (an index into LAYERS)? */
+  const layerAt = (down) => LAYERS.findLastIndex(([from]) => down >= from)
 
   /** Pale flecks of stone all through it. */
   function flecks(g, l, r, top, deep) {
@@ -74,18 +90,45 @@ const SoilArt = (() => {
     }
   }
 
-  /** Pebbles and small stones, rounded, a light on their top. */
+  /** Pebbles and small stones in rows down through it, rounded, a light on their top: more and bigger deep down. */
   function stones(g, l, r, top, deep) {
-    for (let i = Math.ceil(l / STONE_EVERY); i * STONE_EVERY < r; i++) {
-      if (at(i, 6) > STONE_CHANCE) continue
-      const x = i * STONE_EVERY + at(i, 7) * STONE_EVERY
-      const y = top + TOPSOIL + 6 + at(i, 8) * (deep - TOPSOIL - 16)
-      const rx = 3 + at(i, 9) ** 2 * 11
-      if (x < l + rx + 8 || x > r - rx - 8) continue
-      const tilt = (at(i, 10) - 0.5) * 50
-      const stone = el('g', { transform: `translate(${f(x)} ${f(y)}) rotate(${f(tilt)})` }, g)
-      el('ellipse', { rx: f(rx), ry: f(rx * (0.55 + at(i, 11) * 0.25)), fill: STONES[Math.floor(at(i, 12) * STONES.length)], stroke: '#3b2f25', 'stroke-width': 1 }, stone)
-      el('ellipse', { cx: f(-rx * 0.25), cy: f(-rx * 0.22), rx: f(rx * 0.4), ry: f(rx * 0.16), fill: '#fff', opacity: 0.22 }, stone)
+    for (let row = 0; (row + 0.5) * STONE_ROW < deep; row++) {
+      for (let i = Math.ceil(l / STONE_EVERY); i * STONE_EVERY < r; i++) {
+        const k = i * 7 + row * 1009 // this place's own numbers
+        const down = row * STONE_ROW + 8 + at(k, 8) * (STONE_ROW - 8)
+        const layer = layerAt(down)
+        if (at(k, 6) > STONE_CHANCE[layer] || down > deep - 10) continue
+        const x = i * STONE_EVERY + at(k, 7) * STONE_EVERY
+        const rx = 3 + at(k, 9) ** 2 * STONE_SIZE[layer]
+        if (x < l + rx + 8 || x > r - rx - 8) continue
+        const tilt = (at(k, 10) - 0.5) * 50
+        const stone = el('g', { transform: `translate(${f(x)} ${f(top + down)}) rotate(${f(tilt)})` }, g)
+        el('ellipse', { rx: f(rx), ry: f(rx * (0.55 + at(k, 11) * 0.25)), fill: STONES[Math.floor(at(k, 12) * STONES.length)], stroke: '#3b2f25', 'stroke-width': 1 }, stone)
+        el('ellipse', { cx: f(-rx * 0.25), cy: f(-rx * 0.22), rx: f(rx * 0.4), ry: f(rx * 0.16), fill: '#fff', opacity: 0.22 }, stone)
+      }
+    }
+  }
+
+  /** Under the old oak, its big roots spreading through the earth, forking and thinning as they go. */
+  function oakRoots(g, l, r, top, deep) {
+    const ox = Layout.OAK.x
+    const reach = OAK_SPREAD
+    if (ox + reach < l || ox - reach > r) return
+    const thick = []
+    const thin = []
+    OAK_ROOTS.forEach(([dir, out, depth], n) => {
+      const end = Math.min(depth, deep - 12)
+      const [ex, ey] = [ox + dir * out * reach, top + end]
+      thick.push(`M${f(ox + dir * 30)} ${top} C${f(ox + dir * 50)} ${f(top + end * 0.4)} ${f(ex - dir * 40)} ${f(ey - end * 0.3)} ${f(ex)} ${f(ey)}`)
+      for (const k of [0.45, 0.75]) {
+        const [fx, fy] = [ox + dir * 30 + (ex - ox - dir * 30) * k, top + end * k]
+        const side = at(n * 3 + k * 10, 50) < 0.5 ? -1 : 1
+        thin.push(`M${f(fx)} ${f(fy)} q${f(side * 30)} ${f(12)} ${f(side * (40 + at(n + k, 51) * 40))} ${f(40 + at(n + k, 52) * 50)}`)
+      }
+    })
+    for (const [d, w] of [[thick, 13], [thin, 5]]) {
+      el('path', { d: d.join(' '), stroke: '#3a2615', 'stroke-width': w + 3, fill: 'none', 'stroke-linecap': 'round' }, g)
+      el('path', { d: d.join(' '), stroke: '#8a6a48', 'stroke-width': w, fill: 'none', 'stroke-linecap': 'round' }, g)
     }
   }
 

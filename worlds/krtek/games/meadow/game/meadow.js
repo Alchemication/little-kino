@@ -108,7 +108,7 @@ const meadowGame = (() => {
     makeBed()
     makeTufts()
     Mole.make(layers.mole, document.getElementById('mole-out'))
-    Underground.setup(document.getElementById('tunnels'), document.getElementById('tunnels'))
+    Underground.setup(document.getElementById('tunnels'), document.getElementById('deep'), document.getElementById('tunnels'))
     Mole.put(HOME, 'down')
   }
 
@@ -871,7 +871,8 @@ const meadowGame = (() => {
   View.setup(() => (framed === null ? Mole.drawnX() : (Mole.drawnX() + framed) / 2), (camX) => {
     irisCircle.setAttribute('cx', String(Math.round(Mole.drawnX() - camX)))
     World.set({ view: { x0: View.left, x1: View.right } })
-  })
+    TunnelArt.depth(View.dive > 0.01) // the earth all along, while the view is down in it
+  }, () => Mole.state.pose === 'under') // staying under: the view slides down into the earth
   new ResizeObserver(() => {
     View.fit(svg)
     Turn.ask(Turn.upright())

@@ -43,6 +43,10 @@ child taking over, and goes at once. Keep each step
 
 ## Traps the meadow has hit
 
+- `meadow.js` is near the 1000-line limit (967 lines, 2026-11-14): a new
+  kind of tap or stay goes in a file of its own (`underground.js`, `oak.js`),
+  and `meadow.js` gets only its intent, its `intentAt` test and its setup.
+
 - A tap mid-step waits for the step to end (meadow.js `waits`), so a test
   that must cut a step in the middle (the umbrella in his hands) does
   `stop` (an arrow let go) instead; bedtime cuts mid-step too.

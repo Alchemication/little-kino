@@ -49,9 +49,9 @@ const Underground = (() => {
   const bumpAt = (x) => `translate(${x}px, ${Y + 14}px)`
   const under = () => Mole.state.pose === 'under'
 
-  /** The cutaway into `layer`, the bump over him into `ground`. */
-  function setup(layer, ground) {
-    TunnelArt.setup(layer)
+  /** The cutaway into `layer`, the earth all along into `deep`, the bump over him into `ground`. */
+  function setup(layer, deep, ground) {
+    TunnelArt.setup(layer, deep)
     bumpLayer = ground
   }
 

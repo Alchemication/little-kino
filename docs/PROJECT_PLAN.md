@@ -92,11 +92,17 @@ sounds he has judged are in.
      and the eclipse wait; at dusk and bedtime he goes home along his
      tunnel. The soil is drawn closer to nature (`soilart.js`: topsoil
      with root hairs, roots, pebbles, a worm, clay; Adam, 2026-11-14).
-     Judge: the paces, whether a child finds the way down and back up,
-     and the soil. Open: in the strip under the grass the tunnel fills
-     most of the earth, so the soil shows mostly past its ends; a view
-     that slides down when he stays under (6d) would give it room.
-     No sound yet for crawling or digging under (his call).
+     While he stays under, the view slides down into the earth (Adam,
+     2026-11-14, design A of three: `view.js` `GRASS_AT`, the grass's
+     edge 40% down the screen; on trips it stays up), the sky and the
+     church held still, the far trees sinking behind the meadow; the
+     earth shows in layers down to a stony one, and the oak's roots
+     spread under it. Judge: the paces, whether a child finds the way
+     down and back up, the slide's speed (`DIVE_EASE`) and depth, and
+     the soil. No sound yet for crawling or digging under (his call).
+     Next ideas (his pick, in order): his den as a room in the network,
+     life down there that answers him, finds while digging, the surface
+     feeling him pass.
    - **Adam judges the tunnel seen, and the fox's music** (2026-11-11, from
      his play of the paint story). Whenever he tunnels, the ground opens in
      a cutaway and he crawls along the tunnel as he digs it, the hare and

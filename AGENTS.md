@@ -332,7 +332,7 @@ heats the laptop for minutes.
 | the meadow's autumn (`autumn.js`, the woodpecker `woodpecker.js`, the hedgehog `hedgehog.js`, `hedgeart.js`) | `"TestMeadowAutumn"`, the hedgehog also `"TestMeadowEncounters and hedgehog"` |
 | the painter's fence at the meadow's right end (`fence.js`) | `"TestMeadowFence"` |
 | the mole (`mole.js`, `moleart.js`), his tunnels and stays under (`underground.js`, `tunnels.js`, `tunnelart.js`, `soilart.js`), his molehills (`hills.js`), taps on him or the meadow (`meadow.js`) | `"TestMeadowDay or TestMeadowWalking or TestMeadowMolehills or TestMeadowUnderground or TestMeadowTapHim or TestMeadowTapsWait"` |
-| the meadow's view or screen (`view.js`, `painting.js`, `game.css`) | `"TestMeadowView or TestMeadowScreens"` |
+| the meadow's view or screen (`view.js`, `painting.js`, `game.css`) | `"TestMeadowView or TestMeadowScreens or TestMeadowUnderground"` |
 | the meadow's friends, their drawings and faces (`friends.js`, `friendart.js`) | `"TestMeadowFriendFaces or TestMeadowEncounters or TestMeadowEgg or TestMeadowFox or TestMeadowFence"` |
 | the meadow's small life and wildlife (`critters.js`, `flock.js`, `wildlife.js`, `wildart.js`, `heron.js`, `nest.js`, `foxart.js`) | `"TestMeadowCritters or TestMeadowFireflies or TestMeadowSnail or TestMeadowWildlife"` |
 | the meadow's music, the cricket (`music.js`, `beds.js`, `cricket.js`) | `"TestMeadowMusic"` |

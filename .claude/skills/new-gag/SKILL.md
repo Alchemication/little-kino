@@ -275,6 +275,10 @@ for, and update every caller, no shims.
   on after a cut unless the cut stops it: keep the booked sources and stop
   them in the restore (the oak's echoes answered a mole who had walked
   away).
+- A new `Debug.trace` kind: grep the tests for ` <kind> ` first. Tests
+  find moments by a kind's first place in the trace, so reusing one
+  breaks them (the meadow's trips under the ground first traced
+  `tunnel`, which the paint story's tests use for its own moment).
 - Waiting for something moving to reach a place: wait until it has
   crossed it, never until it is "near" (within so many units). Near is a
   window a fast frame steps over, and the wait hangs: the fox waiting for
@@ -332,7 +336,9 @@ The game's tables and fakes: its file (section 4). For every game:
 ## 8. Check, then verify once
 
 1. While working: unit tests, eslint, and the browser slice for what changed
-   (`CLAUDE.md` table).
+   (`CLAUDE.md` table). To compare eslint's warnings before and after,
+   lint the changed files at `HEAD` in a scratch worktree (`git worktree
+   add`), never with `git stash`: the tree may hold Adam's own work.
 2. No `/code-review` per commit (`docs/DECISIONS.md`): it runs from time
    to time over a stretch of work. So walk the gag's interleavings
    (section 3: a tap at each beat, rain, dusk, bedtime, a cut at every
