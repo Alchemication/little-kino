@@ -82,9 +82,9 @@
       await Clock.wait(POTTER_MS[0] + pottering() * (POTTER_MS[1] - POTTER_MS[0]))
       if (hog !== h || state.asleep || acting) continue
       const what = pottering()
-      Debug.trace('hedgehog', { potters: what < 0.45 ? 'sniff' : what < 0.75 ? 'looks round' : 'shiver' })
-      if (what < 0.45) {
-        Sound.snuffle()
+      Debug.trace('hedgehog', { potters: what < 0.3 ? 'sniff' : what < 0.75 ? 'looks round' : 'shiver' })
+      if (what < 0.3) {
+        Sound.from(h.drawnX(), Sound.snuffle) // heard from where he is: faint, or not at all, from far off (Adam, 2026-11-14: too loud)
         await h.bob(2)
       } else if (what < 0.75) {
         const face = h.face
@@ -122,7 +122,7 @@
     await coming
     if (!alive()) return
     h.turn(1) // he turns to him
-    Sound.snuffle() // a huff
+    Sound.from(SPOT, Sound.snuffle) // a huff
     Debug.trace('hedgehog', { startled: true })
     await h.curl(true, 220) // a ball of spines, at once
     if (!alive()) return
@@ -140,7 +140,7 @@
     if (!alive()) return
     await h.bob(1)
     if (!alive()) return
-    Sound.snuffle()
+    Sound.from(SPOT, Sound.snuffle)
     const l = state.lying[state.lying.length - 1]
     if (l) await blowAway(l, -1)
     if (!alive()) return
@@ -238,7 +238,7 @@
     h.turn(1)
     await Clock.wait(400)
     if (!alive()) return
-    Sound.snuffle()
+    Sound.from(SPOT, Sound.snuffle)
     await h.rise(false) // into the heap
     h.gone()
     hog = null
@@ -298,7 +298,7 @@
     await m().goTo(Number(state.heap.style.transform.match(/-?\d+/)[0]) + 150)
     if (!alive()) return
     const nose = state.heap.querySelector('.heap-nose')
-    Sound.snuffle()
+    Sound.from(SPOT, Sound.snuffle)
     await Motion.endAt(nose, [{ transform: 'translate(0px, 0px)' }, { transform: 'translate(-10px, -4px)', offset: 0.3 }, { transform: 'translate(-6px, -2px)', offset: 0.5 }, { transform: 'translate(-10px, -4px)', offset: 0.7 }, { transform: 'translate(0px, 0px)' }], { duration: 1400 })
     if (!alive()) return
     Sound.say('giggle', true)

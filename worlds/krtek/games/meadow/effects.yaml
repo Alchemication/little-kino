@@ -281,6 +281,7 @@ effects:
   - file: peck/09.mp3
     prompt: 'a knuckle knocking once on a hollow log, short'
 - id: snuffle
+  gain: 0.35 # Adam, 2026-11-14: way too loud ("what is sniffing so loud all the time?")
   takes:
   - file: snuffle/03.mp3
     prompt: 'a hedgehog snuffling and sniffing through dry autumn leaves, close up, cute little snorts'

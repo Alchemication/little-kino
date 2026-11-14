@@ -265,3 +265,6 @@ body { touch-action: manipulation; -webkit-user-select: none; user-select: none;
 @keyframes cr-sniff { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(11deg); } 45% { transform: rotate(7deg); } 60% { transform: rotate(11deg); } }
 @keyframes cr-twitch { from { transform: scale(1); } to { transform: scale(1.3, 1.1); } }
 @media (prefers-reduced-motion: reduce) { .crawler .cr-whole, .crawler .cr-hand, .crawler .cr-foot, .crawler .cr-head, .crawler .cr-nose { animation: none !important; } }
+/* his den in his tunnels: plain at this size, the night den's paving and fringe left out (they turned to noise), a packed-earth rim as his tunnels have */
+.den-room .den-room-art > g:first-child > g { display: none; }
+.den-room .den-room-art > g:first-child > path { stroke: #6b4526; stroke-width: 22; }

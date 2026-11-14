@@ -88,6 +88,7 @@ const TunnelArt = (() => {
     const cy = DEN_TOP + (room.h * DEN_SCALE) / 2
     denG = el('g', { class: 'den-room', transform: `translate(${home} ${cy}) scale(${DEN_SCALE}) translate(${-(room.x + room.w / 2)} ${-(room.y + room.h / 2)})` }, root)
     denG.appendChild(den)
+    den.insertBefore(nest(room), den.children[1]) // under his pillow, a nest of dry grass and leaves, as a mole's (Adam, 2026-11-14: the bed looked strange)
     shelfG = el('g', { class: 'den-shelf' }, denG) // what he has found, kept in his den: in the den's own units
     el('path', { d: `M${room.x + 70} ${room.y + 150} H${room.x + room.w - 70}`, stroke: '#7a4a22', 'stroke-width': 12, 'stroke-linecap': 'round' }, shelfG) // a ledge dug in its back wall
     const clip = el('clipPath', { id: 'tunnel-movers' }, root)
@@ -172,6 +173,28 @@ const TunnelArt = (() => {
     } else { // an old key
       el('circle', { cx: -9, cy: 0, r: 6, fill: 'none', stroke: '#b8892e', 'stroke-width': 3.5 }, g)
       el('path', { d: 'M-3 0 H14 M10 0 v5 M14 0 v4', stroke: '#b8892e', 'stroke-width': 3.5, 'stroke-linecap': 'round' }, g)
+    }
+    return g
+  }
+
+  /**
+   * A nest of dry grass and a few leaves, heaped on the floor of his den under his pillow (in the den's own units,
+   * `room`), as a mole beds down: drawn from where each strand lies, the same every play.
+   */
+  function nest(room) {
+    const g = el('g', { class: 'den-nest' })
+    const [cx, floor] = [room.x + room.w / 2 - 10, room.y + room.h - 40]
+    el('path', { d: `M${cx - 285} ${floor} C${cx - 250} ${floor - 110} ${cx + 250} ${floor - 110} ${cx + 285} ${floor} Z`, fill: '#c9a35a', stroke: '#8a6a30', 'stroke-width': 5 }, g) // a little wider than his pillow, inside the room: it shows round it
+    const strands = []
+    for (let i = 0; i < 30; i++) {
+      const x = cx - 270 + (i * 540) / 29 + Math.sin(i * 7.3) * 8
+      const lean = Math.sin(i * 3.1) * 40 + (x < cx ? -20 : 20) // fanning out, as hay does
+      const tall = Math.abs(x - cx) > 215 ? 110 + Math.abs(Math.sin(i * 1.7)) * 40 : 60 // tallest at its ends, by the pillow's
+      strands.push(`M${x.toFixed(0)} ${floor - 4} q${(lean / 2).toFixed(0)} -${(tall / 2).toFixed(0)} ${lean.toFixed(0)} -${tall.toFixed(0)}`)
+    }
+    el('path', { d: strands.join(' '), stroke: '#a8833a', 'stroke-width': 6, fill: 'none', 'stroke-linecap': 'round' }, g)
+    for (const [dx, turn, colour] of [[-250, -30, '#c2672e'], [235, 25, '#b5852f'], [-215, 60, '#9c5a2a']]) {
+      el('path', { d: 'M0 0 C14 -18 40 -18 52 0 C40 18 14 18 0 0 Z', fill: colour, stroke: '#5a3a1c', 'stroke-width': 3, transform: `translate(${cx + dx} ${floor - 30}) rotate(${turn}) scale(1.4)` }, g) // a dry leaf or two
     }
     return g
   }
