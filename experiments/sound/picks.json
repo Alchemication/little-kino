@@ -1,5 +1,5 @@
 {
- "saved": "2026-11-10T18:33:34.873Z",
+ "saved": "2026-11-15T15:58:50.873Z",
  "picks": [
   {
    "file": "moss/buzz/08.wav",
@@ -3054,6 +3054,105 @@
    "folder": "krtek-rain",
    "made": "2026-11-10",
    "sound": "krtek-puddle",
+   "verdict": "keep"
+  },
+  {
+   "file": "eleven/krtek-scrape/01.mp3",
+   "source": "eleven",
+   "prompt": "a hand scooping a handful of dry garden soil, one short scrape, close up",
+   "wording": 1,
+   "seed": 3,
+   "folder": "krtek-tunnels",
+   "made": "2026-11-15",
+   "sound": "krtek-scrape",
+   "verdict": "keep"
+  },
+  {
+   "file": "eleven/krtek-scrape/03.mp3",
+   "source": "eleven",
+   "prompt": "a hand scooping a handful of dry garden soil, one short scrape, close up",
+   "wording": 1,
+   "seed": 2,
+   "folder": "krtek-tunnels",
+   "made": "2026-11-15",
+   "sound": "krtek-scrape",
+   "verdict": "keep"
+  },
+  {
+   "file": "eleven/krtek-scrape/04.mp3",
+   "source": "eleven",
+   "prompt": "a hand scooping a handful of dry garden soil, one short scrape, close up",
+   "wording": 1,
+   "seed": 1,
+   "folder": "krtek-tunnels",
+   "made": "2026-11-15",
+   "sound": "krtek-scrape",
+   "verdict": "keep"
+  },
+  {
+   "file": "eleven/krtek-scurry/03.mp3",
+   "source": "eleven",
+   "prompt": "a small animal scampering quickly over packed dirt, soft rapid pattering of tiny feet, close",
+   "wording": 1,
+   "seed": 2,
+   "folder": "krtek-tunnels",
+   "made": "2026-11-15",
+   "sound": "krtek-scurry",
+   "verdict": "keep"
+  },
+  {
+   "file": "eleven/krtek-scurry/02.mp3",
+   "source": "eleven",
+   "prompt": "a small animal scampering quickly over packed dirt, soft rapid pattering of tiny feet, close",
+   "wording": 1,
+   "seed": 3,
+   "folder": "krtek-tunnels",
+   "made": "2026-11-15",
+   "sound": "krtek-scurry",
+   "verdict": "keep"
+  },
+  {
+   "file": "eleven/krtek-scurry/01.mp3",
+   "source": "eleven",
+   "prompt": "a small animal scampering quickly over packed dirt, soft rapid pattering of tiny feet, close",
+   "wording": 1,
+   "seed": 1,
+   "folder": "krtek-tunnels",
+   "made": "2026-11-15",
+   "sound": "krtek-scurry",
+   "verdict": "keep"
+  },
+  {
+   "file": "eleven/krtek-trickle/05.mp3",
+   "source": "eleven",
+   "prompt": "a handful of loose earth pushed up and crumbling down, soft trickling soil",
+   "wording": 2,
+   "seed": 2,
+   "folder": "krtek-tunnels",
+   "made": "2026-11-15",
+   "sound": "krtek-trickle",
+   "verdict": "keep"
+  },
+  {
+   "file": "eleven/krtek-trickle/07.mp3",
+   "source": "eleven",
+   "prompt": "sand and small pebbles sliding and settling, a short soft trickle",
+   "wording": 3,
+   "seed": 2,
+   "folder": "krtek-tunnels",
+   "made": "2026-11-15",
+   "sound": "krtek-trickle",
+   "verdict": "keep"
+  },
+  {
+   "file": "eleven/krtek-trickle/02.mp3",
+   "source": "eleven",
+   "prompt": "dry soil poured slowly from a small pot, a soft trickle of earth and crumbs",
+   "wording": 1,
+   "seed": 2,
+   "folder": "krtek-tunnels",
+   "made": "2026-11-15",
+   "sound": "krtek-trickle",
    "verdict": "keep"
   }
  ]

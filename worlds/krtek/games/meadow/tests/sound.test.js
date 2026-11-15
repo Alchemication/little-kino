@@ -106,7 +106,7 @@ test('what is over the whole meadow is heard from above: the rain, the wind, the
 
 const NOT_SOUNDS = ['ensure', 'under', 'bus', 'hearFrom', 'from', 'listen', 'hushEchoes'] // the hooks, not sounds
 const ARGS = { roll: [1], rumble: [1], water: [0.5] } // what a sound needs to be heard at all
-const HIS = ['say', 'dig', 'pop', 'puddle', 'drips'] // his own: clear
+const HIS = ['say', 'dig', 'pop', 'puddle', 'drips', 'scrape', 'scurry', 'trickle'] // his own: clear
 
 test('every sound but his own is heard from above, a new one too (the woodpecker\'s drum was not)', async () => {
   for (const effects of [false, true]) await everyAbove(effects) // made here, and the recorded takes
@@ -146,7 +146,7 @@ test('the music is heard from above: the takes and the bed', async () => {
 
 test('his own sounds stay clear: the view is down there with him', () => {
   const { Sound, heard } = sound()
-  for (const [name, play] of Object.entries({ dig: Sound.dig, pop: Sound.pop, puddle: Sound.puddle, drips: Sound.drips })) {
+  for (const [name, play] of Object.entries({ dig: Sound.dig, pop: Sound.pop, puddle: Sound.puddle, drips: Sound.drips, scrape: Sound.scrape, scurry: Sound.scurry, trickle: Sound.trickle })) {
     assert.ok(heard(play).every((through) => !through), `${name} goes dull with him under`)
   }
 })

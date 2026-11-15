@@ -613,6 +613,40 @@ SOUNDS: dict[str, dict] = {
             "a brief patter of drops falling from a tree onto leaves after a rain shower",
         ],
     },
+    # Under the meadow (2026-11-15): his tunnels had no sound of their own but a hiss.
+    "krtek-scrape": {
+        "world": "krtek",
+        "id": "scrape",
+        "for": "Digging new earth in his tunnel (underground.js): one stroke of his paw pulling soil back, one per stroke, every 0.32 s, so they overlap. Close, soft, dry, a little crumbly. Short.",
+        "seconds": 0.5,
+        "prompts": [
+            "a hand scooping a handful of dry garden soil, one short scrape, close up",
+            "a small trowel scraping once into loose earth, soft and crumbly",
+            "fingers raking once through dry soil, a short gritty scrape",
+        ],
+    },
+    "krtek-scurry": {
+        "world": "krtek",
+        "id": "scurry",
+        "for": "Him scurrying along a tunnel already dug (underground.js): quick soft pattering of small feet on packed earth, under a second to a few; faded out where he stops. Quiet, close, muffled.",
+        "seconds": 2.0,
+        "prompts": [
+            "a small animal scampering quickly over packed dirt, soft rapid pattering of tiny feet, close",
+            "fingertips drumming quickly and softly on a cardboard box of soil, muffled patter",
+            "a mouse running inside a narrow earthen burrow, light quick footsteps, muffled",
+        ],
+    },
+    "krtek-trickle": {
+        "world": "krtek",
+        "id": "trickle",
+        "for": "He pushes his loose earth up a shaft and it rises into a molehill above (underground.js spoil): soil pushed up and trickling, settling. About a second, soft.",
+        "seconds": 1.2,
+        "prompts": [
+            "dry soil poured slowly from a small pot, a soft trickle of earth and crumbs",
+            "a handful of loose earth pushed up and crumbling down, soft trickling soil",
+            "sand and small pebbles sliding and settling, a short soft trickle",
+        ],
+    },
     # Reksio's yard (2026-11-08): the sounds made in code Adam judged bad,
     # "not great" or "so so" on made_in_code.html (his notes in each "for").
     "cluck": {

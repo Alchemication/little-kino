@@ -282,7 +282,7 @@ const Underground = (() => {
       const ms = Math.max(SCURRY_MIN_MS, len * SCURRY_MS * (backing ? BACK_SLOW : 1))
       TunnelArt.act(backing ? 'backing' : 'crawling', true)
       try {
-        await drive(part.from, part.to, ms, scurry(starts, stops), mine)
+        await drive(part.from, part.to, ms, scurry(starts, stops), mine, { each: () => Sound.scurry() })
       } finally {
         TunnelArt.act(backing ? 'backing' : 'crawling', false)
       }
@@ -300,6 +300,7 @@ const Underground = (() => {
         if (now > stroke && now <= n) {
           stroke = now
           TunnelArt.clod(Mole.state.x + dir * 60, dir, ways)
+          Sound.scrape()
         }
       } })
     } finally {
@@ -400,7 +401,7 @@ const Underground = (() => {
     try {
       await drive(x, stop, SPOIL_PUSH_MS, scurry(true, true), mine, { each: () => heap && TunnelArt.moveSpoil(heap, Mole.state.x + facing * TunnelArt.HANDS) })
       TunnelArt.act('pushing', false)
-      Sound.dig()
+      Sound.trickle()
       await TunnelArt.raiseSpoil(heap, shaft, SPOIL_UP_MS)
       if (going !== mine) throw cutShort()
       Hills.make(shaft)

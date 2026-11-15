@@ -11,7 +11,8 @@
 // goes dull, as if through the earth (under): the music, the creatures (a
 // creature heard from where it is, from), the weather, the bell. Only his
 // own sounds stay clear (own: his voice, digging, popping up, a puddle,
-// drips): the view is down there with him. Clear only by name, so a new
+// drips, and in his tunnels his paw's scrape, his scurry, his earth's
+// trickle): the view is down there with him. Clear only by name, so a new
 // sound can't forget to go dull (the woodpecker's drum once did).
 //
 // Its take player does what the yard's sound.js does for recorded effects;
@@ -38,10 +39,13 @@ const Sound = (() => {
   const ABOVE_RAMP_S = 1 // going dull or clear again over this long, evenly to the ear (an exponential ramp: one in Hz
   // spent most of its time above 5 kHz, where nothing changes)
   const FADE_S = 0.05 // a fade's floor: how quiet "gone" is, as a share of the level
+  const SCURRY_S = 0.45 // a piece of his scurrying: short, so it ends soon after he stops or is cut short
+  const SCURRY_FADE_S = 0.15 // ...faded out over its last this long
   const WATER_FADE_S = 0.3 // rain (its takes looped): faded out over this long as it stops
   const SOFT_RAIN = 0.35 // the storm's rain over the whole meadow, under everything: this much of the cloud's rain on the flowers
   let ctx = null
   let master = null
+  let scurryUntil = 0 // the made-here scurry: when its piece is over
   let above = null // what is heard from above (the music, the creatures): dulled while he is under…
   let aboveLevel = null // …and quieter
   let muffled = false
@@ -282,6 +286,28 @@ const Sound = (() => {
   function dig() {
     if (!ready()) return
     for (let i = 0; i < 3; i++) hiss(i * 0.11, 0.09, 900 + Math.random() * 500, 1.2, 0.35)
+  }
+
+  /** One stroke of his paw in new earth under the ground: a short dry scrape (a stroke every
+   * underground.js STROKE_MS, so its takes overlap). */
+  function scrape() {
+    if (!ready() || recorded('scrape')) return
+    hiss(0, 0.14, 1100 + Math.random() * 400, 1.4, 0.16)
+  }
+
+  /** A moment of him scurrying along a dug tunnel: soft quick pattering, a piece SCURRY_S long, asked for again
+   * each frame he runs (a new piece only once the last is over), so it stops soon after he does. */
+  function scurry() {
+    if (!ready() || recorded('scurry', [SCURRY_S - SCURRY_FADE_S, SCURRY_FADE_S])) return
+    if (ctx.currentTime < scurryUntil) return
+    scurryUntil = ctx.currentTime + SCURRY_S
+    for (let t = 0; t < SCURRY_S; t += 0.07) hiss(t, 0.04, 1500 + Math.random() * 500, 2, 0.04)
+  }
+
+  /** His loose earth pushed up a shaft into a molehill: a soft trickle, settling. */
+  function trickle() {
+    if (!ready() || recorded('trickle')) return
+    for (let i = 0; i < 6; i++) hiss(i * 0.12, 0.16, 2200 - i * 150, 1.5, 0.08 * (1 - i / 7))
   }
 
   /** Popping up through a fresh molehill. */
@@ -636,5 +662,5 @@ const Sound = (() => {
     listen(fn) { heard = fn },
     /** Is sound on (after the first tap, and not held)? */
     get running() { return ready() && ctx.state === 'running' },
-    say: own(say), hushEchoes, ECHO_GAP_S, dig: own(dig), pop: own(pop), bonk, water, bell, snicker, growl, croak, roll, knock, tock, squeak, sneeze, peep, crack, cluck, plink, tug, whoosh, rumble, splash, swish, clunk, boo, yelp, crank, vroom, wind, chirp, heron, grunt, snort, hoot, hootSleepy, drum, peck, snuffle, honk, howl, puddle: own(puddle), drips: own(drips) }
+    say: own(say), hushEchoes, ECHO_GAP_S, dig: own(dig), pop: own(pop), bonk, water, bell, snicker, growl, croak, roll, knock, tock, squeak, sneeze, peep, crack, cluck, plink, tug, whoosh, rumble, splash, swish, clunk, boo, yelp, crank, vroom, wind, chirp, heron, grunt, snort, hoot, hootSleepy, drum, peck, snuffle, honk, howl, puddle: own(puddle), drips: own(drips), scrape: own(scrape), scurry: own(scurry), trickle: own(trickle) }
 })()

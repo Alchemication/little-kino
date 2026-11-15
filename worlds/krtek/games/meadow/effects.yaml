@@ -323,3 +323,28 @@ effects:
     prompt: 'raindrops pattering down from wet leaves for a moment, soft, close'
   - file: drips/09.mp3
     prompt: 'a brief patter of drops falling from a tree onto leaves after a rain shower'
+- id: scrape
+  overlaps: true # a stroke comes every 0.32 s (underground.js STROKE_MS), quicker than a take lasts
+  takes:
+  - file: scrape/01.mp3
+    prompt: 'a hand scooping a handful of dry garden soil, one short scrape, close up'
+  - file: scrape/03.mp3
+    prompt: 'a hand scooping a handful of dry garden soil, one short scrape, close up'
+  - file: scrape/04.mp3
+    prompt: 'a hand scooping a handful of dry garden soil, one short scrape, close up'
+- id: scurry
+  takes:
+  - file: scurry/01.mp3
+    prompt: 'a small animal scampering quickly over packed dirt, soft rapid pattering of tiny feet, close'
+  - file: scurry/02.mp3
+    prompt: 'a small animal scampering quickly over packed dirt, soft rapid pattering of tiny feet, close'
+  - file: scurry/03.mp3
+    prompt: 'a small animal scampering quickly over packed dirt, soft rapid pattering of tiny feet, close'
+- id: trickle
+  takes:
+  - file: trickle/02.mp3
+    prompt: 'dry soil poured slowly from a small pot, a soft trickle of earth and crumbs'
+  - file: trickle/05.mp3
+    prompt: 'a handful of loose earth pushed up and crumbling down, soft trickling soil'
+  - file: trickle/07.mp3
+    prompt: 'sand and small pebbles sliding and settling, a short soft trickle'
