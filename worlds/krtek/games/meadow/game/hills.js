@@ -99,11 +99,13 @@ const Hills = (() => {
     dropHat()
     Sound.dig()
     if (m.pose === 'out') {
+      if (m.x < Layout.UNDER.from) await Mole.walkTo(Layout.UNDER.from) // clear of the oak's roots first: no tunnel goes through them
+      if (!alive()) return
       if (!at(m.x)) make(m.x)
       await Mole.digIn()
     } else await Mole.goDown()
     if (!alive()) return
-    await Underground.tunnelTo(x)
+    x = await Underground.tunnelTo(x) // as far as his tunnels go
     if (!alive()) return
     if (!at(x)) make(x)
     Sound.pop()

@@ -773,6 +773,13 @@ class TestMeadowUnderground:
         m.do("dig to 900")  # his home's: down he goes
         m.wait("meadowGame.state().pose === 'under' && !meadowGame.state().busy")
 
+    def settled_under(self, m: Meadow) -> None:
+        """Free, and still down in his tunnels, nothing broken."""
+        m.wait_free()
+        s = m.state()
+        assert (s["busy"], s["pose"]) == (None, "under"), s
+        assert not m.errors, m.errors
+
     def test_he_crawls_along_digs_on_and_comes_up_on_the_grass(
         self, meadow: callable
     ) -> None:
@@ -802,9 +809,13 @@ class TestMeadowUnderground:
         m = meadow()
         self.under(m)
         assert not m.page.evaluate("Sound.muffled"), "dull at once: a quick dive"
-        assert m.page.evaluate("meadowGame.music()") == "morning"  # the theme, as he woke
+        assert (
+            m.page.evaluate("meadowGame.music()") == "morning"
+        )  # the theme, as he woke
         m.wait("Sound.muffled && Music.bed?.mood === 'under'", 6_000)
-        m.wait("meadowGame.music() === null", 3_000)  # down there it fades: the burrow's bed
+        m.wait(
+            "meadowGame.music() === null", 3_000
+        )  # down there it fades: the burrow's bed
         m.do("go to 1700")  # up on the grass: clear again, the day's bed back
         m.wait("!Sound.muffled && Music.bed?.mood !== 'under'", 6_000)
         assert " heard from under " in m.page.evaluate("meadowGame.trace()")
@@ -1021,7 +1032,7 @@ class TestMeadowUnderground:
         m.page.evaluate(
             "() => { window.flung = 0; window.paddled = false; Clock.every(40, () => {"
             " flung = Math.max(flung, document.querySelectorAll('.cutaway > g:last-child > ellipse').length);"
-            " if (document.querySelector('.crawler.crawling.digging')) paddled = true }) }"
+            " if (document.querySelector('.crawler.digging')) paddled = true }) }"  # stroke by stroke
         )
         m.do("crawl to 2000")
         m.wait_free()
@@ -1068,6 +1079,121 @@ class TestMeadowUnderground:
             m.page.evaluate("document.querySelectorAll('.den-shelf .find').length") == 1
         )
         assert not m.errors, m.errors
+
+    def test_he_digs_stroke_by_stroke_his_nose_first(self, meadow: callable) -> None:
+        """A real mole's dig: his nose feels the earth, then stroke by stroke,
+        still as a paw reaches, on as it pulls (Adam, 2026-11-15: he slid)."""
+        m = meadow()
+        self.under(m)
+        m.do("crawl to 1600")  # along his den's run, then new earth
+        m.wait("meadowGame.trace().includes(' feels ahead ')")
+        m.wait("document.querySelector('#tunnels .crawler.digging') !== null", 3_000)
+        xs = []
+        for _ in range(40):
+            m.play_for(20)
+            xs.append(m.page.evaluate("Mole.drawnX()"))
+        steps = [b - a for a, b in pairwise(xs)]
+        assert sum(abs(s) < 0.5 for s in steps) >= 5, f"never still: {steps}"
+        assert sum(s > 2 for s in steps) >= 5, f"never pulled on: {steps}"
+        assert max(steps) < 30, f"a lurch: {steps}"
+        assert 60 < xs[-1] - xs[0] < 320, f"too slow or too fast: {xs[0]} to {xs[-1]}"
+        m.do("stop")
+        self.settled_under(m)
+
+    def test_arrow_presses_never_make_him_jump(self, meadow: callable) -> None:
+        """Pressed again and again, left and right: he and his crawling figure
+        move on from where they are drawn, together (they once jumped apart)."""
+        m = meadow()
+        self.under(m)
+        rows = []
+        for intent, frames in [
+            ("crawl to 1600", 14),
+            ("stop", 3),
+            ("crawl to 1600", 6),
+            ("crawl to 300", 10),
+            ("stop", 2),
+            ("crawl to 1600", 8),
+            ("crawl to 300", 6),
+            ("stop", 4),
+        ]:
+            m.do(intent)
+            for _ in range(frames):
+                m.play_for(20)
+                rows.append(m.page.evaluate("[Mole.drawnX(), Underground.crawlerX()]"))
+        for x, crawler in rows:
+            assert crawler is None or abs(crawler - x) < 2, rows
+        for (a, _), (b, _) in pairwise(rows):
+            assert abs(b - a) < 40, f"a jump from {a} to {b}"
+        self.settled_under(m)
+
+    def test_the_oaks_roots_stop_him(self, meadow: callable) -> None:
+        m = meadow()
+        self.under(m)
+        m.do("crawl to 170")  # the oak's arch, an arrow's far end
+        m.wait("meadowGame.trace().includes(' at the roots')", 30_000)
+        m.wait_free()
+        assert m.state()["x"] == m.page.evaluate("Layout.UNDER.from")
+        assert m.state()["pose"] == "under"
+        self.settled_under(m)
+
+    def test_a_short_way_back_he_backs_up(self, meadow: callable) -> None:
+        m = meadow()
+        self.under(m)
+        m.do("crawl to 1000")  # within his den's run: turned right
+        m.wait_free()
+        m.do("crawl to 880")
+        m.wait("meadowGame.trace().includes('\"backing\":true')")
+        m.wait_free()
+        assert m.state()["x"] == 880
+        self.settled_under(m)
+
+    @pytest.mark.parametrize("seed", range(1, 9))
+    def test_he_pushes_his_earth_up_into_a_molehill_on_free_grass(
+        self, meadow: callable, seed: int
+    ) -> None:
+        """Molehills are a mole's spoil: now and then, digging, he pushes the
+        loose earth back and up a shaft, and one rises. Never on anything."""
+        m = meadow(f"seed={seed}&still")
+        self.under(m)
+        m.do("crawl to 3150")
+        m.wait_free(120_000)
+        pushed = [
+            int(x)
+            for x in m.page.evaluate(
+                "meadowGame.trace().split('\\n').filter((l) => l.includes(' pushes up earth '))"
+                ".map((l) => JSON.parse(l.slice(l.indexOf('{'))).x)"
+            )
+        ]
+        hills = m.page.evaluate("Hills.xs()")
+        layout = m.page.evaluate(
+            "({ bed: Layout.BED, spring: Layout.SPRING, pool: Layout.POOL, wild: Layout.WILD, fence: Layout.FENCE.from })"
+        )
+        for x in pushed:
+            assert x in hills, (x, hills)
+            assert not layout["bed"]["from"] - 90 < x < layout["bed"]["to"] + 90, x
+            assert abs(x - layout["spring"]) > layout["pool"] + 90, x
+            assert abs(x - layout["wild"]["x"]) > layout["wild"]["w"] / 2 + 90, x
+            assert x < layout["fence"] - 90, x
+            assert not m.page.evaluate(f"Things.keeps({x - 90}, {x + 90})"), x
+        for a, b in pairwise(sorted(hills)):
+            assert b - a >= 140, f"molehills on each other: {hills}"
+        if seed == 1:
+            assert pushed, "he never pushed earth up on a long dig"
+        self.settled_under(m)
+
+    def test_cut_short_pushing_the_heap_leaves_nothing_behind(
+        self, meadow: callable
+    ) -> None:
+        m = meadow()
+        self.under(m)
+        m.do("crawl to 3150")
+        m.wait("meadowGame.trace().includes(' pushes up earth ')", 120_000)
+        m.play_for(300)
+        m.do("stop")
+        m.wait_free()
+        assert m.page.evaluate("document.querySelector('#tunnels .spoil')") is None
+        assert m.state()["pose"] == "under"
+        self.settled_under(m)
 
     def test_bedtime_under_he_goes_home_along_his_tunnel(
         self, meadow: callable

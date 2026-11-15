@@ -25,8 +25,7 @@ const SoilArt = (() => {
   const STONE_ROW = 56 // pebbles lie in rows this far apart…
   const STONE_CHANCE = [0.4, 0.3, 0.25, 0.6] // …this often in each layer…
   const STONE_SIZE = [8, 11, 10, 20] // …and up to this big (the stony layer's are stones)
-  const OAK_ROOTS = [[-1, 0.9, 300], [-1, 0.35, 240], [-0.3, 0.1, 330], [0.4, 0.2, 280], [1, 0.5, 260], [1, 1, 210]] // under the oak: which way each spreads (and how far out, a share of OAK_SPREAD), how deep
-  const OAK_SPREAD = 320 // its roots reach about this far either side of its trunk: about as wide as its crown
+  const OAK_ROOTS = [[-1, 0.9, 300], [-1, 0.35, 240], [-0.3, 0.1, 330], [0.4, 0.2, 280], [1, 0.5, 260], [1, 1, 210]] // under the oak: which way each spreads (and how far out, a share of Layout.OAK.roots), how deep
   const HAIR_EVERY = 11 // a tuft of the grass's root hairs about this often
   const ROOT_EVERY = 170 // a place for a bigger root about this often…
   const ROOT_CHANCE = 0.45 // …and this often there is one
@@ -109,7 +108,7 @@ const SoilArt = (() => {
   /** Under the old oak, its big roots spreading through the earth, forking and thinning as they go. */
   function oakRoots(g, l, r, top, deep) {
     const ox = Layout.OAK.x
-    const reach = OAK_SPREAD
+    const reach = Layout.OAK.roots
     if (ox + reach < l || ox - reach > r) return
     const thick = []
     const thin = []

@@ -24,7 +24,7 @@
 /* global AfterRain, Clock, Debug, Friends, Layout, Mole, Motion, Sound, Things, World */
 ;(() => {
   const Y = Layout.GROUND
-  const PATCH = { x: 1640, w: 190 } // the wild flowers, in the middle of the meadow
+  const PATCH = Layout.WILD // the wild flowers, in the middle of the meadow
   const FLOWERS = 7
   const CLOUD_Y = 420 // how high the cloud drifts: just over his head, so it reads as near
   const CLOUD_SIZE = 1.35

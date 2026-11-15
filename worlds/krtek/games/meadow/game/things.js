@@ -160,6 +160,13 @@ const Things = (() => {
     return kept
   }
 
+  /** Whether this play's encounters keep any of the grass from a to b all day (their `ground`): nothing
+   * else should come up there (a molehill he pushes up from under: underground.js). */
+  const keeps = (a, b) => plan.some(({ name }) => {
+    const g = all[name].ground
+    return g && a < g[1] && g[0] < b
+  })
+
   /** Whether it is too soon for one to arrive at this hour: the quiet spell after the last one was
    * done (lastDone, an hour, or null), or the last hour before sunset. */
   const quiet = (hour, lastDone, sunset) => (lastDone !== null && hour < lastDone + REST_HOURS) || hour > sunset - LAST_HOURS
@@ -349,5 +356,5 @@ const Things = (() => {
   const stateOf = (e) => (e.done ? 'done' : !e.out ? null : e.ask && e.step >= e.steps.length ? 'choosing' : `step ${e.step}`)
   const state = () => Object.fromEntries(plan.map((p) => [p.name, stateOf(all[p.name]) || `at ${p.at}`]))
 
-  return { shuffle, /** The encounter whose step is playing now, or null. */ get stepping() { return stepping }, /** The one he went to by himself, if no tap on it since. */ get byHimself() { return byHimself }, names: () => Object.keys(all), add, choose, open, troubled, troubledName, inTrouble, quiet, setup, tick, use, night, state, cast, holding, holder, putDown, get: (name) => all[name], /** The meadow's helpers (goTo, el), for the encounters. */ get meadow() { return api } }
+  return { keeps, shuffle, /** The encounter whose step is playing now, or null. */ get stepping() { return stepping }, /** The one he went to by himself, if no tap on it since. */ get byHimself() { return byHimself }, names: () => Object.keys(all), add, choose, open, troubled, troubledName, inTrouble, quiet, setup, tick, use, night, state, cast, holding, holder, putDown, get: (name) => all[name], /** The meadow's helpers (goTo, el), for the encounters. */ get meadow() { return api } }
 })()

@@ -29,6 +29,12 @@ const Den = (() => {
   const SPIKE_EVERY = 34 // the fringe round its edge: a small spike about this often
   const FLECKS = 220
   const KEY_BOW = 'M-8 -3 C-10 -16 -26 -18 -26 -9 C-26 -2 -14 -2 -10 0 C-14 2 -26 2 -26 9 C-26 18 -10 16 -8 3 Z' // the toy car's winding key's two wings (car.js draws the key on the car), its shaft from -8 to 8
+  const PILLOW_CREASES = [
+    'M588 572 q22 4 36 16', 'M598 556 q18 10 26 24', 'M590 618 q20 -4 34 -14', // its left corners, pinched
+    'M990 568 q-22 4 -34 14', 'M978 548 q-14 12 -20 26', 'M992 610 q-22 -2 -36 -12', // its right corners
+    'M700 546 q30 8 52 4', 'M664 628 q24 -8 50 -6', 'M800 632 q30 -6 56 -2', 'M954 584 q14 10 20 24', // soft folds, and where his head presses in
+  ]
+  const CREASE = '#cfc6b0' // a crease, a shade darker than the pillow
   const KEY_GOLD = '#d9b45a' // …in the car's key's brass
   let toy = null // the toy car's key in his hands
   const toys = [] // …and in the copies of him asleep (room()): all shown together
@@ -116,6 +122,8 @@ const Den = (() => {
   /** The long white pillow (Autíčko 0:50; its striped curl left out: at this size it read as a scribble). */
   function pillow(into) {
     el('path', { d: 'M576 606 C556 566 592 530 652 532 C740 524 860 520 934 524 C992 526 1014 566 1000 604 C990 632 952 640 900 638 C800 642 700 644 640 642 C604 640 584 628 576 606 Z', fill: '#fbf8ef', stroke: INK, 'stroke-width': 3 }, into)
+    // its creases (Adam, 2026-11-15: smooth, it looked odd): pinched in at the corners, soft folds along it
+    el('path', { d: PILLOW_CREASES.join(' '), fill: 'none', stroke: CREASE, 'stroke-width': 2.4, 'stroke-linecap': 'round' }, into)
   }
 
   /** A soft mitt lying flat on the pillow, its fingers a scalloped edge towards `dir` (1 right, -1 left). */

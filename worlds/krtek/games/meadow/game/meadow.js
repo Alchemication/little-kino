@@ -343,6 +343,7 @@ const meadowGame = (() => {
       Debug.check('a mole in the ground has a molehill', ['out', 'under', 'wade'].includes(m.pose) || Hills.at(m.x), { x: m.x, pose: m.pose })
       Debug.check('a free mole is out of the water', m.pose !== 'wade' && !Water.wading, { pose: m.pose })
       Debug.check('staying under, he is in his tunnel', m.pose !== 'under' || Underground.inTunnel(m.x), { x: m.x })
+      Debug.check('under the ground, never in the oak\'s roots', m.pose !== 'under' || m.x >= Layout.UNDER.from - 1, { x: m.x })
     }
   }
 
@@ -424,11 +425,12 @@ const meadowGame = (() => {
     x = clampX(x)
     const m = Mole.state
     if (Math.abs(x - m.x) < 50 && m.pose !== 'out') return Mole.cheer()
+    if (m.pose === 'out' && m.x < Layout.UNDER.from) await Mole.walkTo(Layout.UNDER.from) // clear of the oak's roots first
     if (m.pose === 'out' && !Hills.at(m.x)) Hills.make(m.x)
     dropHat()
     Sound.dig()
     await Mole.goDown()
-    await Underground.tunnelTo(x)
+    x = await Underground.tunnelTo(x) // as far as his tunnels go
     if (!Hills.at(x)) Hills.make(x)
     Sound.pop()
     await Mole.comeUp('hill')

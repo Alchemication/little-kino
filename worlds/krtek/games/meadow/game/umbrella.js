@@ -325,6 +325,7 @@
   Things.add({
     name: 'storm',
     offer: 'help',
+    ground: [PLANT_AT - 40, PLANT_AT + 40], // the umbrella stays planted, its pole in the grass, all day
     instead: 'rain',
     chance: 0.25, // one play in four (Adam, 2026-10-26)
     engageMs: WAVE_IN_MS,

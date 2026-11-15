@@ -728,6 +728,13 @@ const Mole = (() => {
     await Motion.endAt(root, [{ transform: rootAt(state.x, from) }, { transform: rootAt(state.x, (from + dy) / 2 + 40), offset: 0.5 }, { transform: rootAt(state.x, dy) }], { duration: ms, easing: 'ease-out' })
   }
 
+  /** Put him at x now, as he is: for a move driven frame by frame on the Clock (his crawl under the
+   * ground, underground.js), so a cut leaves him exactly where he is drawn. */
+  function at(x) {
+    state.x = x
+    root.style.transform = rootAt(x, lift)
+  }
+
   /** Glide smoothly to x, `dy` up (sitting in the car), over `ms`: riding, not walking. */
   async function glide(x, ms, dy, easing) {
     const from = rootAt(state.x, lift)
@@ -736,5 +743,5 @@ const Mole = (() => {
     await Motion.endAt(root, [{ transform: from }, { transform: rootAt(x, dy) }], { duration: ms, easing })
   }
 
-  return { SCALE, state, drawnX, face, mood, calm, settle, feel, digIn, scratchHead, show, lookAt, perk, express, setFree, head, carry, paint, dots, perch, glide, wear, wearing, lean, totter, knock, wobble, ponder, handsToFace, point, wave, peekaboo, laugh, make, put, relax, sway, shakeOff, comeUp, goDown, wade, dip, walkTo, cheer, hop, stretch, ghost, listen }
+  return { SCALE, state, at, drawnX, face, mood, calm, settle, feel, digIn, scratchHead, show, lookAt, perk, express, setFree, head, carry, paint, dots, perch, glide, wear, wearing, lean, totter, knock, wobble, ponder, handsToFace, point, wave, peekaboo, laugh, make, put, relax, sway, shakeOff, comeUp, goDown, wade, dip, walkTo, cheer, hop, stretch, ghost, listen }
 })()

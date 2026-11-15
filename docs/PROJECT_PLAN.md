@@ -109,6 +109,20 @@ sounds he has judged are in.
      fox is sorry and goes off a friend in the first telling; the
      retelling is gone (Adam, 2026-11-14). Judge: the paces, whether the
      pool's edge round him reads as water, how often the fish comes.
+   - **Adam judges him moving like a real mole** (built 2026-11-15, his
+     ask: "waaaay more like a real mole's"; `underground.js`). One loop on
+     the clock moves him now, so a cut or an arrow pressed again never
+     makes him jump. Along what is dug he scurries (`SCURRY_MS`, 2.4 ms a
+     unit, was 0.8), and backs up a short way back (`BACK_UP`). Into new
+     earth his nose taps first (`NOSE_MS`), then he digs stroke by stroke
+     (`STROKE`, `STROKE_MS`, `REACH`; about 80 units a second, a third of
+     before), his paws bigger spades. Now and then he pushes the loose
+     earth up a shaft into a molehill on free grass (`SPOIL_*`,
+     `HILL_ROOM`); under a molehill he may sniff up its shaft. The oak's
+     roots stop him (`Layout.UNDER`). Judge by watching: the stroke's
+     pace and reach, the scurry's speed, how often the spoil comes, and
+     whether trips from the grass (and the paint's tunnel) now feel too
+     slow. His pillow has creases.
    - **Adam judges the music under the ground** (built 2026-11-15, his
      pick of two from a talk on a tunnel theme): once he has stayed down a
      moment (`meadow.js` `UNDER_HEARD_MS`, 2.5 s), the music, the

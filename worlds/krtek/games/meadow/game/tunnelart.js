@@ -33,6 +33,8 @@ const TunnelArt = (() => {
   const DEN_TOP = TOP + 8 // its top, just under the grass, where his home shaft comes down into it
   /** How wide his den is in the tunnels: what he has dug round his home from the start (underground.js). */
   const DEN_HALF = 120
+  /** How far ahead of where he is his digging hands are: where a heap he pushes goes. */
+  const HANDS = 70
 
   let root, earthG, tunnelsG, crumbsG, denG, shelfG, digG, moversG, flyG, clipRect
   let carried = null // what he carries on his back, found while digging (drawn on him each time he is drawn)
@@ -58,7 +60,7 @@ const TunnelArt = (() => {
     const skin = { stroke: '#b9705a', 'stroke-width': 1.2 }
     const whole = el('g', { class: 'cr-whole' }, g)
     el('ellipse', { class: 'cr-foot cr-foot-b', cx: -6, cy: -3, rx: 9, ry: 4.5, fill: '#d98f86', ...skin }, whole) // the far foot, behind
-    el('ellipse', { class: 'cr-hand cr-hand-b', cx: -38, cy: -9, rx: 10, ry: 6, fill: '#d98f86', ...skin, transform: 'rotate(-20 -38 -9)' }, whole) // the far hand, behind
+    el('ellipse', { class: 'cr-hand cr-hand-b', cx: -38, cy: -9, rx: 13, ry: 8, fill: '#d98f86', ...skin, transform: 'rotate(-20 -38 -9)' }, whole) // the far hand, behind: a spade, as a mole's
     el('path', { d: 'M34 0 C40 -30 20 -52 -6 -52 C-30 -52 -44 -38 -44 -22 C-44 -8 -34 0 -22 0 Z', fill: BODY }, whole)
     const head = el('g', { class: 'cr-head' }, whole)
     el('path', { d: 'M-44 -24 l-14 4 l13 6 Z', fill: BODY }, head) // his snout
@@ -66,7 +68,7 @@ const TunnelArt = (() => {
     el('ellipse', { cx: -32, cy: -34, rx: 5, ry: 6.5, fill: '#fff' }, head)
     el('circle', { cx: -33.5, cy: -33, r: 2.6, fill: BODY }, head)
     el('path', { d: 'M-12 -52 q-4 -12 2 -14 M-6 -52 q2 -13 8 -12 M0 -51 q8 -10 13 -6', stroke: BODY, 'stroke-width': 2, fill: 'none', 'stroke-linecap': 'round' }, head)
-    el('ellipse', { class: 'cr-hand cr-hand-a', cx: -46, cy: -6, rx: 11, ry: 7, fill: PINK, ...skin, transform: 'rotate(-20 -46 -6)' }, whole) // the near hand
+    el('ellipse', { class: 'cr-hand cr-hand-a', cx: -46, cy: -6, rx: 15, ry: 9, fill: PINK, ...skin, transform: 'rotate(-20 -46 -6)' }, whole) // the near hand: a spade, as a mole's
     el('ellipse', { class: 'cr-foot cr-foot-a', cx: 20, cy: -2, rx: 10, ry: 5, fill: PINK, ...skin }, whole) // the near foot
     return g
   }
@@ -221,9 +223,34 @@ const TunnelArt = (() => {
     return Motion.endAt(g, [{ transform: `translate(${x + dir * 50}px, ${FLOOR - 30}px) scale(0.6)` }, { transform: `translate(${x + dir * 10}px, ${FLOOR - 140}px) scale(1.4)`, offset: 0.5 }, { transform: `translate(${x}px, ${FLOOR - 90}px) scale(1.2)` }], { duration: 700, easing: 'ease-out' }).finally(() => g.remove())
   }
 
-  /** What he is doing, on his crawling figure: 'crawling', 'digging', 'sniff' (on or off). */
+  /** What he is doing, on his crawling figure (on or off): 'crawling' (a scurry), 'backing', 'digging' (stroke
+   * by stroke, at pace()), 'pushing' (a heap), 'nose' (tapping the earth ahead), 'sniff', 'sniff-up' (up a shaft). */
   function act(name, on) {
     moversG.querySelector('.crawler')?.classList.toggle(name, on)
+  }
+
+  /** How long one stroke of his digging takes (underground.js STROKE_MS): his paws move to it (game.css --stroke). */
+  const pace = (ms) => moversG.style.setProperty('--stroke', `${ms}ms`)
+
+  /** A heap of loose earth on the tunnel's floor at x, for him to push (underground.js spoil). */
+  function spoil(x) {
+    const g = el('g', { class: 'spoil' }, flyG)
+    el('path', { d: 'M-34 0 C-30 -26 -10 -38 4 -36 C22 -34 34 -18 34 0 Z', fill: '#6e4a24', stroke: '#3a2615', 'stroke-width': 3 }, g)
+    for (const [cx, cy, r] of [[-14, -12, 5], [6, -22, 4], [16, -8, 6], [-4, -4, 4]]) el('circle', { cx, cy, r, fill: '#3a2615' }, g)
+    moveSpoil(g, x)
+    return g
+  }
+
+  /** The heap pushed along to x. */
+  const moveSpoil = (g, x) => (g.style.transform = `translate(${x}px, ${FLOOR}px)`)
+
+  /** Up the shaft at x it goes, the shaft dug as it rises, to the grass (where a molehill comes up). */
+  async function raiseSpoil(g, x, ms) {
+    const paths = diggingUp(x)
+    await Promise.all([
+      ...paths.map((p) => Motion.endAt(p, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: ms * 0.6 })),
+      Motion.endAt(g, [{ transform: `translate(${x}px, ${FLOOR}px)` }, { transform: `translate(${x}px, ${TOP}px) scale(0.5)`, opacity: 0.4 }], { duration: ms, easing: 'ease-in' }),
+    ])
   }
 
   /** A clod of earth flung back from his digging hands at x (`dir` the way he digs), arcing over him onto the floor behind. */
@@ -278,7 +305,7 @@ const TunnelArt = (() => {
   }
 
   return {
-    setup, draw, depth, asleep, act, clod, carry, shelf, unearth, DEN_HALF, digging, diggingUp, dug, movers, empty, open, shut,
+    setup, draw, depth, asleep, act, pace, spoil, moveSpoil, raiseSpoil, HANDS, clod, carry, shelf, unearth, DEN_HALF, digging, diggingUp, dug, movers, empty, open, shut,
     /** Is it open (or opening, or lingering) for the child to see? */
     get shown() { return shown },
     /** The earth's top: a tap below it, he staying under, is a tap on the earth. */

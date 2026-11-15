@@ -301,12 +301,20 @@ when left alone joined the "every day" line.
   it home) counts from its last progress, never from when it arrived:
   counted from arrival, it fires while the child is still playing (the
   meadow's next encounter came 60 s after the egg arrived, mid-game).
+- A move made of several animations side by side (the hero, a bump over
+  him, a drawing, a dug path) comes apart when a tap cuts it: each stops
+  where it stands, and the next move starts each from somewhere else (the
+  meadow's mole jumped up to 340 units on repeated arrow presses). Drive
+  one position on the Clock each frame and draw every part from it.
 
 ## 6. Look at it
 
 Probe scripts write where the shell stands, and it goes back to the project
 between calls: give their outputs absolute paths in the scratchpad (a
-sheet of screenshots once landed in the project's root).
+sheet of screenshots once landed in the project's root). A probe written
+as a test imports only the fixtures it needs, never `from tests.x import
+*`: that pulls in every test class, and pytest runs the whole file (three
+probes of the meadow's tunnels looked hung).
 
 How, for each game: its file (section 4). Whichever the game, check that
 each beat reads without words, at phone size too. Check size and placement
@@ -321,7 +329,9 @@ child must see happen where the hero isn't needs the view to take it in
 film frames they come from, before putting them in the scene. Check that
 each photo shows what the trace says happened: a look that photographed
 the wrong moment once passed for a working gag. Stills can't judge timing
-or sound: name the constants Adam should tune by watching (`main.py play
+or sound, and a look runs a still play with CSS animations off, so it
+can't show a gait or a stroke either (the mole's digging paws): don't
+try to judge motion from frames; name the constants Adam should tune by watching (`main.py play
 <world> [game] --still`).
 
 ## 7. Tests

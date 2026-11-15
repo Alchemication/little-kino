@@ -30,13 +30,32 @@
 // calls halt(), which keeps what was dug as far as he got and leaves him
 // where he is drawn.
 
-/* global Acts, Clock, Debug, Den, Hills, Layout, Mole, Motion, Sound, TunnelArt, Tunnels, World */
+/* global Acts, Clock, Debug, Den, Hills, Layout, Mole, Motion, Sound, Things, TunnelArt, Tunnels, World */
 /* exported Underground */
 const Underground = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
   const Y = Layout.GROUND
-  const PACE = { crawl: 0.8, dig: 2.2 } // ms a scene unit: along what he has dug, and digging through earth (slow enough to watch him crawl along it, Adam 2026-11-11)
-  const MIN_MS = 800 // the shortest trip takes this long
+  // How he moves (Adam, 2026-11-15: he slid along too fast, "like slides"; make it a real mole's). One loop on the
+  // Clock moves him, and draws him, his bump and what he digs from where he is each frame: a cut leaves all of it
+  // where it is drawn (four animations side by side once jumped apart when cut).
+  const SCURRY_MS = 2.4 // along what he has dug: ms a scene unit, a quick scurry, his paws a blur (was 0.8: a slide)
+  const SCURRY_MIN_MS = 350 // the shortest scurry
+  const BACK_SLOW = 1.8 // backing up is this much slower than scurrying on
+  const BACK_UP = 200 // staying under, a way back shorter than this along what is dug: he backs up, not turns round (a
+  // mole's fur lies either way, so it can reverse along its tunnel: Mammal Society, Wildlife Trusts)
+  const STROKE = 26 // digging new earth, stroke by stroke, one forepaw then the other (a mole braces and shears the
+  // earth with one, then the other): each stroke takes him this far…
+  const STROKE_MS = 320 // …over this long (so about 80 units a second, a third of the old pace)…
+  const REACH = 0.45 // …its first part his paw reaching into the earth, him still; then the pull that moves him on
+  const NOSE_MS = 700 // staying under, at the face of new earth or at the oak's roots, his nose taps it first (a mole feels its way with its nose)
+  const SHAFT_SNIFF = 0.5 // staying under, passing under a molehill, he stops this often to sniff up its shaft
+  const SPOIL_FROM = 140 // after digging at least this much new earth, staying under…
+  const SPOIL_CHANCE = 0.4 // …this often he pushes the loose earth back and up a shaft, and a molehill rises (molehills are a mole's spoil)
+  const SPOIL_BACK = 150 // the shaft goes up this far back along what he has just dug
+  const SPOIL_PUSH_MS = 1100 // pushing it there, slowly: it is heavy
+  const SPOIL_UP_MS = 900 // up the shaft it goes
+  const HILL_ROOM = 110 // no molehill pushed up nearer than this to another, his flowers, the spring, the wild flowers, the
+  // painter's garden, or anything an encounter keeps there all day (Things.keeps)
   const NEAR = 30 // a crawl shorter than this, he is there already: a wriggle instead
   const UP_NEAR = 500 // left alone under, he comes up in a molehill this near him, if there is one; else where he is
   const ALONE_MS = 15000 // left alone under this long, he comes up by himself (never stuck down there)
@@ -47,7 +66,6 @@ const Underground = (() => {
   const SNIFF_EVERY = 420 // staying under, a crawl longer than this may stop partway for a sniff…
   const SNIFF_CHANCE = 0.55 // …this often for each such stretch…
   const SNIFF_MS = [500, 900] // …stopping this long, nose up
-  const CLOD_EVERY_MS = 170 // digging, a clod of earth flung back this often
   const FINDS = ['stone', 'button', 'shell', 'carrot', 'key'] // what turns up, each once, in an order each play draws
   const FIND_FROM = 150 // a stretch of new earth at least this long may turn something up…
   const FIND_CHANCE = 0.4 // …this often
@@ -64,13 +82,16 @@ const Underground = (() => {
   const RESTS = ['snooze', 'plump', 'turn'] // how he rests in his den
   const rests = Debug.random('meadow-den-rests') // which way: its own, so nothing else shifts
   const ways = Debug.random('meadow-crawl') // where he stops to sniff, the clods, what he does just there: its own
+  const spoils = Debug.random('meadow-spoil') // when he pushes earth up into a molehill: its own, so nothing else shifts
   const luck = Debug.random('meadow-finds') // what he finds, and when: its own
   let lastRest = null
 
   const net = Tunnels.make()
   let bumpLayer = null
   let bump = null // the bump of earth over him as he goes along
-  let movers = null // who is in the tunnel now (tunnelart.js movers): him, and whoever follows
+  let movers = null // who is in the tunnel now (tunnelart.js movers): him, and whoever follows…
+  let moversAt = 0 // …drawn from here (they are moved by the distance from it)
+  let heap = null // the loose earth he is pushing up into a molehill, while he does
   let going = null // the trip under way: { from, x, dir, followers, leg } (a cut keeps what was dug)
   let facing = -1 // which way he last went (1 right)
   let extra = null // a stretch being dug: its earth shown already
@@ -115,94 +136,177 @@ const Underground = (() => {
   /** Him alone in the tunnel at x, still, facing the way he last went. */
   function rest(x) {
     movers = TunnelArt.movers(x, facing, x - 200, x + 200)
+    moversAt = x
   }
 
+  /** As far as his tunnels go: the oak's roots at the left, the painter's garden at the right. */
+  const reach = (x) => Math.max(Layout.UNDER.from, Math.min(Layout.UNDER.to, x))
+
   /**
-   * The way to x in pieces, each to be crawled in one go: the legs (dug or not), and, `natural` (staying under,
-   * his own crawl), long stretches broken where he stops a moment to sniff. Each piece: { from, to, dug, pause }.
+   * The way to x in pieces, each moved in one go: the legs (dug or not), and, `natural` (staying under, his own
+   * crawl), long stretches broken where he stops a moment to sniff, and under a molehill now and then to sniff up
+   * its shaft. Each piece: { from, to, dug, pause: false | 'sniff' | 'shaft' }.
    */
   function pieces(legs, natural) {
     const out = []
     for (const leg of legs) {
       const len = Math.abs(leg.to - leg.from)
       const dir = Math.sign(leg.to - leg.from)
+      const stops = natural ? stopsOn(leg, len, dir) : []
       let at = leg.from
-      if (natural) {
-        for (let left = len; left > SNIFF_EVERY; left -= SNIFF_EVERY) {
-          const roll = ways()
-          const stop = at + dir * SNIFF_EVERY * (0.4 + 0.5 * ways())
-          if (roll < SNIFF_CHANCE) {
-            out.push({ from: at, to: stop, dug: leg.dug, pause: true })
-            at = stop
-          }
-        }
+      for (const [stop, pause] of stops.sort((a, b) => (a[0] - b[0]) * dir)) {
+        if ((stop - at) * dir < NEAR) continue
+        out.push({ from: at, to: stop, dug: leg.dug, pause })
+        at = stop
       }
       out.push({ from: at, to: leg.to, dug: leg.dug, pause: false })
     }
     return out
   }
 
-  /**
-   * Along under the grass from where he is to x: quickly through what is dug, slowly digging through earth
-   * (tunnels.js legs), crawling as he goes, the bump over him and the view after him (his figure goes along too,
-   * out of sight). He gets going and slows to a stop rather than gliding; digging, he flings earth back; `natural`
-   * (his own crawl, staying under) he stops now and then for a sniff. `followers` ([{ draw(g), scale }]) come behind.
-   */
-  async function along(x, followers = [], natural = false) {
-    const from = Mole.state.x
-    if (Math.abs(x - from) < 1) return
-    const dir = (facing = x < from ? -1 : 1)
-    const legs = Tunnels.legs(net, from, x)
-    const total = Tunnels.duration(net, from, x, PACE)
-    const k = total < MIN_MS ? MIN_MS / total : 1
-    const parts = pieces(legs, natural)
+  /** Where he stops along a leg, staying under: now and then to sniff, and under a molehill to sniff up its shaft. */
+  function stopsOn(leg, len, dir) {
+    const stops = []
+    let at = leg.from
+    for (let left = len; left > SNIFF_EVERY; left -= SNIFF_EVERY) {
+      const roll = ways()
+      const stop = at + dir * SNIFF_EVERY * (0.4 + 0.5 * ways())
+      if (roll < SNIFF_CHANCE) stops.push([stop, 'sniff'])
+      at = stop
+    }
+    const under = (h) => (h - leg.from) * dir > NEAR && (leg.to - h) * dir > NEAR
+    if (leg.dug) for (const h of Hills.xs().filter(under)) if (ways() < SHAFT_SNIFF) stops.push([h, 'shaft'])
+    return stops
+  }
+
+  /** A short way back along what is dug: he backs up, not turns round. */
+  const backsUp = (dir, len, legs) => dir !== facing && len < BACK_UP && legs.every((l) => l.dug)
+
+  /** The trip begins: the ground open on it, him and who follows drawn at `from`, the bump over him, its noise. */
+  function setOff(from, x, followers) {
     extra = [from, x]
     open()
-    movers = TunnelArt.movers(from, dir, Math.min(from, x), Math.max(from, x), followers)
+    movers = TunnelArt.movers(from, facing, Math.min(from, x), Math.max(from, x), followers)
+    moversAt = from
     bump = el('ellipse', { cx: 0, cy: 0, rx: 30, ry: 12, fill: '#6e4a24' }, bumpLayer)
     bump.style.transform = bumpAt(from)
     rustle = Clock.every(BURROW_EVERY_MS, () => {
       const at = burrowX()
       if (at !== null) World.noise('burrow', at, BURROW_REACH)
     })
+  }
+
+  /** Each piece of the way in turn, and what comes after it; staying under (`natural`), his nose taps the face of
+   * new earth before he digs into it. */
+  async function go(parts, mine, natural, backing) {
+    for (const [i, part] of parts.entries()) {
+      going.leg = part
+      const before = parts[i - 1]
+      if (natural && !part.dug && (!before || before.dug)) await noseTap() // the face of new earth: feel it first
+      await move(part, mine, { backing, starts: !before || !!before.pause, stops: !!part.pause || i === parts.length - 1 })
+      await after(part, natural, mine)
+    }
+  }
+
+  /**
+   * Along under the grass from where he is to x (as far as his tunnels go: reach): scurrying through what is dug,
+   * digging stroke by stroke through earth, the bump over him and the view after him (his figure goes along
+   * too, out of sight). `natural` (his own crawl, staying under): he backs up a short way rather than turn round,
+   * his nose taps the face of new earth before he digs, he stops now and then to sniff, and he may push the
+   * loose earth up into a molehill. `followers` ([{ draw(g), scale }]) come behind. Returns where he got to.
+   */
+  async function along(to, followers = [], natural = false) {
+    const x = reach(to)
+    const from = Mole.state.x
+    if (Math.abs(x - from) < 1) return x
+    const dir = x < from ? -1 : 1
+    const legs = Tunnels.legs(net, from, x)
+    const backing = natural && !followers.length && backsUp(dir, Math.abs(x - from), legs)
+    if (!backing) facing = dir
+    const parts = pieces(legs, natural)
+    setOff(from, x, followers)
     const mine = (going = { from, x, dir, followers, leg: null })
-    Debug.trace('digs along', { from: Math.round(from), to: Math.round(x), dug: legs.filter((l) => l.dug).length, new: legs.filter((l) => !l.dug).length, stops: parts.filter((p) => p.pause).length })
+    Debug.trace('digs along', { from: Math.round(from), to: Math.round(x), dug: legs.filter((l) => l.dug).length, new: legs.filter((l) => !l.dug).length, stops: parts.filter((p) => p.pause).length, backing })
     try {
-      for (const [i, part] of parts.entries()) {
-        going.leg = part
-        await crawl(part, from, dir, k, easeFor(i === 0 || parts[i - 1].pause, part.pause || i === parts.length - 1))
-        await after(part, natural)
-      }
+      await go(parts, mine, natural, backing)
+      if (natural && x !== to && x === Layout.UNDER.from) await roots()
       if (carrying && Math.abs(x - HOME) <= TunnelArt.DEN_HALF) keep() // home in his den with it: on the ledge
     } finally {
       if (going === mine) arrived() // cut short, halt() has seen to it already, and another trip may be under way
     }
+    return x
   }
 
-  /** How a piece of the way goes: he gets going where he `starts`, and slows to a stop where he `stops`. */
-  const easeFor = (starts, stops) => (starts && stops ? 'ease-in-out' : starts ? 'ease-in' : stops ? 'ease-out' : 'linear')
+  const cutShort = () => Object.assign(new Error('cut short'), { name: 'AbortError' })
 
-  /** One piece of the way, crawled in one go (`from` where the trip began, `k` its pace): digging, earth flung back. */
-  async function crawl(part, from, dir, k, easing) {
-    const ms = Math.abs(part.to - part.from) * (part.dug ? PACE.crawl : PACE.dig) * k
-    const opts = { duration: ms, easing }
-    const paths = part.dug ? [] : TunnelArt.digging(part.from, part.to)
-    TunnelArt.act('crawling', true)
-    TunnelArt.act('digging', !part.dug)
-    const flinging = part.dug ? null : Clock.every(CLOD_EVERY_MS, () => TunnelArt.clod(Mole.drawnX() + dir * 60, dir, ways))
+  /** Him, his bump and his crawling figure at x, and what he is digging this far dug (`p`, 0 to 1). */
+  function place(x, paths = [], p = 0) {
+    Mole.at(x)
+    if (bump) bump.style.transform = bumpAt(x)
+    if (movers) movers.style.transform = `translateX(${x - moversAt}px)`
+    for (const path of paths) path.style.strokeDashoffset = String(1 - p)
+  }
+
+  /**
+   * Moves him from a to b over `ms`, frame by frame on the Clock: `shape(t)` says how far along at t (0 to 1);
+   * `each(t)` hears every frame; `paths`, what he digs as he goes. Ends with an AbortError if the trip is cut
+   * short meanwhile (halt).
+   */
+  async function drive(a, b, ms, shape, mine, { paths = [], each = () => {} } = {}) {
+    const start = Clock.now()
+    for (;;) {
+      if (going !== mine) throw cutShort()
+      const t = Math.min(1, (Clock.now() - start) / ms)
+      const p = shape(t)
+      place(a + (b - a) * p, paths, p)
+      each(t)
+      if (t >= 1) return
+      await Clock.frame()
+    }
+  }
+
+  // how far along a scurry is at t: getting going where it `starts`, slowing to a stop where it `stops`
+  const scurry = (starts, stops) => (t) => (starts && stops ? (t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) ** 2) : starts ? t * t : stops ? 1 - (1 - t) ** 2 : t)
+  // how far along n strokes of digging are at t: each a reach (still), then a pull that slows as it ends
+  const strokes = (n) => (t) => {
+    const s = Math.min(n, t * n)
+    const i = Math.floor(s)
+    const f = s - i
+    return i >= n ? 1 : (i + (f < REACH ? 0 : 1 - (1 - (f - REACH) / (1 - REACH)) ** 2)) / n
+  }
+
+  /** One piece of the way: scurrying (or backing) along what is dug, or digging stroke by stroke, earth flung back each stroke. */
+  async function move(part, mine, { backing, starts, stops }) {
+    const len = Math.abs(part.to - part.from)
+    if (part.dug) {
+      const ms = Math.max(SCURRY_MIN_MS, len * SCURRY_MS * (backing ? BACK_SLOW : 1))
+      TunnelArt.act(backing ? 'backing' : 'crawling', true)
+      try {
+        await drive(part.from, part.to, ms, scurry(starts, stops), mine)
+      } finally {
+        TunnelArt.act(backing ? 'backing' : 'crawling', false)
+      }
+      return
+    }
+    const n = Math.max(1, Math.round(len / STROKE))
+    const paths = TunnelArt.digging(part.from, part.to)
+    const dir = Math.sign(part.to - part.from)
+    let stroke = 0 // the strokes whose pull has begun
+    TunnelArt.pace(STROKE_MS)
+    TunnelArt.act('digging', true)
     try {
-      await Promise.all([
-        Mole.glide(part.to, ms, 0, easing),
-        Motion.endAt(bump, [{ transform: bumpAt(part.from) }, { transform: bumpAt(part.to) }], opts),
-        Motion.endAt(movers, [{ transform: `translateX(${part.from - from}px)` }, { transform: `translateX(${part.to - from}px)` }], opts),
-        ...paths.map((p) => Motion.endAt(p, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], opts)),
-      ])
+      await drive(part.from, part.to, n * STROKE_MS, strokes(n), mine, { paths, each: (t) => {
+        const now = Math.floor(t * n + 1 - REACH) // a stroke's pull begins: a clod flies back
+        if (now > stroke && now <= n) {
+          stroke = now
+          TunnelArt.clod(Mole.state.x + dir * 60, dir, ways)
+        }
+      } })
     } finally {
-      flinging?.()
-      TunnelArt.act('crawling', false)
       TunnelArt.act('digging', false)
     }
   }
+
 
   /**
    * Just there in his tunnel, staying under, nobody tapping: now and then a sniff, a look back over his shoulder,
@@ -232,17 +336,94 @@ const Underground = (() => {
     })
   }
 
-  /** A piece of the way crawled: what was dug is kept; digging his own way, something may turn up; a stop for a sniff. */
-  async function after(part, natural) {
+  /** A piece of the way gone: what was dug is kept; digging his own way, something may turn up, or he pushes the
+   * loose earth up into a molehill; a stop for a sniff, or a sniff up a molehill's shaft. */
+  async function after(part, natural, mine) {
     if (!part.dug) Tunnels.dig(net, part.from, part.to)
-    if (natural && !part.dug) await find(part)
-    if (part.pause) await sniff(SNIFF_MS[0] + ways() * (SNIFF_MS[1] - SNIFF_MS[0]))
+    if (natural && !part.dug) {
+      const found = await find(part)
+      const roll = spoils() // drawn either way, so the stream stays put
+      if (!found && Math.abs(part.to - part.from) >= SPOIL_FROM && roll < SPOIL_CHANCE) await spoil(mine)
+    }
+    if (part.pause === 'sniff') await sniff(SNIFF_MS[0] + ways() * (SNIFF_MS[1] - SNIFF_MS[0]))
+    if (part.pause === 'shaft') await sniff(SNIFF_MS[1], 'sniff-up')
   }
 
-  /** After a stretch of new earth: now and then something turns up, and he takes it on his back (one at a time). */
+  /** His nose taps the earth ahead, feeling it: at the face of new earth, before he digs. */
+  async function noseTap() {
+    Debug.trace('feels ahead', { x: Math.round(Mole.state.x) })
+    TunnelArt.act('nose', true)
+    try {
+      await Clock.wait(NOSE_MS)
+    } finally {
+      TunnelArt.act('nose', false)
+    }
+  }
+
+  /** The oak's roots, as far as he can go: his nose taps them, a sniff, and no further. */
+  async function roots() {
+    Debug.trace('at the roots')
+    await noseTap()
+    await sniff(SNIFF_MS[0])
+  }
+
+  /** The heap he was pushing, gone (pushed up, or a cut: halt). */
+  function dropHeap() {
+    heap?.getAnimations().forEach((a) => a.cancel())
+    heap?.remove()
+    heap = null
+  }
+
+  /** Whether a molehill can come up at x: free grass, clear of other molehills and of what stands there. */
+  function room(x) {
+    const { BED, SPRING, POOL, WILD, FENCE, UNDER } = Layout
+    const clear = (a, b) => x + HILL_ROOM <= a || x - HILL_ROOM >= b
+    return Hills.xs().every((h) => Math.abs(h - x) >= 2 * HILL_ROOM) && clear(BED.from, BED.to) && clear(SPRING - POOL, SPRING + POOL) &&
+      clear(WILD.x - WILD.w / 2, WILD.x + WILD.w / 2) && x + HILL_ROOM < FENCE.from && x - HILL_ROOM > UNDER.from && !Things.keeps(x - HILL_ROOM, x + HILL_ROOM)
+  }
+
+  /**
+   * The earth he has dug, pushed up out of his way, as a mole does (its molehills are this spoil): he turns round,
+   * pushes the loose heap back along his tunnel to below free grass, and up the shaft it goes, and a molehill
+   * rises on the meadow above. Then he turns back. Nothing if there is no room there.
+   */
+  async function spoil(mine) {
+    const x = Mole.state.x
+    const shaft = x - facing * SPOIL_BACK
+    if (!room(shaft)) return
+    Debug.trace('pushes up earth', { x: Math.round(shaft) })
+    facing = -facing
+    const stop = shaft - facing * TunnelArt.HANDS // where he stands, the heap at his hands under the shaft
+    rest(x)
+    heap = TunnelArt.spoil(x + facing * TunnelArt.HANDS)
+    TunnelArt.act('pushing', true)
+    try {
+      await drive(x, stop, SPOIL_PUSH_MS, scurry(true, true), mine, { each: () => heap && TunnelArt.moveSpoil(heap, Mole.state.x + facing * TunnelArt.HANDS) })
+      TunnelArt.act('pushing', false)
+      Sound.dig()
+      await TunnelArt.raiseSpoil(heap, shaft, SPOIL_UP_MS)
+      if (going !== mine) throw cutShort()
+      Hills.make(shaft)
+      Sound.pop()
+      facing = -facing
+      rest(stop)
+    } finally {
+      TunnelArt.act('pushing', false)
+      dropHeap()
+    }
+    TunnelArt.act('crawling', true) // back to where he was digging, to dig on
+    try {
+      await drive(stop, x, Math.max(SCURRY_MIN_MS, Math.abs(x - stop) * SCURRY_MS), scurry(true, true), mine)
+    } finally {
+      TunnelArt.act('crawling', false)
+    }
+  }
+
+  /** After a stretch of new earth: now and then something turns up, and he takes it on his back (one at a time).
+   * True if something did. */
   async function find(part) {
     const roll = luck() // drawn either way, so the stream stays put
-    if (carrying || kept.length >= FINDS.length || Math.abs(part.to - part.from) < FIND_FROM || roll > FIND_CHANCE) return
+    if (carrying || kept.length >= FINDS.length || Math.abs(part.to - part.from) < FIND_FROM || roll > FIND_CHANCE) return false
     const kind = toFind()
     Debug.trace('finds', { find: kind }) // not `kind`: the trace's own name for the event
     TunnelArt.act('sniff', true)
@@ -251,6 +432,7 @@ const Underground = (() => {
     TunnelArt.act('sniff', false)
     carrying = kind
     TunnelArt.carry(kind)
+    return true
   }
 
   /** What he carries, onto the ledge in his den. */
@@ -263,11 +445,14 @@ const Underground = (() => {
     Sound.say('giggle', true)
   }
 
-  /** A stop to sniff: his head up, his nose twitching, for `ms`. */
-  async function sniff(ms) {
-    TunnelArt.act('sniff', true)
-    await Clock.wait(ms)
-    TunnelArt.act('sniff', false)
+  /** A stop to sniff: his head up (`how` 'sniff-up': right up a shaft), his nose twitching, for `ms`. */
+  async function sniff(ms, how = 'sniff') {
+    TunnelArt.act(how, true)
+    try {
+      await Clock.wait(ms)
+    } finally {
+      TunnelArt.act(how, false)
+    }
   }
 
   /** The trip is over, or cut short: what was dug stays, the bump goes, he is where he is drawn. */
@@ -300,12 +485,12 @@ const Underground = (() => {
    * A trip: from where he is (down already) along to x, and up the shaft there, out of sight; the ground
    * stays open a moment as he comes up (the caller brings him up: Mole.comeUp). `followers` come behind.
    */
-  async function tunnelTo(x, followers = []) {
-    const from = Mole.state.x
-    await along(x, followers)
-    await climb(x, x - from)
+  async function tunnelTo(to, followers = []) {
+    const x = await along(to, followers)
+    await climb(x, x - moversAt)
     TunnelArt.empty()
     TunnelArt.shut()
+    return x
   }
 
   /** Down the molehill he is in, and he stays: the ground opens, and he drops into his tunnel. */
@@ -321,10 +506,10 @@ const Underground = (() => {
   }
 
   /** Staying under: crawl to x along his tunnel (digging on where it ends); a tap where he is, a wriggle. */
-  async function crawlTo(x) {
+  async function crawlTo(to) {
     const from = Mole.state.x
-    if (Math.abs(x - from) < NEAR) return wriggle()
-    await along(x, [], true)
+    if (Math.abs(reach(to) - from) < NEAR) return reach(to) === to ? wriggle() : roots()
+    const x = await along(to, [], true)
     Mole.put(x, 'under')
     rest(x)
   }
@@ -337,8 +522,8 @@ const Underground = (() => {
   }
 
   /** Staying under: along to x and up there, in its molehill (one made if there is none). */
-  async function upAt(x) {
-    await along(x, [], true)
+  async function upAt(to) {
+    const x = await along(to, [], true)
     Mole.put(x, 'down') // on his way up: no longer staying
     rest(x)
     await climb(x, 0)
@@ -434,6 +619,7 @@ const Underground = (() => {
    * he rests in his tunnel where he is drawn, else nobody is left in it and the ground closes. */
   function halt() {
     TunnelArt.asleep(false)
+    dropHeap()
     if (going) arrived()
     movers?.getAnimations().forEach((a) => a.cancel())
     if (under()) {
@@ -453,11 +639,17 @@ const Underground = (() => {
     return t && t !== 'none' ? new DOMMatrixReadOnly(t).e : null
   }
 
+  /** Where his crawling figure is drawn now (scene x), or null: it must never part from where he is (the tests). */
+  function crawlerX() {
+    const t = movers && getComputedStyle(movers).transform
+    return movers ? moversAt + (t && t !== 'none' ? new DOMMatrixReadOnly(t).e : 0) : null
+  }
+
   /** In his tunnel, at x? (down a molehill's shaft, or along a run he has dug) */
   const inTunnel = (x) => Tunnels.dug(net, x) || Hills.at(x)
 
   return {
-    setup, redraw, tunnelTo, goUnder, crawlTo, upAt, upNear, restInDen, toBed, wakeUp, halt, burrowX, inTunnel, ALONE_MS,
+    setup, redraw, tunnelTo, goUnder, crawlTo, upAt, upNear, restInDen, toBed, wakeUp, halt, burrowX, crawlerX, inTunnel, ALONE_MS,
     /** What he has dug (tunnels.js runs), for the overlay and the tests. */
     get runs() { return Tunnels.runs(net).map(({ from, to }) => [Math.round(from), Math.round(to)]) },
     /** What he carries, and what he has kept in his den, for the overlay and the tests. */

@@ -29,11 +29,14 @@ const Layout = (() => {
   const HOME = 900 // his molehill
   const BED = { from: 1000, to: 1300 } // the flower bed, in front of the molehill
   const SPRING = 2350 // the spring and its pool
+  const POOL = 220 // the spring's pool and rocks, this far either side of it
+  const WILD = { x: 1640, w: 190 } // the patch of wild flowers in the middle of the meadow, there every play (rain.js)
   // The old oak (painting.js paints it, oak.js answers taps on it), whole in the first screen: the
   // arch between its root legs (x its middle, where he stops), its trunk's outline and its crown's
   // clumps of leaves [x, y, radius], in scene units
   const OAK = {
     x: 170,
+    roots: 320, // its roots reach about this far either side of its trunk under the ground, about as wide as its crown (soilart.js)
     reach: 200, // the space bar this near its arch peeks into it
     hit: 640, // a tap on the trunk below this (its foot, at the meadow's edge) walks him there, except in the arch
     arch: 'M95 716 C95 610 118 478 170 444 C222 478 245 610 245 716 Z',
@@ -53,6 +56,7 @@ const Layout = (() => {
   // the mole's black, the hare's brown and the mouse's grey
   const PAINTS = ['#e0453a', '#f2c94c', '#5b8fd6', '#f08fa6', '#8e6cc4', '#f2994a', '#5fb36a', '#ffffff']
   const DIG = { from: OAK.x, to: FENCE.x } // where a tap can send him: at the left, the oak's arch; at the right, the fence's corner
+  const UNDER = { from: OAK.x + OAK.roots + 40, to: FENCE.x } // where his tunnels can go: the oak's roots stop him (a tunnel drawn through them looked rough, Adam 2026-11-15)
   /** x kept within where he can go. */
   const clampX = (x) => Math.max(DIG.from, Math.min(DIG.to, x))
 
@@ -84,5 +88,5 @@ const Layout = (() => {
   const asked = { flock: flags.critters === 'flock', heron: flags.critters === 'heron', herd: !!flags.wild }
   const lives = (name) => name === far || asked[name]
 
-  return { SEASONS, season, FAR_LIFE, far, lives, inSeason: (name) => inSeason(name, season), WORLD_W, VIEW_W, GROUND, HOME, BED, SPRING, OAK, FENCE, PAINTS, DIG, clampX, flags, dayMs: flags.day ? flags.day * 1000 : null }
+  return { SEASONS, season, FAR_LIFE, far, lives, inSeason: (name) => inSeason(name, season), WORLD_W, VIEW_W, GROUND, HOME, BED, SPRING, POOL, WILD, OAK, FENCE, PAINTS, DIG, UNDER, clampX, flags, dayMs: flags.day ? flags.day * 1000 : null }
 })()
