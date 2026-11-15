@@ -226,6 +226,17 @@ a game (`CLAUDE.md`, "Shared parts").
 A file over 1000 lines fails `test_files_stay_small`: split by what it is
 for, and update every caller, no shims.
 
+Then the game's `guide.yaml`, the parents' picture of a day (the site's
+grown-ups' page renders it, in English and Polish). Give the gag a line, or
+fold it into one, where a parent would want to know of it: something new
+every day, a kind of visitor, a season's thing. If anything in it could
+worry a small child (a fright, a growl, a dim sky, something knocked
+over, him stuck or sulking), add it under "Moments to know about" with
+how it ends. The site's build catches only a gag in a pool or one season
+(`SITE_GUIDE_PARTS`), so the rest is on you. Example: the meadow's fox
+growling over the nest is a moment to know about; the mole's pottering
+when left alone joined the "every day" line.
+
 ## 5. Traps already hit
 
 - Every piece of state the gag changes is restored in a `finally` (or the
@@ -350,7 +361,8 @@ The game's tables and fakes: its file (section 4). For every game:
    while the tins floated above the hole their carriers had gone down.
 3. Then once: `uv run ruff check . && uv run pytest`, `npx --yes
    eslint@10.12.0 worlds`, `uv run pytest -m browser -n 4`, `uv run pytest
-   -m perf` if something drawn every frame changed, `main.py validate`.
+   -m perf` if something drawn every frame changed, `main.py validate`,
+   `main.py site` (it checks the guide).
    Not after each step: the full browser suite takes about 25 minutes,
    and its eight browsers slow the whole machine. Tell Adam before
    starting it (a play meanwhile is choppy and its timing misleads), and
