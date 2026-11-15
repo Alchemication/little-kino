@@ -57,6 +57,7 @@ const Music = (() => {
   let ready = false
   let night = false // from dusk: only the cricket
   let ended = false // the circle has closed: nothing more
+  let below = false // he stays down in his tunnels: no take starts
   let startsAt = 0 // when the take asked for last starts (audio time)
   let random = null
   let between = () => 0 // after each of the cricket's tunes: how much longer to wait before the next (the owl's hoot)
@@ -107,6 +108,7 @@ const Music = (() => {
   function cue(part) {
     if (!loading || night) return // no tap yet: no sound
     if (!ready) return void loading.then(() => cue(part)) // still loading (an encounter arriving as he wakes)
+    if (below && part !== 'hush') return // down there, only the burrow's bed
     if (MOTIFS[part]) return motif(part)
     if (part === 'hush') {
       if (takes.playing) Debug.trace('music', { part })
@@ -133,6 +135,16 @@ const Music = (() => {
     }
     Debug.trace('music', { motif: name })
     Clock.after((t - ctx.currentTime + last + MOTIF_TAIL_S) * 1000, () => { if (!night && !takes.playing) bed.back() })
+  }
+
+  /** He stays down in his tunnels (on), or is up again: down there the take playing fades and the bed is
+   * the burrow's (the meadow sets it), so the change is heard (Adam, 2026-11-15: with the morning's take
+   * playing on, "the music did not change"); no take starts while he is down. */
+  function under(on) {
+    below = on
+    if (!on || !loading || night || !takes?.playing) return
+    Debug.trace('music', { part: 'under' })
+    takes.fade()
   }
 
   /** Dusk: the cricket fiddles, take after take, until quiet(). */
@@ -167,7 +179,7 @@ const Music = (() => {
   }
 
   return {
-    PARTS, prepare, morning, cue, evening, fiddle, quiet,
+    PARTS, prepare, morning, cue, under, evening, fiddle, quiet,
     /** Asked after each of the cricket's tunes, `fn` says how many seconds more of quiet before the next (the
      * owl hoots into it, owl.js). */
     between(fn) { between = fn },

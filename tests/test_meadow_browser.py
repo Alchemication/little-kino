@@ -802,7 +802,9 @@ class TestMeadowUnderground:
         m = meadow()
         self.under(m)
         assert not m.page.evaluate("Sound.muffled"), "dull at once: a quick dive"
+        assert m.page.evaluate("meadowGame.music()") == "morning"  # the theme, as he woke
         m.wait("Sound.muffled && Music.bed?.mood === 'under'", 6_000)
+        m.wait("meadowGame.music() === null", 3_000)  # down there it fades: the burrow's bed
         m.do("go to 1700")  # up on the grass: clear again, the day's bed back
         m.wait("!Sound.muffled && Music.bed?.mood !== 'under'", 6_000)
         assert " heard from under " in m.page.evaluate("meadowGame.trace()")

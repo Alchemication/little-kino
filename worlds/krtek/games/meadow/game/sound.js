@@ -31,14 +31,18 @@ const Sound = (() => {
   const HEARD_MIN = 0.03 // …nor one quieter than this
   const HEARD_PAN = 0.6 // and from its side, at most this far left or right
   const ABOVE_OPEN_HZ = 20000 // up on the meadow: what is heard from above, as it is…
-  const ABOVE_UNDER_HZ = 900 // …and with him under, dull above this: the harp's notes still there on a phone's speaker, their shine gone
-  const ABOVE_EASE_S = 0.5 // going dull or clear again, most of the way in about three times this
+  const ABOVE_UNDER_HZ = 600 // …and with him under, dull above this (at 900 the harp and the flute sounded the same as above,
+  // measured: their notes are under it; Adam, 2026-11-15, "the music did not change")…
+  const ABOVE_UNDER_LEVEL = 0.6 // …and quieter, through the earth
+  const ABOVE_RAMP_S = 1 // going dull or clear again over this long, evenly to the ear (an exponential ramp: one in Hz
+  // spent most of its time above 5 kHz, where nothing changes)
   const FADE_S = 0.05 // a fade's floor: how quiet "gone" is, as a share of the level
   const WATER_FADE_S = 0.3 // rain (its takes looped): faded out over this long as it stops
   const SOFT_RAIN = 0.35 // the storm's rain over the whole meadow, under everything: this much of the cloud's rain on the flowers
   let ctx = null
   let master = null
-  let above = null // what is heard from above (the music, the creatures): dulled while he is under
+  let above = null // what is heard from above (the music, the creatures): dulled while he is under…
+  let aboveLevel = null // …and quieter
   let muffled = false
   let out = null // what a sound plays into: the master, or, heard from a place (from), that place's gain
   let view = () => null // the game's hook: what is on screen now, { left, right } in the meadow
@@ -67,7 +71,9 @@ const Sound = (() => {
       above.type = 'lowpass'
       above.Q.value = 0.7 // no ring at the cut
       above.frequency.value = muffled ? ABOVE_UNDER_HZ : ABOVE_OPEN_HZ
-      above.connect(master)
+      aboveLevel = ctx.createGain()
+      aboveLevel.gain.value = muffled ? ABOVE_UNDER_LEVEL : 1
+      above.connect(aboveLevel).connect(master)
       out = master
       noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate)
       const data = noise.getChannelData(0)
@@ -606,7 +612,13 @@ const Sound = (() => {
     if (on === muffled) return
     muffled = on
     Debug.trace('heard from under', { on })
-    if (ready()) above.frequency.setTargetAtTime(on ? ABOVE_UNDER_HZ : ABOVE_OPEN_HZ, ctx.currentTime, ABOVE_EASE_S)
+    if (!ready()) return
+    const t = ctx.currentTime
+    for (const [param, to] of [[above.frequency, on ? ABOVE_UNDER_HZ : ABOVE_OPEN_HZ], [aboveLevel.gain, on ? ABOVE_UNDER_LEVEL : 1]]) {
+      param.cancelScheduledValues(t)
+      param.setValueAtTime(param.value, t)
+      param.exponentialRampToValueAtTime(to, t + ABOVE_RAMP_S)
+    }
   }
 
   return {

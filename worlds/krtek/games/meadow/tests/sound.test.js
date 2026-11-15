@@ -14,7 +14,7 @@ function fakeAudio() {
   const sources = []
   const nodes = []
   const param = (value = 1) => {
-    const p = { value, targets: [], setValueAtTime() {}, setTargetAtTime: (v) => p.targets.push(v), exponentialRampToValueAtTime() {}, linearRampToValueAtTime() {}, cancelScheduledValues() {} }
+    const p = { value, targets: [], setValueAtTime() {}, setTargetAtTime() {}, exponentialRampToValueAtTime: (v) => p.targets.push(v), linearRampToValueAtTime() {}, cancelScheduledValues() {} }
     return p
   }
   const node = (extra = {}) => {
@@ -124,7 +124,7 @@ test('his own sounds stay clear: the view is down there with him', () => {
   }
 })
 
-test('under, the filter closes to dull; up again, it opens; once each way', () => {
+test('under, the filter closes to dull and quieter; up again, it opens; once each way', () => {
   const { Sound, above } = sound()
   assert.ok(above.frequency.value > 10000, 'dull before he went under')
   Sound.under(true)
@@ -132,6 +132,6 @@ test('under, the filter closes to dull; up again, it opens; once each way', () =
   Sound.under(false)
   assert.equal(above.frequency.targets.length, 2)
   const [down, up] = above.frequency.targets
-  assert.ok(down < 2000 && up > 10000, `${down}, ${up}`)
+  assert.ok(down <= 600 && up > 10000, `${down}, ${up}`) // at 900 the harp and flute sounded the same: their notes are under it
   assert.equal(Sound.muffled, false)
 })

@@ -925,7 +925,8 @@ const meadowGame = (() => {
     const troubled = Things.troubled()
     underSince = Mole.state.pose === 'under' ? (underSince ?? Clock.now()) : null
     const deep = underSince !== null && Clock.now() - underSince >= UNDER_HEARD_MS
-    Sound.under(deep) // down there a while: the meadow above heard through the earth
+    Sound.under(deep) // down there a while: the meadow above heard through the earth…
+    Music.under(deep) // …and the burrow's music, not the meadow's
     const mood = troubled ? 'trouble' : deep ? 'under' : MeadowBeds.moodAt({ hour: game.hour })
     Music.setBed({ mood, energy: game.busy }) // a threat about: uneasy till it's gone, under the ground too
     Mole.settle() // and so is he (calm, below)
