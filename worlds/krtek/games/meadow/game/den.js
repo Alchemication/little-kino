@@ -19,7 +19,8 @@
 /* exported Den */
 const Den = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
-  const { INK, BODY, BIB, PINK, SKIN_LINE, NOSE, BROW } = MoleArt
+  const { INK, BODY, BIB, PINK, SKIN_LINE, BROW } = MoleArt
+  const SNOUT = { x: 945, y: 567, turn: 22, size: 1.3 } // his snout's root and how it lies, its nose resting on his hands
   const ROOM = { x: 500, y: 230, w: 600, h: 440 } // the chamber
   const SQUARE = 3.2 // ...a rounded square, as the film's (a superellipse: 2 an oval, higher squarer)
   const EARTH = '#e2a04c' // its ochre
@@ -147,10 +148,9 @@ const Den = (() => {
     el('path', { d: 'M-8 -2.5 h16 v5 h-16 z', fill: KEY_GOLD, stroke: INK, 'stroke-width': 1.8 }, toy) // the shaft
     el('path', { d: KEY_BOW, fill: KEY_GOLD, stroke: INK, 'stroke-width': 1.8, 'stroke-linejoin': 'round' }, toy)
     for (const y of [-9, 9]) el('circle', { cx: -16, cy: y, r: 2.6, fill: INK }, toy) // a hole in each wing: it reads as a key
-    mitt(g, 902, 598, 1, -4) // his hands under his head, one on the other
-    mitt(g, 910, 590, 1, 6)
-    for (const [dy, a] of [[-4, -10], [4, 8]]) el('path', { d: `M950 ${568 + dy} l18 ${a * 0.5}`, fill: 'none', stroke: BROW, 'stroke-width': 2, 'stroke-linecap': 'round' }, g) // whiskers
-    el('ellipse', { cx: 940, cy: 570, rx: 10, ry: 8, fill: NOSE, stroke: INK, 'stroke-width': 1.5 }, g) // his nose, resting on his hands
+    mitt(g, 942, 600, 1, -4) // his hands under his snout, one on the other
+    mitt(g, 950, 592, 1, 6)
+    MoleArt.snout(g, `translate(${SNOUT.x} ${SNOUT.y}) rotate(${SNOUT.turn}) scale(${SNOUT.size})`, 1.4) // his snout, the big him's, down on his hands
   }
 
   function zees(into) {

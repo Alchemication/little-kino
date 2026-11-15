@@ -52,6 +52,17 @@ const MoleArt = (() => {
     return g
   }
 
+  /** His snout as the side view draws it (side()): long, narrowing to the red cap on its tip, three fine
+   * whiskers. Drawn from its root at 0,0 pointing right, into a group placed by `transform`, so a small or
+   * lying-down him (the crawler under the ground, the sleeper in his den) has the same nose as the big one. */
+  function snout(parent, transform, whisker = 1) {
+    const g = el('g', { class: 'mole-snout', transform }, parent)
+    el('path', { d: 'M-6 -11 C-1 -9 2 -6 6 -6 C10 -5 15 -6 19 -7 C24 -7 24 5 19 5 C13 5 6 6 2 10 C-4 13 -12 8 -12 -1 C-12 -8 -10 -12 -6 -11 Z', fill: BODY }, g) // its root a round plug, hidden in his head
+    el('ellipse', { cx: 21.5, cy: -1, rx: 5, ry: 7, fill: NOSE, transform: 'rotate(-12 21.5 -1)' }, g)
+    line('M19 3 l22 -7 M19 4 l24 1 M18 5 l20 8', g, whisker)
+    return g
+  }
+
   /** An arm from the shoulder (sx, sy) to a hand at (hx, hy), turning about the shoulder. */
   function arm(parent, skin, [sx, sy], [hx, hy], dir) {
     const g = el('g', { class: 'mole-arm' }, parent)
@@ -256,5 +267,5 @@ const MoleArt = (() => {
     return { front: front(parent, skin), three: three(parent, skin), side: side(parent, skin) }
   }
 
-  return { draw, INK, BODY, BIB, PINK, SKIN_LINE, NOSE, BROW }
+  return { draw, hand, snout, WHITE, INK, BODY, BIB, PINK, SKIN_LINE, NOSE, BROW }
 })()

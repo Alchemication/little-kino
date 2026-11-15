@@ -24,6 +24,10 @@ const TunnelArt = (() => {
   const WALL = '#6b4526' // the earth packed hard round the tunnel, darker than its inside
   const AIR = [['0', '#9c6535'], ['0.4', '#c48a4f'], ['1', '#dcae6e']] // the tunnel's inside, in the den's ochre: shaded under its roof, lightest on its floor
   const FOLLOW_GAP = 104 // each one behind the one ahead
+  const PAW = 0.72 // his hands under the ground, against his drawn hand (MoleArt): the size of his head's front, not bigger
+  const PAW_DIR = -105 // their fingers forward and a little down, to the earth ahead
+  const SNOUT = 0.9 // his snout (MoleArt.snout) against the big him's: as long as his small head allows
+  const EYE = 'M-38.5 -42.5 C-36.5 -42.5 -35.5 -39 -35.5 -35 C-35.5 -31 -36.8 -28.5 -38.5 -28.5 C-40.2 -28.5 -41.5 -31 -41.5 -35 C-41.5 -39 -40.5 -42.5 -38.5 -42.5 Z' // his eye: a tall egg
   const CRAWLER = 1.3 // his small crawling figure, drawn up to fill the tunnel's height
   const OPEN_MS = 300 // the ground opening
   const LINGER_MS = 1500 // once he is up, it stays open this long (Adam, 2026-11-14: they vanished at once)…
@@ -49,6 +53,14 @@ const TunnelArt = (() => {
     return e
   }
 
+  /** A hand of his, as above ground (MoleArt.hand: four fingers and a thumb) but small, its fingers ahead and low,
+   * under his nose, not on it: drawn as plain pink blobs, his hands read as one giant nose (Adam, 2026-11-15). */
+  function paw(parent, cls, x, y) {
+    const g = el('g', { class: cls }, parent) // moved by game.css, about the wrist
+    MoleArt.hand(el('g', { transform: `translate(${x} ${y}) scale(${PAW})` }, g), 0, 0, PAW_DIR)
+    return g
+  }
+
   /**
    * Him crawling, small, facing left: on all fours, digging hands ahead, in parts that move (game.css .crawler):
    * crawling, his hands paddle in turn, his feet kick and he bobs; digging, his hands scoop faster; sniffing,
@@ -56,19 +68,18 @@ const TunnelArt = (() => {
    */
   function crawler(parent) {
     const g = el('g', { class: 'crawler', transform: `scale(${CRAWLER})` }, parent)
-    const { BODY, PINK, NOSE } = MoleArt
+    const { BODY, PINK } = MoleArt
     const skin = { stroke: '#b9705a', 'stroke-width': 1.2 }
     const whole = el('g', { class: 'cr-whole' }, g)
     el('ellipse', { class: 'cr-foot cr-foot-b', cx: -6, cy: -3, rx: 9, ry: 4.5, fill: '#d98f86', ...skin }, whole) // the far foot, behind
-    el('ellipse', { class: 'cr-hand cr-hand-b', cx: -38, cy: -9, rx: 13, ry: 8, fill: '#d98f86', ...skin, transform: 'rotate(-20 -38 -9)' }, whole) // the far hand, behind: a spade, as a mole's
+    paw(whole, 'cr-hand cr-hand-b', -44, -5).style.filter = 'brightness(0.82)' // the far hand, behind, in shade
     el('path', { d: 'M34 0 C40 -30 20 -52 -6 -52 C-30 -52 -44 -38 -44 -22 C-44 -8 -34 0 -22 0 Z', fill: BODY }, whole)
     const head = el('g', { class: 'cr-head' }, whole)
-    el('path', { d: 'M-44 -24 l-14 4 l13 6 Z', fill: BODY }, head) // his snout
-    el('circle', { class: 'cr-nose', cx: -59, cy: -20, r: 5.5, fill: NOSE }, head)
-    el('ellipse', { cx: -32, cy: -34, rx: 5, ry: 6.5, fill: '#fff' }, head)
-    el('circle', { cx: -33.5, cy: -33, r: 2.6, fill: BODY }, head)
+    MoleArt.snout(el('g', { class: 'cr-nose' }, head), `translate(-40 -24) scale(${-SNOUT} ${SNOUT})`, 1.6) // his snout and nose, the big him's, facing left: it twitches
+    el('path', { d: EYE, fill: MoleArt.WHITE }, head) // a tall egg, as the side view's eye (MoleArt side())
+    el('ellipse', { cx: -39.5, cy: -35, rx: 1.6, ry: 3.4, fill: BODY }, head)
     el('path', { d: 'M-12 -52 q-4 -12 2 -14 M-6 -52 q2 -13 8 -12 M0 -51 q8 -10 13 -6', stroke: BODY, 'stroke-width': 2, fill: 'none', 'stroke-linecap': 'round' }, head)
-    el('ellipse', { class: 'cr-hand cr-hand-a', cx: -46, cy: -6, rx: 15, ry: 9, fill: PINK, ...skin, transform: 'rotate(-20 -46 -6)' }, whole) // the near hand: a spade, as a mole's
+    paw(whole, 'cr-hand cr-hand-a', -52, -2) // the near hand
     el('ellipse', { class: 'cr-foot cr-foot-a', cx: 20, cy: -2, rx: 10, ry: 5, fill: PINK, ...skin }, whole) // the near foot
     return g
   }
