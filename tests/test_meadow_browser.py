@@ -403,7 +403,7 @@ class TestMeadowCar:
         assert not m.page.evaluate("meadowGame.detail('car').riding")
 
     def test_mended_and_parked_he_takes_it_to_bed(self, meadow: callable) -> None:
-        """As Krtek a autíčko ends: parked by his molehill, then in his arms in the den."""
+        """Parked by his molehill, as Krtek a autíčko ends; its key in his hands in the den."""
         m = meadow(f"{STILL}&soon&props=car&day=60")
         m.wake()
         arrived(m, "car")
@@ -411,13 +411,14 @@ class TestMeadowCar:
         m.wait("meadowGame.state().things.car === 'done'", 60_000)
         assert m.page.evaluate("meadowGame.detail('car').parked")
         m.wait("meadowGame.trace().includes(' end')", 90_000)
-        assert "car to bed" in m.page.evaluate("meadowGame.trace()")
+        assert "car key to bed" in m.page.evaluate("meadowGame.trace()")
         assert (
-            m.page.evaluate("document.querySelector('#den .den-car').style.display")
+            m.page.evaluate("document.querySelector('#den .den-key').style.display")
             == ""
         )
-        assert m.page.evaluate(
-            "[...document.querySelectorAll('.car')].every((c) => c.style.display === 'none')"
+        assert m.page.evaluate(  # the car stays parked; only its key went in
+            "[...document.querySelectorAll('.car')].every((c) => c.style.display !== 'none')"
+            " && document.querySelector('.car-key').style.display === 'none'"
         )
         assert not m.errors, m.errors
 
@@ -426,7 +427,7 @@ class TestMeadowCar:
         m.wake()
         m.wait("meadowGame.trace().includes(' end')", 60_000)
         assert (
-            m.page.evaluate("document.querySelector('#den .den-car').style.display")
+            m.page.evaluate("document.querySelector('#den .den-key').style.display")
             == "none"
         )
         assert not m.errors, m.errors
@@ -795,6 +796,17 @@ class TestMeadowUnderground:
         m.wait_free()
         assert m.state()["tunnels"] == [[780, 1700]], "what he dug was forgotten"
         assert " digs along " in m.page.evaluate("meadowGame.trace()")
+        m.assert_settled()
+
+    def test_the_meadow_is_heard_dull_while_he_stays(self, meadow: callable) -> None:
+        m = meadow()
+        self.under(m)
+        assert not m.page.evaluate("Sound.muffled"), "dull at once: a quick dive"
+        m.wait("Sound.muffled && Music.bed?.mood === 'under'", 6_000)
+        m.do("go to 1700")  # up on the grass: clear again, the day's bed back
+        m.wait("!Sound.muffled && Music.bed?.mood !== 'under'", 6_000)
+        assert " heard from under " in m.page.evaluate("meadowGame.trace()")
+        m.wait_free()
         m.assert_settled()
 
     def test_a_real_tap_on_the_earth_has_him_crawl_there(

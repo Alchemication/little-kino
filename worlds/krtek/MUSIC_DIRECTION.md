@@ -11,8 +11,9 @@ bed (`game/beds.js`, 2026-10-25) in the takes' key and pulse (E major,
 while the child watches, the harp strolling while the child plays, soft
 held violins in the afternoon, and an uneasy bed while a threat is about
 (low strings on a bare fifth, a slow harp heartbeat a half step apart,
-a low clarinet sigh; no flute, no birds). It stops at dusk for the cricket. Built,
-not yet picked by ear.
+a low clarinet sigh; no flute, no birds). While he stays down in his
+tunnels, the harp alone, slow and sparse, all of it heard dull from above.
+It stops at dusk for the cricket. Built, not yet picked by ear.
 
 ## From the films
 
@@ -61,6 +62,7 @@ by ear.
   | The bulldozer coming | a short uneasy turn (menace), then the uneasy bed under its rumble until it has gone |
   | The fox | a sly motif written note by note on the meadow's samples (clarinet, harp), then the uneasy bed until the monster sends him off |
   | A fright | the music steps back, effects lead |
+  | He stays down in his tunnels | not a theme of its own: the music heard dull from above, as through the earth, and the bed the harp alone, slow |
   | Dusk to sleep | the cricket's fiddle, not the theme |
   | Next morning (the start) | the theme fades back in |
 
@@ -156,3 +158,12 @@ by ear.
   as autumn's sad (`heard_as` in `pieces.py`), so the mornings are one
   minor and one major and the sad has two takes. Autumn now: morning 2,
   curious 2, sad 2, happy 2.
+- **2026-11-15, under the ground.** Asked whether his stays in the
+  tunnels need a theme of their own, or sounds. My advice: not a theme,
+  since a stay is short (he comes up by himself after 15 s left alone) and
+  a take would be cut off at each dive; the films change their theme with
+  the mood, not the place, and what they play underground is unknown
+  (Krtek a robot's tunnel ride is the clip to listen to). Instead the
+  music and the creatures above go dull while he stays, and the bed is
+  the burrow's (`beds.js` `burrow`). Adam took that, and left the earth's
+  own sounds for later. Not yet heard.

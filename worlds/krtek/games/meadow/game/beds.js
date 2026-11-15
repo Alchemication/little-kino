@@ -12,7 +12,10 @@
 // looming: things.js `trouble`), an uneasy bed instead: low held strings, a
 // slow harp heartbeat a half step apart, now and then a low clarinet sigh; no
 // flute, no birds (Adam, 2026-11-01: the cheerful bed came back while the
-// bulldozer was still coming). From dusk the cricket's fiddle takes over
+// bulldozer was still coming). While he stays down in his tunnels, the
+// burrow's bed: the harp alone, slow and sparse, no flute and no birds, heard
+// dull from above (sound.js `under`; Adam's pick, 2026-11-15: the music
+// changes down there, not a theme of its own: the stays are short). From dusk the cricket's fiddle takes over
 // (music.js), and the bed stops.
 
 /* global Bed */
@@ -29,6 +32,7 @@ const MeadowBeds = (() => {
     day: { chords: [0, 5, 3, 4], lift: 12, dens: [2, 5] },
     afternoon: { chords: [0, 3, 0, 4], lift: 0, dens: [1, 3] },
     trouble: { chords: [0], lift: 0, dens: [0, 1] }, // unease (below): it writes its own low notes
+    under: { chords: [0, 3, 0, 4], lift: 12, dens: [1, 2] }, // staying down in his tunnels: few notes, the chords of the afternoon's
   }
 
   /** A bird's trill: two or three quick high notes, to and fro between two of the chord's (in key). */
@@ -84,6 +88,17 @@ const MeadowBeds = (() => {
         return out
       },
     },
+    // down in his tunnels: the harp alone, a soft low note and one or two more a bar, from E3 up (under
+    // that, a small speaker plays nothing: unease below), never busy, however much the child taps
+    burrow: {
+      bpm: BPM,
+      bar(m, e, n, random, { triad, density, slots, pickOf }) {
+        const c = triad(m.chords[n % m.chords.length])
+        const out = [{ inst: 'harp', midi: c[0], at: 0, vol: 0.22 }]
+        for (const s of slots(density(m, e), random)) out.push({ inst: 'harp', midi: pickOf(c, random) + m.lift, at: s / 2, vol: 0.14 })
+        return out
+      },
+    },
     // trouble about: low strings held, the harp's slow heartbeat a half step apart (the bulldozer's
     // creep, slowed), a low clarinet sigh now and then; quiet, never a tune
     unease: {
@@ -102,7 +117,7 @@ const MeadowBeds = (() => {
     },
   }
 
-  const BY_MOOD = { morning: 'birdsong', day: 'meadow', afternoon: 'haze', trouble: 'unease' }
+  const BY_MOOD = { morning: 'birdsong', day: 'meadow', afternoon: 'haze', trouble: 'unease', under: 'burrow' }
 
   return Bed.score({
     tonic: TONIC,

@@ -41,6 +41,7 @@ const meadowGame = (() => {
   const TUFTS = 22 // tufts of long grass along the front, across the whole meadow
   const TICK_MS = 100
   const BED_STEER_MS = 200 // how often the music bed hears the moment and how busy the child is
+  const UNDER_HEARD_MS = 2500 // staying under this long, what is heard from above goes dull and the bed is the burrow's: a quick down and up changes nothing
   const TULIPS_LIGHT = [0.4, 0.8] // the tulips close as the light falls from this to this (at dusk, or in an eclipse)
   const CRICKET_LIGHT = 0.4 // the cricket comes out in a light this low, by day too (an eclipse)
   const WATCHES_NEAR = 260 // a butterfly this near his head, he follows it with his eyes
@@ -576,7 +577,7 @@ const meadowGame = (() => {
     Fence.night()
     game.gesture = 'bedtime'
     const car = Things.get('car')
-    const toy = car?.toBed?.() // the toy car, mended and parked by his molehill: he takes it to bed, as the film ends
+    const toy = car?.toBed?.() // the toy car, mended and parked by his molehill: he takes its key to bed
     if (toy) {
       if (Mole.state.pose === 'under') await Debug.ignoreCut(Underground.upAt(Mole.state.x), 'up for the car')
       await Debug.ignoreCut(goTo(toy.x - 150), 'to the car') // from its far side: the cricket plays on its near side
@@ -918,10 +919,15 @@ const meadowGame = (() => {
   Debug.record(stateNow)
   FilmLook.mount(document.body) // the old print over the whole page
   Clock.every(TICK_MS, tick)
+  let underSince = null // when he went down to stay, while he stays
   Clock.every(BED_STEER_MS, () => { // the bed: the moment of the day, and how busy the child is, calming as time passes
     game.busy = Bed.calmer(game.busy, BED_STEER_MS / 1000)
     const troubled = Things.troubled()
-    Music.setBed({ mood: troubled ? 'trouble' : MeadowBeds.moodAt({ hour: game.hour }), energy: game.busy }) // a threat about: uneasy till it's gone
+    underSince = Mole.state.pose === 'under' ? (underSince ?? Clock.now()) : null
+    const deep = underSince !== null && Clock.now() - underSince >= UNDER_HEARD_MS
+    Sound.under(deep) // down there a while: the meadow above heard through the earth
+    const mood = troubled ? 'trouble' : deep ? 'under' : MeadowBeds.moodAt({ hour: game.hour })
+    Music.setBed({ mood, energy: game.busy }) // a threat about: uneasy till it's gone, under the ground too
     Mole.settle() // and so is he (calm, below)
   })
   Clock.after(WAKE_ANYWAY_MS, () => { if (!game.awake) perform('wake') })

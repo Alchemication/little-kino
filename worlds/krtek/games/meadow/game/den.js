@@ -6,7 +6,8 @@
 // film has him, his rump up in a hump, his feet out behind, his head down
 // on his crossed hands, his nose pressed into them, his eyes shut, his bib
 // showing at his side; no hairs, as the film shows none while he sleeps. On a
-// night the toy car came and was mended, it is in his arms, as the film ends. He breathes (a CSS loop, game.css #den); z's drift up.
+// night the toy car came and was mended, its winding key is in his hands (in the
+// film the car itself, 15:04; ours is his size, so it stays parked above). He breathes (a CSS loop, game.css #den); z's drift up.
 //
 // Drawn once, in code, into #den (meadow.js shows and hides it): only
 // drawing here, from its own random stream, so it shifts nothing else. The
@@ -27,7 +28,9 @@ const Den = (() => {
   const STONE_CELL = 34 // a stone in each cell of this size, jittered, close-packed as crazy paving
   const SPIKE_EVERY = 34 // the fringe round its edge: a small spike about this often
   const FLECKS = 220
-  let toy = null // the toy car in his arms
+  const KEY_BOW = 'M-8 -3 C-10 -16 -26 -18 -26 -9 C-26 -2 -14 -2 -10 0 C-14 2 -26 2 -26 9 C-26 18 -10 16 -8 3 Z' // the toy car's winding key's two wings (car.js draws the key on the car), its shaft from -8 to 8
+  const KEY_GOLD = '#d9b45a' // …in the car's key's brass
+  let toy = null // the toy car's key in his hands
   const toys = [] // …and in the copies of him asleep (room()): all shown together
   let parts = null // the chamber, his bed and the z's as drawn, for room()
   const random = Debug.random('meadow-den') // the mosaic, the fringe, the flecks: its own stream
@@ -131,12 +134,11 @@ const Den = (() => {
     el('path', { d: 'M724 594 C726 570 748 560 772 562 C796 564 808 576 806 594 Z', fill: BIB }, body) // his bib, at his side
     const face = el('g', { fill: 'none', stroke: BROW, 'stroke-width': 3.6, 'stroke-linecap': 'round' }, body)
     for (const x of [876, 906]) el('path', { d: `M${x - 11} 538 q11 9 22 0` }, face) // eyes shut: content curves, near his snout
-    toy = el('g', { class: 'den-car', transform: 'translate(884 600) scale(0.42)' }, g) // the toy car, on nights it came: in his arms
+    toy = el('g', { class: 'den-key', transform: 'translate(896 592) rotate(-25) scale(2)' }, g) // the car's winding key, on nights it came: its shaft under his hand, its wings out
     toy.style.display = 'none'
-    el('path', { d: 'M-96 -40 q6 -30 40 -34 l20 -30 h64 q16 0 24 30 q40 4 46 34 z', fill: '#c9302c', stroke: INK, 'stroke-width': 4 }, toy)
-    el('path', { d: 'M-30 -100 l14 -22 h34 q10 0 16 22', fill: '#cfe3f7', stroke: INK, 'stroke-width': 4 }, toy)
-    el('path', { d: 'M-110 -10 v-34 q0 -10 14 -10 h192 q14 0 18 14 v30 z', fill: '#e2453f', stroke: INK, 'stroke-width': 4 }, toy)
-    for (const x of [-62, 66]) el('circle', { cx: x, cy: -6, r: 20, fill: '#2b2b2b', stroke: INK, 'stroke-width': 4 }, toy)
+    el('path', { d: 'M-8 -2.5 h16 v5 h-16 z', fill: KEY_GOLD, stroke: INK, 'stroke-width': 1.8 }, toy) // the shaft
+    el('path', { d: KEY_BOW, fill: KEY_GOLD, stroke: INK, 'stroke-width': 1.8, 'stroke-linejoin': 'round' }, toy)
+    for (const y of [-9, 9]) el('circle', { cx: -16, cy: y, r: 2.6, fill: INK }, toy) // a hole in each wing: it reads as a key
     mitt(g, 902, 598, 1, -4) // his hands under his head, one on the other
     mitt(g, 910, 590, 1, 6)
     for (const [dy, a] of [[-4, -10], [4, 8]]) el('path', { d: `M950 ${568 + dy} l18 ${a * 0.5}`, fill: 'none', stroke: BROW, 'stroke-width': 2, 'stroke-linecap': 'round' }, g) // whiskers
@@ -168,7 +170,7 @@ const Den = (() => {
     const g = el('g', { class: 'den-room-art' })
     for (const p of parts) g.appendChild(p.cloneNode(true))
     for (const c of g.querySelectorAll('[id]')) c.remove() // the den's clip path: the copy's stones use the den's own
-    toys.push(...g.querySelectorAll('.den-car'))
+    toys.push(...g.querySelectorAll('.den-key'))
     return g
   }
 
@@ -176,7 +178,7 @@ const Den = (() => {
     draw,
     room,
     ROOM,
-    /** The toy car in his arms tonight, or not (Krtek a autíčko 15:04). */
+    /** The toy car's key in his hands tonight, or not. */
     hug(on) {
       for (const t of [toy, ...toys]) t.style.display = on ? '' : 'none'
     },

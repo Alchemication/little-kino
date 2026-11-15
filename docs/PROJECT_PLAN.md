@@ -109,6 +109,16 @@ sounds he has judged are in.
      fox is sorry and goes off a friend in the first telling; the
      retelling is gone (Adam, 2026-11-14). Judge: the paces, whether the
      pool's edge round him reads as water, how often the fish comes.
+   - **Adam judges the music under the ground** (built 2026-11-15, his
+     pick of two from a talk on a tunnel theme): once he has stayed down a
+     moment (`meadow.js` `UNDER_HEARD_MS`, 2.5 s), the music, the
+     creatures, and the weather, bulldozer, bell, geese and wolf above go dull, as through the earth (`sound.js` `under`,
+     cut above 900 Hz), and the bed is the burrow's: the harp alone, slow,
+     no flute or birds (`beds.js` `burrow`). His own sounds stay clear.
+     Judge by ear on a phone: whether the dullness reads, whether 900 Hz
+     is too much, and the cricket at dusk heard from his den, dull too.
+     Sounds of the earth's own (a hush, the worm, the beetle, the ants)
+     wait for a `new-sound` round, if he wants them.
    - **Adam judges the tunnel seen, and the fox's music** (2026-11-11, from
      his play of the paint story). Whenever he tunnels, the ground opens in
      a cutaway and he crawls along the tunnel as he digs it, the hare and

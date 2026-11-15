@@ -95,3 +95,13 @@ test('an encounter out of season never comes, forced or not, and the draws are t
   Things.choose(ENCOUNTERS, () => { fall++; return 0.5 }, {}, autumn)
   assert.ok(fall <= spring, 'the season added draws')
 })
+
+test('two that keep the same grass all day never come in one play, forced or not', () => {
+  const grounds = [...ENCOUNTERS.map((e) => (e.name === 'car' ? { ...e, ground: [430, 680] } : e)), { name: 'hedgehog', offer: 'help', ground: [450, 760] }]
+  for (const first of [0.05, 0.3, 0.5, 0.7, 0.95]) {
+    const names = [...Things.choose(grounds, seq(first, 0.5, 0.2, 0.8)).map((p) => p.name)]
+    assert.ok(!(names.includes('car') && names.includes('hedgehog')), names.join())
+    assert.ok(names.includes('car') || names.includes('hedgehog'), names.join()) // one of them still comes
+  }
+  assert.deepEqual([...Things.choose(grounds, seq(0.5), { props: ['hedgehog', 'car', 'egg'] }).map((p) => p.name)], ['hedgehog', 'egg'])
+})

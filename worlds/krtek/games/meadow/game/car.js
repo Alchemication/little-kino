@@ -12,7 +12,10 @@
 // zooms to the far end of the meadow, turns, and brings him all the way back
 // to park by his molehill, where it stays, as the film ends with the car parked by
 // the molehill at night. Tapped again once it's mended, it gives him a ride.
-// Parked there at bedtime, he pats it goodnight and takes it to bed (den.js).
+// Parked there at bedtime, he pats it goodnight and takes its key to bed
+// (den.js); the car stays parked by the molehill for the night (Adam,
+// 2026-11-15: the whole car, shrunk into his arms, was a toy his own size a
+// minute before).
 //
 // A tap on the car or on him hurries it on; a tap elsewhere waits for the step to end, then cuts it short
 // (things.js): a wheel in his hands goes down by him, and if he was riding,
@@ -277,6 +280,7 @@
   Things.add({
     name: 'car',
     offer: 'discover',
+    ground: [PARK_AT - 130, PARK_AT + 120], // parked by his molehill from the ride on (its body and key)
     music: { 4: 'happy' }, // it goes: the ride
     appear,
     steps: [find, (alive) => wheel(alive, 0), (alive) => wheel(alive, 1), wind, (alive) => ride(alive, true), park],
@@ -287,13 +291,13 @@
     },
     restore,
     night: restore,
-    /** Bedtime: where it stands if it is mended and parked by his molehill (he takes it to bed, as Krtek a autíčko
-     * ends: parked by the molehill at 14:40, in his arms in the den at 15:04), or null. */
+    /** Bedtime: where it stands if it is mended and parked by his molehill (he takes its key to bed; Krtek a
+     * autíčko ends with it parked by the molehill at 14:40, and in his arms in the den at 15:04), or null. */
     toBed: () => (car.parked ? { x: car.x } : null),
-    /** Taken in with him, once the circle has closed: gone from the meadow. */
+    /** Its key taken in with him, once the circle has closed: the car stays parked, keyless. */
     takeIn() {
-      for (const g of [car.back, car.front]) g.style.display = 'none'
-      Debug.trace('car to bed')
+      car.key.style.display = 'none'
+      Debug.trace('car key to bed')
     },
     detail: () => ({ x: Math.round(car.x), parked: car.parked, wheels: car.wheels, wound: car.wound, riding: car.riding, startles, cast: [] }),
   })

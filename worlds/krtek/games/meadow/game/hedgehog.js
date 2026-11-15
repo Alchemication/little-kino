@@ -325,6 +325,7 @@
   Things.add({
     name: 'hedgehog',
     offer: 'help',
+    ground: [BED - 80, SPOT + 120], // the leaves lying about, then his heap, all day
     plant, // the leaves lie there only on a play it comes
     music: { 0: 'sad', 2: 'happy' }, // cold, no bed; the laugh as he rolls up the leaves
     appear,

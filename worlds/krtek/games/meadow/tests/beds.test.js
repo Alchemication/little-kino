@@ -46,6 +46,7 @@ test('the takes\' pulse, and a bed for each moment', () => {
   assert.equal(Beds.style('day', 0).style, 'meadow')
   assert.equal(Beds.style('day', 1).style, 'stroll')
   assert.equal(Beds.style('afternoon', 0).style, 'haze')
+  assert.equal(Beds.style('under', 1).style, 'burrow') // down in his tunnels: the burrow's, however busy the child
   assert.deepEqual([9, 12, 16].map((hour) => Beds.moodAt({ hour })), ['morning', 'day', 'afternoon'])
 })
 
@@ -67,4 +68,19 @@ test('trouble\'s bed can be heard on a small speaker: nothing under the D sharp 
   for (let n = 0; n < 32; n++) {
     for (const note of Beds.bar('unease', 'trouble', n % 2, n, random).notes) assert.ok(note.midi >= Beds.TONIC - 1, `${note.inst} at ${note.midi}`)
   }
+})
+
+test('the burrow\'s bed: the harp alone, quieter than the day\'s, and heard on a small speaker', () => {
+  const random = seq(11)
+  let burrow = 0
+  let day = 0
+  for (let n = 0; n < 16; n++) {
+    for (const note of Beds.bar('burrow', 'under', 1, n, random).notes) {
+      assert.equal(note.inst, 'harp')
+      assert.ok(note.midi >= Beds.TONIC, `${note.midi}`)
+      burrow += note.vol
+    }
+    for (const note of Beds.bar('meadow', 'day', 1, n, random).notes) day += note.vol
+  }
+  assert.ok(burrow < day, `${burrow} vs ${day}`)
 })

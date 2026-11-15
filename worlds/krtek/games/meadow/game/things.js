@@ -21,6 +21,10 @@
 // An encounter registers itself (Things.add) with:
 //   name, offer ('help', 'helped' or 'discover'),
 //   appear(): it arrives (drawn, with its entrance),
+//   ground (optional): [from, to], the stretch of grass it keeps for the
+//     rest of the day (the car parked, the hedgehog's heap): a play never
+//     has two whose grounds overlap (Adam, 2026-11-15: the car parked on
+//     the hedgehog's heap felt cluttered), forced with ?props or not,
 //   plant (optional): () => …, what stands there all day before it comes,
 //     drawn as the play starts if it comes this play (the bulldozer's young
 //     trees on the road it will make: nothing from nowhere),
@@ -141,7 +145,19 @@ const Things = (() => {
     const rest = pool.map((e) => e.name).filter((n) => !first.includes(n))
     let names = [...shuffle(first, rand), ...shuffle(rest, rand)]
     if (props) names = props.filter((n) => encounters.some((e) => e.name === n) && inSeason(n))
+    names = apart(names, encounters)
     return names.slice(0, HOURS.length).map((name, i) => ({ name, at: soon && i === 0 ? SOON_HOUR : HOURS[i] }))
+  }
+
+  /** `names` in order, leaving out each whose ground overlaps the ground of one kept before it. */
+  function apart(names, encounters) {
+    const ground = (n) => encounters.find((e) => e.name === n)?.ground
+    const kept = []
+    for (const n of names) {
+      const g = ground(n)
+      if (!g || !kept.some((k) => ground(k) && g[0] < ground(k)[1] && ground(k)[0] < g[1])) kept.push(n)
+    }
+    return kept
   }
 
   /** Whether it is too soon for one to arrive at this hour: the quiet spell after the last one was

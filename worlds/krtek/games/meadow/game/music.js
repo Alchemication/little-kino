@@ -16,7 +16,9 @@
 // Between takes, a quiet bed (beds.js: harp, flute, birds, violins, in the
 // takes' key and pulse; ensemble.js plays it) steps back under each take
 // and comes back after; the game says the moment and how busy the child is
-// (bed.set). It stops at dusk, for the cricket.
+// (bed.set). It stops at dusk, for the cricket. While he stays down in his
+// tunnels, all of it is heard from above, dull through the earth
+// (Sound.under), and the bed is the burrow's (beds.js).
 
 /* global Clock, Debug, Ensemble, Layout, MeadowBeds, SAMPLES, Sound, Takes, TUNES */
 /* exported Music */
@@ -66,7 +68,7 @@ const Music = (() => {
       ctx = bus.ctx
       const out = ctx.createGain()
       out.gain.value = VOLUME
-      out.connect(bus.master)
+      out.connect(bus.above) // heard from above: dull while he stays under (Sound.under)
       band = Ensemble.make(ctx, out, typeof SAMPLES !== 'undefined' ? SAMPLES : {})
       bed = band.bed(MeadowBeds, { quiet: () => takes.playing, stream: 'meadow-bed' })
       takes = Takes.player(ctx, out, { volume: TAKE_VOLUME, onStart: (t) => bed.away(t), onEnd: () => { if (!night) bed.back() } })

@@ -7,6 +7,12 @@
 // The music (the cricket's fiddle among it) is music.js's, on this audio
 // context (bus).
 //
+// While he stays down in his tunnels, what is heard from above goes dull,
+// as if through the earth (under): the music, the creatures heard from
+// where they are (from), and what is over the whole meadow (overhead: the
+// rain, the wind, the thunder and the bulldozer, the bell, the geese, the
+// wolf). His own sounds stay clear: the view is down there with him.
+//
 // Its take player does what the yard's sound.js does for recorded effects;
 // both are the next part to move into shared/ (CLAUDE.md, "Shared parts").
 
@@ -24,11 +30,16 @@ const Sound = (() => {
   const HEARD_FAR = 700 // a creature's sound this far off the screen's edge (meadow units) is not heard: about half a screen…
   const HEARD_MIN = 0.03 // …nor one quieter than this
   const HEARD_PAN = 0.6 // and from its side, at most this far left or right
+  const ABOVE_OPEN_HZ = 20000 // up on the meadow: what is heard from above, as it is…
+  const ABOVE_UNDER_HZ = 900 // …and with him under, dull above this: the harp's notes still there on a phone's speaker, their shine gone
+  const ABOVE_EASE_S = 0.5 // going dull or clear again, most of the way in about three times this
   const FADE_S = 0.05 // a fade's floor: how quiet "gone" is, as a share of the level
   const WATER_FADE_S = 0.3 // rain (its takes looped): faded out over this long as it stops
   const SOFT_RAIN = 0.35 // the storm's rain over the whole meadow, under everything: this much of the cloud's rain on the flowers
   let ctx = null
   let master = null
+  let above = null // what is heard from above (the music, the creatures): dulled while he is under
+  let muffled = false
   let out = null // what a sound plays into: the master, or, heard from a place (from), that place's gain
   let view = () => null // the game's hook: what is on screen now, { left, right } in the meadow
   let noise = null
@@ -52,6 +63,11 @@ const Sound = (() => {
       master = ctx.createGain()
       master.gain.value = VOLUME
       master.connect(ctx.destination)
+      above = ctx.createBiquadFilter()
+      above.type = 'lowpass'
+      above.Q.value = 0.7 // no ring at the cut
+      above.frequency.value = muffled ? ABOVE_UNDER_HZ : ABOVE_OPEN_HZ
+      above.connect(master)
       out = master
       noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate)
       const data = noise.getChannelData(0)
@@ -95,13 +111,26 @@ const Sound = (() => {
     if (ctx.createStereoPanner) {
       const p = ctx.createStereoPanner()
       p.pan.value = pan
-      g.connect(p).connect(master)
-    } else g.connect(master)
+      g.connect(p).connect(above)
+    } else g.connect(above)
     out = g
     try {
       play()
     } finally {
       out = master
+    }
+  }
+
+  /** Play a sound of the whole meadow or far off over it (the weather, the bell, the geese) as heard
+   * from above: dull while he stays under (under). */
+  function overhead(play) {
+    if (!ready()) return play()
+    const was = out
+    out = above
+    try {
+      return play()
+    } finally {
+      out = was
     }
   }
 
@@ -257,6 +286,9 @@ const Sound = (() => {
 
   /** Water: filling the can at the spring, or sprinkling it on the flowers; `soft` (a share, 1 the storm's): rain on the whole meadow. */
   function water(seconds = 0.8, { soft = 0 } = {}) {
+    overhead(() => rain(seconds, soft))
+  }
+  function rain(seconds, soft) {
     if (!ready() || recorded('water', [Math.max(0.2, seconds - WATER_FADE_S), WATER_FADE_S], { loop: true, swell: soft ? [SOFT_RAIN * soft, SOFT_RAIN * soft] : null })) return
     // soft: rain on the whole meadow, a high patter under everything (storm.js plays it again and again)
     const [step, length, low, spread, q, peak] = soft ? [0.12, 0.2, 3000, 2500, 1.5, 0.02 * soft] : [0.07, 0.1, 2600, 1800, 3, 0.08]
@@ -276,6 +308,9 @@ const Sound = (() => {
   /** One stroke of the far church bell: its recorded takes, ding… dong, or
    * the synthesised one until they are decoded. */
   function bell() {
+    overhead(farBell)
+  }
+  function farBell() {
     if (!ready() || recorded('bell', BELL_FADE)) return
     const far = ctx.createBiquadFilter() // far off: the top dulled
     far.type = 'lowpass'
@@ -342,14 +377,16 @@ const Sound = (() => {
   }
 
   /** A goose high over the meadow, far off: a soft nasal honk. */
-  function honk() {
+  const honk = () => overhead(goose)
+  function goose() {
     if (!ready() || recorded('honk')) return
     note(330, 0, 0.16, 0.05, 'sawtooth', 0.92)
     note(310, 0.22, 0.14, 0.04, 'sawtooth', 0.9)
   }
 
   /** A wolf far off on a full moon's evening, once: a long, soft howl, rising and falling away (dulled by distance). */
-  function howl() {
+  const howl = () => overhead(wolf)
+  function wolf() {
     if (!ready() || recorded('howl')) return
     note(300, 0, 0.6, 0.025, 'triangle', 1.45)
     note(436, 0.55, 1.9, 0.03, 'triangle', 0.72)
@@ -464,6 +501,9 @@ const Sound = (() => {
    * recorded, or a soft low rumble; `from`, `to`: how loud as it starts and ends (far off, faint;
    * coming closer, louder). */
   function rumble(seconds, from = 1, to = from) {
+    overhead(() => engine(seconds, from, to))
+  }
+  function engine(seconds, from, to) {
     if (!ready() || recorded('rumble', [Math.max(0, seconds - RUMBLE_FADE), RUMBLE_FADE], { swell: [from, to], loop: true })) return
     for (let t = 0; t < seconds; t += 0.25) hiss(t, 0.3, 110 + Math.random() * 40, 1.2, 0.05 * (from + ((to - from) * t) / seconds))
   }
@@ -545,7 +585,7 @@ const Sound = (() => {
     bp.Q.value = 0.7
     const g = c.createGain()
     g.gain.value = 0.0001
-    src.connect(bp).connect(g).connect(out)
+    src.connect(bp).connect(g).connect(above) // over the whole meadow: dull from under
     src.start()
     return (level) => {
       const now = c.currentTime
@@ -561,10 +601,21 @@ const Sound = (() => {
     note(360, 0, seconds, 0.04, 'square', 1.7)
   }
 
+  /** He stays down in his tunnels (on) or is up again: what is heard from above goes dull, or clear. */
+  function under(on) {
+    if (on === muffled) return
+    muffled = on
+    Debug.trace('heard from under', { on })
+    if (ready()) above.frequency.setTargetAtTime(on ? ABOVE_UNDER_HZ : ABOVE_OPEN_HZ, ctx.currentTime, ABOVE_EASE_S)
+  }
+
   return {
     ensure,
-    /** The audio context and the master gain, for the music. */
-    bus() { ensure(); return { ctx, master } },
+    under,
+    /** Whether what is heard from above is dull now (he stays under), for the overlay and the tests. */
+    get muffled() { return muffled },
+    /** The audio context, the master gain, and what is heard from above (the music plays into it). */
+    bus() { ensure(); return { ctx, master, above } },
     /** The game's hook: fn() says what is on screen now, { left, right } in the meadow (from). */
     hearFrom(fn) { view = fn },
     from,
