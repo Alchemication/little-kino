@@ -7,11 +7,12 @@
 // The music (the cricket's fiddle among it) is music.js's, on this audio
 // context (bus).
 //
-// While he stays down in his tunnels, what is heard from above goes dull,
-// as if through the earth (under): the music, the creatures heard from
-// where they are (from), and what is over the whole meadow (overhead: the
-// rain, the wind, the thunder and the bulldozer, the bell, the geese, the
-// wolf). His own sounds stay clear: the view is down there with him.
+// While he stays down in his tunnels, everything is heard from above and
+// goes dull, as if through the earth (under): the music, the creatures (a
+// creature heard from where it is, from), the weather, the bell. Only his
+// own sounds stay clear (own: his voice, digging, popping up, a puddle,
+// drips): the view is down there with him. Clear only by name, so a new
+// sound can't forget to go dull (the woodpecker's drum once did).
 //
 // Its take player does what the yard's sound.js does for recorded effects;
 // both are the next part to move into shared/ (CLAUDE.md, "Shared parts").
@@ -74,7 +75,7 @@ const Sound = (() => {
       aboveLevel = ctx.createGain()
       aboveLevel.gain.value = muffled ? ABOVE_UNDER_LEVEL : 1
       above.connect(aboveLevel).connect(master)
-      out = master
+      out = above
       noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate)
       const data = noise.getChannelData(0)
       for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1
@@ -123,18 +124,18 @@ const Sound = (() => {
     try {
       play()
     } finally {
-      out = master
+      out = above
     }
   }
 
-  /** Play a sound of the whole meadow or far off over it (the weather, the bell, the geese) as heard
-   * from above: dull while he stays under (under). */
-  function overhead(play) {
-    if (!ready()) return play()
+  /** One of his own sounds, as `play` (his voice, digging): clear while he stays under, where the view is
+   * with him; everything else is heard from above. */
+  const own = (play) => (...args) => {
+    if (!ready()) return play(...args)
     const was = out
-    out = above
+    out = master
     try {
-      return play()
+      return play(...args)
     } finally {
       out = was
     }
@@ -292,7 +293,7 @@ const Sound = (() => {
 
   /** Water: filling the can at the spring, or sprinkling it on the flowers; `soft` (a share, 1 the storm's): rain on the whole meadow. */
   function water(seconds = 0.8, { soft = 0 } = {}) {
-    overhead(() => rain(seconds, soft))
+    rain(seconds, soft)
   }
   function rain(seconds, soft) {
     if (!ready() || recorded('water', [Math.max(0.2, seconds - WATER_FADE_S), WATER_FADE_S], { loop: true, swell: soft ? [SOFT_RAIN * soft, SOFT_RAIN * soft] : null })) return
@@ -314,7 +315,7 @@ const Sound = (() => {
   /** One stroke of the far church bell: its recorded takes, ding… dong, or
    * the synthesised one until they are decoded. */
   function bell() {
-    overhead(farBell)
+    farBell()
   }
   function farBell() {
     if (!ready() || recorded('bell', BELL_FADE)) return
@@ -383,7 +384,7 @@ const Sound = (() => {
   }
 
   /** A goose high over the meadow, far off: a soft nasal honk. */
-  const honk = () => overhead(goose)
+  const honk = () => goose()
   function goose() {
     if (!ready() || recorded('honk')) return
     note(330, 0, 0.16, 0.05, 'sawtooth', 0.92)
@@ -391,7 +392,7 @@ const Sound = (() => {
   }
 
   /** A wolf far off on a full moon's evening, once: a long, soft howl, rising and falling away (dulled by distance). */
-  const howl = () => overhead(wolf)
+  const howl = () => wolf()
   function wolf() {
     if (!ready() || recorded('howl')) return
     note(300, 0, 0.6, 0.025, 'triangle', 1.45)
@@ -507,7 +508,7 @@ const Sound = (() => {
    * recorded, or a soft low rumble; `from`, `to`: how loud as it starts and ends (far off, faint;
    * coming closer, louder). */
   function rumble(seconds, from = 1, to = from) {
-    overhead(() => engine(seconds, from, to))
+    engine(seconds, from, to)
   }
   function engine(seconds, from, to) {
     if (!ready() || recorded('rumble', [Math.max(0, seconds - RUMBLE_FADE), RUMBLE_FADE], { swell: [from, to], loop: true })) return
@@ -635,5 +636,5 @@ const Sound = (() => {
     listen(fn) { heard = fn },
     /** Is sound on (after the first tap, and not held)? */
     get running() { return ready() && ctx.state === 'running' },
-    say, hushEchoes, ECHO_GAP_S, dig, pop, bonk, water, bell, snicker, growl, croak, roll, knock, tock, squeak, sneeze, peep, crack, cluck, plink, tug, whoosh, rumble, splash, swish, clunk, boo, yelp, crank, vroom, wind, chirp, heron, grunt, snort, hoot, hootSleepy, drum, peck, snuffle, honk, howl, puddle, drips }
+    say: own(say), hushEchoes, ECHO_GAP_S, dig: own(dig), pop: own(pop), bonk, water, bell, snicker, growl, croak, roll, knock, tock, squeak, sneeze, peep, crack, cluck, plink, tug, whoosh, rumble, splash, swish, clunk, boo, yelp, crank, vroom, wind, chirp, heron, grunt, snort, hoot, hootSleepy, drum, peck, snuffle, honk, howl, puddle: own(puddle), drips: own(drips) }
 })()

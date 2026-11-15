@@ -79,9 +79,9 @@ def sound_names(game: Path) -> set[str]:
     voice = re.search(r"HIS_VOICE = \[([^\]]+)\]", text)
     if voice:
         names |= set(re.findall(r"'(\w+)'", voice.group(1)))
-    exported = re.findall(r"^    say, ([^}]+)}", text, re.MULTILINE)
-    if exported:
-        names |= {n.strip() for n in exported[0].split(",")}
+    exported = re.findall(r"^    say(?:: own\(say\))?, ([^}]+)}", text, re.MULTILINE)
+    if exported:  # `dig: own(dig)`: his own sound, under its own name
+        names |= {n.split(":")[0].strip() for n in exported[0].split(",")}
         said = "".join(p.read_text() for p in (game / "game").glob("*.js"))
         names |= set(re.findall(r"Sound\.say\('(\w+)'", said))
         for words in re.findall(r"Sound\.say\(\[([^\]]+)\]", said):  # one of several

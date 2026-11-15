@@ -28,6 +28,7 @@ function fakeAudio() {
     return s
   }
   class AudioContext {
+    static made = { sources }
     constructor() {
       this.state = 'running'
       this.sampleRate = 8000
@@ -52,7 +53,7 @@ function fakeAudio() {
 const MUSIC = ['bed.js', 'beds.js', 'ensemble.js', 'takes.js', 'music.js'] // the music and what it plays with
 
 /** sound.js, and with `music` the music player too, on a stand-in context, after the first tap. */
-function sound({ music = false } = {}) {
+function sound({ music = false, effects = false } = {}) {
   const audio = fakeAudio()
   const sandbox = {
     window: { AudioContext: audio.AudioContext },
@@ -61,8 +62,10 @@ function sound({ music = false } = {}) {
     Layout: { season: 'spring' },
     Debug: { random: () => () => 0.5, trace() {} },
     Math,
+    atob: globalThis.atob, // the takes' bytes
   }
   vm.createContext(sandbox)
+  if (effects) vm.runInContext(`${fs.readFileSync(path.join(__dirname, '..', 'game', 'effects.js'), 'utf8')}\nthis.EFFECTS = EFFECTS`, sandbox)
   vm.runInContext(`${fs.readFileSync(path.join(__dirname, '..', 'game', 'sound.js'), 'utf8')}\nthis.Sound = Sound`, sandbox)
   for (const f of music ? MUSIC : []) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'game', f), 'utf8'), sandbox, { filename: f })
   const { Sound } = sandbox
@@ -100,6 +103,30 @@ test('what is over the whole meadow is heard from above: the rain, the wind, the
   }
   for (const [name, play] of Object.entries(overhead)) assert.ok(heard(play).every(Boolean), `${name} is not heard from above`)
 })
+
+const NOT_SOUNDS = ['ensure', 'under', 'bus', 'hearFrom', 'from', 'listen', 'hushEchoes'] // the hooks, not sounds
+const ARGS = { roll: [1], rumble: [1], water: [0.5] } // what a sound needs to be heard at all
+const HIS = ['say', 'dig', 'pop', 'puddle', 'drips'] // his own: clear
+
+test('every sound but his own is heard from above, a new one too (the woodpecker\'s drum was not)', async () => {
+  for (const effects of [false, true]) await everyAbove(effects) // made here, and the recorded takes
+})
+
+async function everyAbove(effects) {
+  const { Sound, passes, above, master } = sound({ effects })
+  await new Promise((resolve) => setImmediate(resolve)) // the takes decoded
+  const all = Object.keys(Sound).filter((k) => typeof Sound[k] === 'function' && !NOT_SOUNDS.includes(k) && !HIS.includes(k))
+  assert.ok(all.includes('drum') && all.includes('peck') && all.length > 30, all.join(' '))
+  const { sources } = Sound.bus().ctx.constructor.made
+  for (const name of all) {
+    const from = sources.length
+    Sound[name](...(ARGS[name] ?? []))
+    const made = sources.slice(from)
+    if (!made.length && !effects) continue // only recorded: the run with the takes hears it
+    assert.ok(made.length > 0, `${name} made no sound`)
+    assert.ok(made.every((n) => passes(n, master) && passes(n, above)), `${name} is not heard from above (${effects ? 'its take' : 'made here'})`)
+  }
+}
 
 test('a creature heard from where it is is heard from above', () => {
   const { Sound, above, heard } = sound()
