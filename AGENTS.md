@@ -314,9 +314,11 @@ the edge cases that would let bad data pass silently.
 **Which tests while working.** Unit and convention tests always (seconds).
 Browser tests, in three widths: while iterating, only the test being worked
 on, alone (`-m browser -x --lf -k <test>`, no `-n`); when the change is
-done, its slice below; the whole suite (`-n 4`) once, before a commit. Never
-the whole of a game's file on every iteration: it runs in real time and
-heats the laptop for minutes.
+done and before its commit, its slice below; the whole suite (`-n 4`) once
+before a push (a push to `main` publishes, and CI runs no tests), or before
+a commit that touches `layout.js` or anything shared. Never the whole of a
+game's file on every iteration: it runs in real time and heats the laptop
+for minutes.
 
 | Changed | Browser slice (`-m browser -n 4 -k …`) |
 |---|---|
