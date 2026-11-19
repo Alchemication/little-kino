@@ -27,7 +27,9 @@ const Music = (() => {
   const TAKE_VOLUME = 0.8 // each take (levelled when packed)
   const LEAD_S = 0.15 // a take starts this long after it is asked for
   const CRICKET_GAP_S = 0.6 // between one of the cricket's takes and the next
-  const RANK = { morning: 0, curious: 1, sad: 2, happy: 3, menace: 4 } // a mood cuts short only a weaker one
+  const RANK = { morning: 0, curious: 1, sad: 2, happy: 3, menace: 4 } // a mood cuts short only a weaker one…
+  const YIELDS = { menace: 'happy' } // …but the menace gives way to happy: the threat has gone (things.js relief), so the glad
+  // theme comes at once, even with the menace's take still playing (a bulldozer gone within its 8 s had no glad theme)
   const PARTS = ['morning', 'curious', 'sad', 'happy', 'menace', 'lullaby'] // the parts it plays (tunes.yaml)
   // Motifs written note by note on the meadow's own samples (no takes to load: Adam, 2026-11-01, "even
   // synth could be better"): a few seconds as trouble comes, then quiet. [instrument, midi note, at s, loudness]
@@ -116,7 +118,7 @@ const Music = (() => {
       return
     }
     const now = partNow()
-    if (now && RANK[now] >= RANK[part]) return
+    if (now && RANK[now] >= RANK[part] && YIELDS[now] !== part) return
     const wait = now ? takes.FADE_S + 0.2 : LEAD_S // once the weaker one has faded
     takes.fade()
     play(part, wait)

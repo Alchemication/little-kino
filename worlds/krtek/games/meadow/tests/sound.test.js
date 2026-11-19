@@ -53,7 +53,7 @@ function fakeAudio() {
 const MUSIC = ['bed.js', 'beds.js', 'ensemble.js', 'takes.js', 'music.js'] // the music and what it plays with
 
 /** sound.js, and with `music` the music player too, on a stand-in context, after the first tap. */
-function sound({ music = false, effects = false } = {}) {
+function sound({ music = false, effects = false, tunes = null } = {}) {
   const audio = fakeAudio()
   const sandbox = {
     window: { AudioContext: audio.AudioContext },
@@ -63,6 +63,7 @@ function sound({ music = false, effects = false } = {}) {
     Debug: { random: () => () => 0.5, trace() {} },
     Math,
     atob: globalThis.atob, // the takes' bytes
+    TUNES: tunes ?? undefined, // the music's takes, stand-ins
   }
   vm.createContext(sandbox)
   if (effects) vm.runInContext(`${fs.readFileSync(path.join(__dirname, '..', 'game', 'effects.js'), 'utf8')}\nthis.EFFECTS = EFFECTS`, sandbox)
@@ -161,4 +162,16 @@ test('under, the filter closes to dull and quieter; up again, it opens; once eac
   const [down, up] = above.frequency.targets
   assert.ok(down <= 600 && up > 10000, `${down}, ${up}`) // at 900 the harp and flute sounded the same: their notes are under it
   assert.equal(Sound.muffled, false)
+})
+
+test('the moment a threat has gone the glad theme comes, even over the menace still playing', async () => {
+  const take = ['AAAA'] // a stand-in take: the stand-in context decodes anything
+  const { Music } = sound({ music: true, tunes: { morning: take, menace: take, happy: take, curious: take } })
+  await Music.morning()
+  Music.cue('menace') // the bulldozer coming
+  assert.equal(Music.part, 'menace')
+  Music.cue('curious') // something milder while it is here: the menace holds
+  assert.equal(Music.part, 'menace')
+  Music.cue('happy') // gone (things.js relief)
+  assert.equal(Music.part, 'happy')
 })
