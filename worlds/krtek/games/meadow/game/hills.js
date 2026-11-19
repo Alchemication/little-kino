@@ -14,12 +14,14 @@ const Hills = (() => {
   const { GROUND, HOME } = Layout
   const MAX = 6 // molehills he has left about the meadow; the oldest sinks back
   const SIZE = { home: [240, 64], other: [180, 50] } // a molehill's width and height: his home's is bigger
+  const STOOD = { half: 24, tall: 115 } // what stands in a molehill (his trowel) takes taps this far either side of it and up
   const REACH = 8 // a tap this far above or below a molehill (scene units) still means it: lower is the grass, to walk on
   const NEAR = 50 // within this of a molehill's middle, he is in it
   const BESIDE = 150 // out on the grass this near a molehill, a tap on it has him step onto it and go down
   const COVERS = 70 // a molehill this near x stands there: no second one beside it
 
-  const hills = [] // those he has left about, oldest first: { x, g }
+  const hills = [] // those he has left about, oldest first: { x, g, h, stood }
+  let home = null // his home's: { x, g, h, stood }
   let layer, grass, paint
   let dropHat = () => {}
   let changed = () => {} // a molehill made or sunk: its shaft too
@@ -52,9 +54,13 @@ const Hills = (() => {
       el('circle', { cx: (paint() - 0.5) * w * 0.75, cy: -paint() * h * 0.8, r: 4 + paint() * 7, fill: paint() < 0.5 ? '#38250a' : '#8a5d2e' }, inner)
     }
     if (grow) Debug.ignoreCut(Motion.endAt(inner, [{ transform: 'scaleY(0.05)' }, { transform: 'scaleY(1)' }], { duration: 320, easing: 'cubic-bezier(.3,1.5,.5,1)' }), 'hill grows')
-    if (!big) {
-      hills.push({ x, g })
-      if (hills.length > MAX) sink(hills.shift())
+    if (big) home = { x, g, h }
+    else {
+      hills.push({ x, g, h })
+      if (hills.length > MAX) {
+        const old = hills.findIndex((o) => !o.stood) // the oldest with nothing standing in it (his trowel stays put)
+        sink(hills.splice(old, 1)[0])
+      }
     }
     changed()
   }
@@ -63,17 +69,43 @@ const Hills = (() => {
     Motion.endAt(h.g, [{ transform: `translate(${h.x}px, ${GROUND + 80}px)` }], { duration: 900, easing: 'ease-in' }).then(() => h.g.remove(), () => h.g.remove())
   }
 
+  /**
+   * Something standing in the top of the molehill at x (his trowel: trowelart.js), drawn behind its earth so its
+   * foot is in the ground: `draw(g)` draws it, its foot at 0, 0, into a group set on the molehill's slope. While
+   * it stands there, that molehill never sinks. Null takes it out again. Returns the group, or null.
+   */
+  function stand(x, draw, only = null) {
+    const hill = find(x)
+    if (!hill || (only && hill.stood !== only)) return null // `only`: take it out only if it is still that one
+    hill.stood?.remove()
+    hill.stood = null
+    if (!draw) return null
+    const w = (hill === home ? SIZE.home : SIZE.other)[0]
+    hill.stood = el('g', { class: 'hill-stood', transform: `translate(${(w * 0.32).toFixed(0)} ${(-hill.h * 0.62).toFixed(0)})` })
+    hill.g.insertBefore(hill.stood, hill.g.firstChild)
+    draw(hill.stood)
+    return hill.stood
+  }
+
+  /** The molehill at x, his home's or one he left: { x, g, h, stood }, or undefined. */
+  const find = (x) => (home && Math.abs(x - home.x) < COVERS ? home : hills.find((o) => Math.abs(o.x - x) < COVERS))
+
+  /** What stands in the molehill at x (stand), or null. */
+  const stood = (x) => find(x)?.stood ?? null
+
   /** Where the molehills stand: his home's, then those he left, oldest first. */
   const xs = () => [HOME, ...hills.map((h) => h.x)]
 
   /** Does a molehill stand at x (his home's, or one he left)? */
   const at = (x) => Math.abs(x - HOME) < COVERS || hills.some((h) => Math.abs(h.x - x) < COVERS)
 
-  /** The molehill drawn at this point of the meadow (scene units), his home's among them: its x, or null. */
+  /** The molehill drawn at this point of the meadow (scene units), his home's among them, or what stands in it
+   * (his trowel: a tap on it is a tap on its molehill): its x, or null. */
   function under(x, y) {
     const on = (hx, [w, tall]) => Math.abs(x - hx) < w / 2 && y > GROUND - tall - REACH && y < GROUND + REACH
-    if (on(HOME, SIZE.home)) return HOME
-    return hills.find((h) => on(h.x, SIZE.other))?.x ?? null
+    const onStood = (hill, [w, tall]) => !!hill?.stood && Math.abs(x - hill.x - w * 0.32) < STOOD.half && y > GROUND - tall * 0.62 - STOOD.tall && y < GROUND
+    if (on(HOME, SIZE.home) || onStood(home, SIZE.home)) return HOME
+    return hills.find((h) => on(h.x, SIZE.other) || onStood(h, SIZE.other))?.x ?? null
   }
 
   /**
@@ -114,5 +146,5 @@ const Hills = (() => {
     Sound.say('giggle', true) // now and then: here I am
   }
 
-  return { setup, make, at, xs, under, burrow, /** How many he has left about (not his home's). */ get count() { return hills.length } }
+  return { setup, make, at, xs, under, burrow, stand, stood, /** How many he has left about (not his home's). */ get count() { return hills.length } }
 })()

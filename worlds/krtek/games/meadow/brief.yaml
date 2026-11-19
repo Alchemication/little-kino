@@ -88,6 +88,17 @@ scenes:
   sound:
     text: Now and then his hm, an aha, an ooh.
     origin: invented
+- id: trowel
+  action:
+    text: Nothing, or send him down the molehill it stands in, and dig.
+    origin: invented
+  result:
+    text: On about half the plays he has his little trowel, as in Krtek a buldozer - a blue blade on a short dark handle with a crossbar grip - standing stuck upright in the top of his home molehill from the start. It stays where he stuck it - going down that molehill he takes it with him, digs new earth with it under the ground, and coming up anywhere its tip pokes up through the earth first and there it stands, in the molehill he came up in. On the other plays, once, left alone at home, he scratches his head, has an idea, dives into his molehill and comes up holding it high, his other arm flung up, delighted, as in Krtek a myška, then sticks it in the molehill's top. Digging with it, now and then something happens (Adam's picks, 2026-11-19) - it clinks on a stone and he shakes with the jolt, it sticks and he tugs it free, or a spadeful flung back lands on his own head and he shakes it off with a giggle. It clinks on what he finds before he finds it, and leans by his pillow while he sleeps.
+    origin: inspired
+    refs: ['world:characters[krtek].moves[trowel].claim', 'episode:krtek-a-buldozer', 'episode:krtek-a-myska']
+  sound:
+    text: A bright clink on a stone, the scrape of the earth, his giggle.
+    origin: invented
 - id: tap-mole
   action:
     text: Tap the mole.

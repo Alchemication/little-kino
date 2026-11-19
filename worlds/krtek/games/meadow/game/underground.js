@@ -30,7 +30,7 @@
 // calls halt(), which keeps what was dug as far as he got and leaves him
 // where he is drawn.
 
-/* global Acts, Clock, Debug, Den, Hills, Layout, Mole, Motion, Sound, Things, TunnelArt, Tunnels, World */
+/* global TrowelArt, Acts, Clock, Debug, Den, Hills, Layout, Mole, Motion, Sound, Things, TunnelArt, Tunnels, World */
 /* exported Underground */
 const Underground = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
@@ -343,6 +343,7 @@ const Underground = (() => {
     if (!part.dug) Tunnels.dig(net, part.from, part.to)
     if (natural && !part.dug) {
       const found = await find(part)
+      if (!found) await TrowelArt.surprise(Math.abs(part.to - part.from), Mole.state.x, facing, { alive: () => going === mine })
       const roll = spoils() // drawn either way, so the stream stays put
       if (!found && Math.abs(part.to - part.from) >= SPOIL_FROM && roll < SPOIL_CHANCE) await spoil(mine)
     }
@@ -427,6 +428,7 @@ const Underground = (() => {
     if (carrying || kept.length >= FINDS.length || Math.abs(part.to - part.from) < FIND_FROM || roll > FIND_CHANCE) return false
     const kind = toFind()
     Debug.trace('finds', { find: kind }) // not `kind`: the trace's own name for the event
+    if (TrowelArt.held) Sound.clink() // his trowel strikes it first
     TunnelArt.act('sniff', true)
     Sound.say('ooh', true)
     await TunnelArt.unearth(kind, Mole.state.x, facing)
@@ -475,6 +477,7 @@ const Underground = (() => {
   /** Up the shaft at x and out of sight, the movers `dx` along from where they were drawn: the way up dug
    * first if there is no molehill there yet. */
   async function climb(x, dx) {
+    TrowelArt.put(x) // with his trowel in hand: its tip pokes up first, and it stands there
     if (!Hills.at(x)) {
       const paths = TunnelArt.diggingUp(x)
       await Promise.all(paths.map((p) => Motion.endAt(p, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: DIG_UP_MS })))
@@ -487,6 +490,7 @@ const Underground = (() => {
    * stays open a moment as he comes up (the caller brings him up: Mole.comeUp). `followers` come behind.
    */
   async function tunnelTo(to, followers = []) {
+    TrowelArt.take(Mole.state.x) // his trowel, if it stands in the molehill he went down: with him
     const x = await along(to, followers)
     await climb(x, x - moversAt)
     TunnelArt.empty()
@@ -501,6 +505,7 @@ const Underground = (() => {
     Sound.dig()
     await Mole.goDown()
     Mole.put(x, 'under')
+    TrowelArt.take(x) // his trowel, if it stands in this molehill: down with him
     open()
     rest(x)
     await Motion.endAt(movers, [{ transform: `translateY(-${SHAFT_DROP}px)` }, { transform: 'translateY(0px)' }], { duration: DROP_MS, easing: 'ease-out' })

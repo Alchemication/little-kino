@@ -182,33 +182,23 @@ sounds he has judged are in.
         phone size, whether the moods read or feel like too much, the
         halo's twinkle (`TWINKLE_MS`). Around midday it passes behind the
         church tower on the hill, face and all, as the plain disc did.
-     3. **The trowel** (`world.yaml` `trowel`: Krtek a buldozer 0:42–5:48;
-        Krtek a myška 2:17–2:25, where he dives into his molehill and comes
-        up with it, and 2:56–4:10). Not every play: on some plays he has it, on others not
-        (Adam, 2026-11-19), drawn from its own stream. On a play with it,
-        it stands stuck upright in his home molehill, or in the ground by
-        whatever he is doing, as in the film, and he holds it only to dig,
-        so no other gesture needs a version with it. Its beats, varied,
-        with rare surprises, slow and soft: digging himself in on the
-        grass (`Mole.digIn`), a few quick spadefuls with earth over his
-        shoulder; new earth underground dug with it, quicker than his paws
-        and with a rhythm (dig-dig-dig, pause), his nose still tapping
-        first; now and then it clinks on a stone and he shakes with the
-        jolt, sticks and he tugs it free, flings earth onto his own head,
-        or he leans on it and wipes his brow; it clinks on a find before
-        he finds it (`FINDS`); coming up where there is no molehill, its
-        tip pokes through the grass first; pushing spoil up a shaft with
-        it; in his den it leans by the ledge while he naps. Krtek a
-        myška's beat too: on a play without it, now and then he has an
-        idea, dives head first into his molehill and comes up holding it
-        high, delighted, and has it from then on. The
-        prop drawn in `moleart.js` after the film's frames
-        (`new-character`), its moves in `mole.js`, its beats in
-        `underground.js` and `hills.js`, a scrape and a clink
-        (`new-sound`, Adam picks), the brief part `original` with its
-        refs, the browser tables, and the slice `TestMeadowUnderground or
-        TestMeadowMolehills or TestMeadowTapHim`. On plays without it he
-        digs as now, with his paws.
+     3. **Adam judges the trowel** (built 2026-11-19, his picks: it stays
+        where he stuck it, he fetches it with an idea first, three
+        surprises; the beats mine, not checked with him; `trowel.js` the
+        rules, `trowelart.js` the drawing and beats, `?trowel=1` / `0`).
+        About half the plays it stands in his home molehill from the
+        start; it goes down with him from the molehill it stands in, he
+        digs with it, and its tip pokes up first where he comes up. On
+        the rest, once, left alone at home, he fetches it (Krtek a myška
+        2:17–2:25). Digging with it, now and then (`SURPRISE_CHANCE`
+        0.3) a clink on a stone, stuck and tugged free, or a clod on his
+        own head. Judge: its size in the molehill and in his hand at
+        phone size, the fetch's pose (one arm flung up, the trowel held
+        high), how often the surprises come, and whether it should dig
+        faster than his paws (it digs at their pace now). Not built: the
+        trowel pushing spoil up a shaft, a tap on it. Waiting on the
+        sound board: the clink (a synth stand-in now, `sound.js`
+        `clink`).
    - **Adam listens to the meadow's music in play** (built 2026-10-22,
      `worlds/krtek/MUSIC_DIRECTION.md`): the theme as he wakes, curious as
      a thing arrives, sad at its trouble (the egg found, the poles at his

@@ -705,7 +705,7 @@ class TestMeadowMolehills:
     def tap_hill(self, m: Meadow, nth: int) -> None:
         """A real tap on the top of the nth molehill drawn (0: his home's)."""
         box = m.page.evaluate(
-            "(n) => { const r = document.querySelectorAll('#front .hill')[n].getBoundingClientRect();"
+            "(n) => { const r = document.querySelectorAll('#front .hill')[n].querySelector(':scope > g:not(.hill-stood)').getBoundingClientRect();"
             " return { x: r.x + r.width / 2, y: r.y + r.height * 0.3 } }",
             nth,
         )
@@ -1223,6 +1223,7 @@ ALONE_ACTS = {
     "stretch": "hill",
     "hop": "hill",
     "water": "midday",
+    "trowel": "hill",  # on a play without it (trowel=0): he fetches it from his den
 }
 
 
@@ -1248,7 +1249,7 @@ class TestMeadowAlone:
 
     @pytest.mark.parametrize("name", sorted(ALONE_ACTS))
     def test_each_move_ends_free(self, meadow: callable, name: str) -> None:
-        m = meadow(f"{STILL}&props=&day=60")
+        m = meadow(f"{STILL}&props=&day=60&trowel=0")
         self.ready(m, name)
         m.page.evaluate("(n) => { Alone.play(n) }", name)
         assert f'"act":"{name}"' in m.page.evaluate(
@@ -1259,7 +1260,7 @@ class TestMeadowAlone:
 
     @pytest.mark.parametrize("name", sorted(ALONE_ACTS))
     def test_each_move_cut_short_by_a_tap(self, meadow: callable, name: str) -> None:
-        m = meadow(f"{STILL}&props=&day=60")
+        m = meadow(f"{STILL}&props=&day=60&trowel=0")
         self.ready(m, name)
         m.page.evaluate("(n) => { Alone.play(n) }", name)
         m.play_for(CUT_MS)
@@ -1960,6 +1961,134 @@ class TestMeadowSun:
         m.wait(f"{self.FACE} === 'glad'", 3_000)
         m.wait(f"{self.FACE} === 'smile'", 30_000)
         m.wait_free()
+        m.assert_settled()
+
+
+class TestMeadowTrowel:
+    """His trowel (trowel.js, trowelart.js; Krtek a buldozer, Krtek a myška):
+    some plays it stands in his home molehill from the start, others he
+    fetches it once; it goes down with him from the molehill it stands in,
+    he digs with it, and it stands in the molehill he comes up in. A cut
+    never leaves it in the air."""
+
+    AT = "TrowelArt.state.at"
+    UNDER = "meadowGame.state().pose === 'under' && !meadowGame.state().busy"
+
+    def test_it_goes_down_with_him_and_stands_where_he_comes_up(
+        self, meadow: callable
+    ) -> None:
+        m = meadow(f"{STILL}&props=&trowel=1")
+        m.wake()
+        assert m.page.evaluate(self.AT) == 900, "in his home molehill"
+        m.do("dig to 900")  # down his own molehill, to stay
+        m.wait(self.UNDER)
+        assert m.page.evaluate(self.AT) == "held"
+        assert m.page.evaluate("!!document.querySelector('.crawler .cr-trowel')")
+        m.do("crawl to 1400")  # new earth, dug with it
+        m.wait_free()
+        m.do("go to 1700")  # up on the grass further on
+        m.wait_free()
+        assert m.page.evaluate(self.AT) == 1700
+        assert m.page.evaluate("!!Hills.stood(1700) && !Hills.stood(900)")
+        m.assert_settled()
+
+    def test_a_trip_from_another_molehill_leaves_it_where_it_stands(
+        self, meadow: callable
+    ) -> None:
+        m = meadow(f"{STILL}&props=&trowel=1")
+        m.wake()
+        m.do("go to 1500")
+        m.wait_free()
+        m.do("dig to 2200")  # dug in on the grass, away from it: paws
+        m.wait_free()
+        m.do("dig to 2600")  # from the molehill he made, still without it
+        m.wait_free()
+        assert m.page.evaluate(self.AT) == 900, "it stays in his home molehill"
+        m.assert_settled()
+
+    def test_cut_on_the_way_it_stands_in_the_molehill_he_is_put_in(
+        self, meadow: callable
+    ) -> None:
+        m = meadow(f"{STILL}&props=&trowel=1")
+        m.wake()
+        m.do("dig to 2400")  # from his home, with it, under the grass
+        m.wait("(Underground.burrowX() ?? 0) > 1300")
+        m.do("stop")
+        m.wait_free()
+        x = m.state()["x"]
+        assert round(m.page.evaluate(self.AT)) == round(x), (
+            m.page.evaluate(self.AT),
+            x,
+        )
+        m.assert_settled()
+
+    def test_a_tap_on_it_is_a_tap_on_its_molehill(self, meadow: callable) -> None:
+        m = meadow(f"{STILL}&props=&trowel=1")
+        m.wake()
+        m.do("go to 1500")
+        m.wait_free()
+        box = m.page.evaluate(
+            "() => { const r = document.querySelector('.hill-stood .trowel').getBoundingClientRect();"
+            " return { x: r.x + r.width / 2, y: r.y + r.height * 0.3 } }"
+        )
+        m.page.mouse.click(box["x"], box["y"])
+        m.wait("meadowGame.trace().includes(' burrows ')")
+        m.wait_free()
+        assert m.state()["x"] == 900, m.state()
+        m.assert_settled()
+
+    @pytest.mark.parametrize("kind", ["clink", "stuck", "head"])
+    def test_each_surprise_ends_with_him_down_there_with_it(
+        self, meadow: callable, kind: str
+    ) -> None:
+        m = meadow(f"{STILL}&props=&trowel=1")
+        m.wake()
+        m.do("dig to 900")
+        m.wait(self.UNDER)
+        m.page.evaluate(
+            "(k) => { TrowelArt.surprise(200, Mole.state.x, -1, { forced: k }).then(() => (window.__done = true)) }",
+            kind,
+        )
+        m.wait("window.__done === true", 5_000)
+        assert traced_field(m, "trowel", "does")[-1] == kind
+        assert not m.page.evaluate(
+            "document.querySelector('.crawler').classList.contains('jolt') || "
+            "document.querySelector('.crawler').classList.contains('tug') || "
+            "document.querySelector('.crawler').classList.contains('shake')"
+        )
+        assert m.page.evaluate(self.AT) == "held"
+        m.wait_free()
+        assert m.state()["pose"] == "under", m.state()
+        assert not m.errors, m.errors
+
+    def test_without_it_he_fetches_it_once(self, meadow: callable) -> None:
+        m = meadow(f"{STILL}&props=&trowel=0")
+        m.wake()
+        assert m.page.evaluate(self.AT) is None
+        assert m.page.evaluate("Alone.ACTS.trowel.ok()")
+        m.page.evaluate("() => { Alone.play('trowel') }")
+        m.wait("TrowelArt.state.at === 'up'", 15_000)
+        assert m.page.evaluate("Mole.state.holding")
+        m.wait_free()
+        assert m.page.evaluate(self.AT) == 900
+        assert not m.page.evaluate("Alone.ACTS.trowel.ok()"), "only once"
+        m.assert_settled()
+
+    @pytest.mark.parametrize("at", ["dives", "up"])
+    def test_the_fetch_cut_short(self, meadow: callable, at: str) -> None:
+        """Cut while he is down looking for it: not his yet (another time); cut
+        once he is up with it: it stands in his molehill, not in the air."""
+        m = meadow(f"{STILL}&props=&trowel=0")
+        m.wake()
+        m.page.evaluate("() => { Alone.play('trowel') }")
+        if at == "dives":
+            m.wait("meadowGame.state().pose === 'down'", 15_000)
+        else:
+            m.wait("TrowelArt.state.at === 'up'", 15_000)
+        m.do("go to 1500")
+        m.wait_free()
+        assert m.page.evaluate(self.AT) == (None if at == "dives" else 900)
+        assert not m.page.evaluate("Mole.state.holding")
         m.assert_settled()
 
 

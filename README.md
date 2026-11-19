@@ -303,7 +303,7 @@ umbrella as he wakes; `?owl=1` puts an owl in the oak this play (`?owl=0` none),
 `?owl=out` has it out on its limb from the start; `?season=autumn` (or `spring`) sets the play's season (half are autumn: the
 chestnut, the woodpecker, the hedgehog), `?woodpecker=out` has the autumn woodpecker out on the trunk from the start (`?woodpecker=0`
 none), `?critters=geese` sends autumn's geese over at once; `?rain=drizzle` (or `shower`, `downpour`) brings that rain soon after he wakes, in any season (about one autumn play in three has one); `?moon=full` (or `half`, `crescent`) sets the evening's moon (a full one brings the wolf's howl; with `?day=40` to see it soon); `?menace=notes` plays the bulldozer's motif written note by note on the
-meadow's samples, instead of its recorded takes, to compare. In the console, `meadowGame.state()`,
+meadow's samples, instead of its recorded takes, to compare; `?trowel=1` stands his trowel in his home molehill from the start, `?trowel=0` leaves it in his den for him to fetch (about half the plays have it). In the console, `meadowGame.state()`,
 `meadowGame.trace()`, `meadowGame.perform('water')`.
 
 In the yard's console: `yardGame.state()`, `yardGame.trace()`, `yardGame.act('nap')`,

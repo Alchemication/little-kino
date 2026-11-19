@@ -23,7 +23,7 @@
 // gesture under way short (Mole.relax), and he is settled where it left
 // him, so he always ends free and standing.
 
-/* global Again, Alone, SunArt, Watering, SoilLife, Autumn, Bed, Den, Hills, TunnelArt, Underground, Water, Oak, Owl, Fence, Church, Clock, Cricket, Critters, Flock, Heron, Wildlife, Eclipse, Moons, RainPlay, Showers, Spring, Day, Debug, FilmLook, Friends, Layout, MeadowBeds, Mole, Nest, Motion, Music, Painting, Sound, Storm, Things, Swing, Turn, View, Weather, Woodpecker, World */
+/* global Again, Alone, SunArt, TrowelArt, Watering, SoilLife, Autumn, Bed, Den, Hills, TunnelArt, Underground, Water, Oak, Owl, Fence, Church, Clock, Cricket, Critters, Flock, Heron, Wildlife, Eclipse, Moons, RainPlay, Showers, Spring, Day, Debug, FilmLook, Friends, Layout, MeadowBeds, Mole, Nest, Motion, Music, Painting, Sound, Storm, Things, Swing, Turn, View, Weather, Woodpecker, World */
 /* exported meadowGame */
 const meadowGame = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
@@ -105,6 +105,7 @@ const meadowGame = (() => {
     }, (ctm ? ctm.a : 1) * (window.devicePixelRatio || 1))
     Hills.setup({ layer: layers.front, grass: frontGround, random: paint, dropHat, changed: () => Underground.redraw() })
     Hills.make(HOME, true, false)
+    TrowelArt.setup(Layout.flags.trowel) // his trowel in it from the start, some plays (trowel.js)
     makeBed()
     makeTufts()
     Mole.make(layers.mole, document.getElementById('mole-out'))
@@ -344,6 +345,7 @@ const meadowGame = (() => {
       Debug.check('nobody is left about behind the fence once he is free', Fence.about === 0, { about: Fence.about })
       Debug.check('a mole in the ground has a molehill', ['out', 'under', 'wade'].includes(m.pose) || Hills.at(m.x), { x: m.x, pose: m.pose })
       Debug.check('a free mole is out of the water', m.pose !== 'wade' && !Water.wading, { pose: m.pose })
+      Debug.check('his trowel is in his hand only down in his tunnels, else standing in a molehill', TrowelArt.check() === true, { trowel: TrowelArt.check(), at: TrowelArt.state.at })
       Debug.check('staying under, he is in his tunnel', m.pose !== 'under' || Underground.inTunnel(m.x), { x: m.x })
       Debug.check('under the ground, never in the oak\'s roots', m.pose !== 'under' || m.x >= Layout.UNDER.from - 1, { x: m.x })
     }
@@ -391,6 +393,7 @@ const meadowGame = (() => {
     Water.restore()
     if (cut) cut()
     settle()
+    TrowelArt.settle() // his trowel: in the molehill he is in, never left in the air
   }
 
   /** Get him out on the grass and waddle to x. */

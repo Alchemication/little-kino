@@ -16,7 +16,7 @@
 // none while a threat is about, and none staying under (he comes up first by
 // himself: underground.js).
 
-/* global Acts, Clock, Day, Debug, Hills, Layout, Mole, Sound, Watering */
+/* global TrowelArt, Acts, Clock, Day, Debug, Hills, Layout, Mole, Sound, Watering */
 /* exported Alone */
 const Alone = (() => {
   const FIRST_MS = 4000 // left alone this long, he starts pottering
@@ -44,6 +44,8 @@ const Alone = (() => {
     stretch: { weight: 2, by: { morning: 2.5, day: 0.5, evening: 2 }, run: () => Mole.stretch() },
     hop: { weight: 2, by: { morning: 2, evening: 0.3 }, run: () => Mole.hop(30, 480) },
     // once a day at midday, or to finish it once cut short (the can left lying out): see watering.js
+    // on a play he hasn't it yet, once, at home: he fetches his trowel from his den (trowelart.js)
+    trowel: { weight: 3, ok: () => TrowelArt.wants(), run: (alive) => TrowelArt.fetch(alive) },
     water: { weight: 6, by: { morning: 0 }, ok: () => Watering.wants() && ['out', 'hill'].includes(Mole.state.pose), run: (alive) => Watering.run(alive), restore: () => Watering.restore() },
   }
 

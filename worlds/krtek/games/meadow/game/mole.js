@@ -629,6 +629,21 @@ const Mole = (() => {
     return had
   }
 
+  /** Hold what `draw(g)` draws (handle at 0,0, pointing the way his fingers do) in his hand, the near one, a copy
+   * in each view so it turns with him; null: his hand empty again. A hook for a game's prop (the meadow's trowel). */
+  function grip(draw) {
+    for (const v of all()) {
+      v.view.querySelectorAll('.mole-held').forEach((g) => g.remove())
+      if (!draw) continue
+      const arm = v.arms[v.arms[0] === v.arms[1] || v.view.classList.contains('mole-three') ? 0 : 1] // facing us, his right; else the near one
+      const hand = arm.querySelector('.mole-hand')
+      const g = el('g', { class: 'mole-held', transform: hand.getAttribute('transform').replace(/ scale\(.*\)$/, '') }) // at the hand, turned as its fingers
+      arm.insertBefore(g, hand) // the hand grips over it
+      draw(g)
+    }
+    state.holding = !!draw
+  }
+
   /** What is on his head (an eggshell cap, a leaf), or null. */
   const wearing = () => hatSlot.firstChild
 
@@ -743,5 +758,5 @@ const Mole = (() => {
     await Motion.endAt(root, [{ transform: from }, { transform: rootAt(x, dy) }], { duration: ms, easing })
   }
 
-  return { SCALE, state, at, drawnX, face, mood, calm, settle, feel, digIn, scratchHead, show, lookAt, perk, express, setFree, head, carry, paint, dots, perch, glide, wear, wearing, lean, totter, knock, wobble, ponder, handsToFace, point, wave, peekaboo, laugh, make, put, relax, sway, shakeOff, comeUp, goDown, wade, dip, walkTo, cheer, hop, stretch, ghost, listen }
+  return { SCALE, state, at, drawnX, face, mood, calm, settle, feel, digIn, scratchHead, show, lookAt, perk, express, setFree, head, carry, grip, arms, paint, dots, perch, glide, wear, wearing, lean, totter, knock, wobble, ponder, handsToFace, point, wave, peekaboo, laugh, make, put, relax, sway, shakeOff, comeUp, goDown, wade, dip, walkTo, cheer, hop, stretch, ghost, listen }
 })()

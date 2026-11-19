@@ -273,6 +273,13 @@ body { touch-action: manipulation; -webkit-user-select: none; user-select: none;
 .crawler.sniff .cr-head { animation: cr-sniff 0.9s ease-in-out; }
 .crawler.sniff-up .cr-head { animation: cr-sniff-up 1.4s ease-in-out; }
 .crawler.sniff .cr-nose, .crawler.sniff-up .cr-nose { animation: cr-twitch 0.15s ease-in-out 6 alternate; }
+/* his trowel's surprises (trowelart.js): a jolt as it clinks on a stone, tugging it free, shaking a clod off his head */
+.crawler.jolt .cr-whole { animation: cr-jolt 0.07s linear 8 alternate; }
+.crawler.tug .cr-whole { animation: cr-tug 0.36s ease-in-out 3; }
+.crawler.shake .cr-head { animation: cr-shake 0.12s ease-in-out 5 alternate; }
+@keyframes cr-jolt { from { transform: translateX(-2.5px); } to { transform: translateX(2.5px); } }
+@keyframes cr-tug { 0%, 100% { transform: none; } 50% { transform: translateX(8px) rotate(5deg); } }
+@keyframes cr-shake { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
 @keyframes cr-bob { from { transform: translateY(0) rotate(0deg); } to { transform: translateY(-3px) rotate(-1.5deg); } }
 @keyframes cr-paddle { from { transform: translate(-5px, 1px) rotate(-25deg); } to { transform: translate(5px, -2px) rotate(22deg); } }
 @keyframes cr-kick { from { transform: translateX(-3px); } to { transform: translateX(4px); } }

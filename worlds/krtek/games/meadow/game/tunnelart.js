@@ -10,7 +10,7 @@
 //
 // Only drawing here: underground.js says what to show and moves it.
 
-/* global Clock, Layout, MoleArt, Motion, SoilArt, Tunnels */
+/* global TrowelArt, Clock, Layout, MoleArt, Motion, SoilArt, Tunnels */
 /* exported TunnelArt */
 const TunnelArt = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
@@ -39,9 +39,12 @@ const TunnelArt = (() => {
   const DEN_HALF = 120
   /** How far ahead of where he is his digging hands are: where a heap he pushes goes. */
   const HANDS = 70
+  const CLOD_LANDS_MS = 520 // a clod flung over his shoulder onto his own head: this long in the air
 
   let root, earthG, tunnelsG, crumbsG, denG, shelfG, digG, moversG, flyG, clipRect
   let carried = null // what he carries on his back, found while digging (drawn on him each time he is drawn)
+  let tool = false // his trowel in his near hand (trowelart.js), drawn on him each time he is drawn
+  let denAt = { x: 0, y: 0 } // where it leans in his den as he sleeps, in the den's units
   let deep = null // the earth all along the meadow, under the cutaway: shown while the view is slid down
   let shown = false // open, or opening: the child can see it
   let shutting = null // the timer before it closes
@@ -87,6 +90,7 @@ const TunnelArt = (() => {
   /** Drawn into `layer`, shut, with `den` (den.js's room, in its own coordinates `room`) under the home molehill
    * at x `home`; the earth all along into `deepLayer`, hidden. */
   function setup(layer, deepLayer, den, room, home) {
+    denAt = { x: room.x + room.w - 150, y: room.y + room.h - 190 }
     deep = deepLayer
     deep.style.display = 'none'
     SoilArt.draw(deep, -200, Layout.WORLD_W + 200, TOP, FOOT - TOP)
@@ -164,6 +168,7 @@ const TunnelArt = (() => {
       drawOne(f)
     })
     const him = crawler(facing)
+    if (tool) trowelIn(him)
     if (carried) him.appendChild(findArt(carried, 'carried')).setAttribute('transform', 'translate(-2 -64) scale(1.6)') // on his back
     return run
   }
@@ -210,6 +215,39 @@ const TunnelArt = (() => {
       el('path', { d: 'M0 0 C14 -18 40 -18 52 0 C40 18 14 18 0 0 Z', fill: colour, stroke: '#5a3a1c', 'stroke-width': 3, transform: `translate(${cx + dx} ${floor - 30}) rotate(${turn}) scale(1.4)` }, g) // a dry leaf or two
     }
     return g
+  }
+
+  /**
+   * A clod flung back over his shoulder that lands on his own head (his trowel's surprise, he at x facing `dir`):
+   * up and over, it sits there `ms`, then falls off behind him. Resolves once it has gone.
+   */
+  async function clodOnHead(x, dir, ms) {
+    const c = el('ellipse', { rx: 13, ry: 9, fill: '#b07a42', stroke: '#3a2615', 'stroke-width': 2.5 }, flyG) // lighter than his black head, so it shows on it
+    const head = [x + dir * 34, FLOOR - 86] // on his crown (the crawler, drawn up CRAWLER times)
+    const at = ([cx, cy]) => `translate(${cx}px, ${cy}px)`
+    try {
+      await Motion.endAt(c, [{ transform: at([x + dir * 70, FLOOR - 40]) }, { transform: at([x + dir * 50, FLOOR - 150]), offset: 0.55 }, { transform: at(head) }], { duration: CLOD_LANDS_MS, easing: 'ease-out' })
+      await Clock.wait(ms)
+      await Motion.endAt(c, [{ transform: at([x - dir * 50, FLOOR - 4]) }], { duration: 380, easing: 'ease-in' })
+    } finally {
+      c.remove()
+    }
+  }
+
+  /** His trowel in his near hand, the blade ahead along his fingers, its handle in his palm. */
+  function trowelIn(him) {
+    const paw = him.querySelector('.cr-hand-a')
+    const g = el('g', { class: 'cr-trowel', transform: `rotate(${PAW_DIR + 180}) translate(0 26) scale(0.9)` })
+    paw.insertBefore(g, paw.firstChild) // his hand grips over it
+    TrowelArt.draw(g)
+  }
+
+  /** He has his trowel in hand now (true), or not: drawn on him from now on, and on him now if he is drawn. */
+  function holdTrowel(on) {
+    tool = on
+    const him = moversG.querySelector('.crawler')
+    him?.querySelector('.cr-trowel')?.remove()
+    if (on && him) trowelIn(him)
   }
 
   /** He carries `kind` on his back now (found while digging), or nothing (null). */
@@ -274,7 +312,11 @@ const TunnelArt = (() => {
   const empty = () => moversG.replaceChildren()
 
   /** Him lying asleep on his pillow in his den (true: the crawler gone, the z's drifting up), or up again. */
-  const asleep = (on) => denG.classList.toggle('asleep', on)
+  function asleep(on) {
+    denG.classList.toggle('asleep', on)
+    denG.querySelector('.den-trowel')?.remove()
+    if (on && tool) TrowelArt.draw(denG, 'den-trowel').setAttribute('transform', `translate(${denAt.x} ${denAt.y}) rotate(-14) scale(3.4)`) // leaning by his pillow, in the den's units
+  }
 
   /** Open the ground (it may be closing: it opens again). */
   function open() {
@@ -316,7 +358,7 @@ const TunnelArt = (() => {
   }
 
   return {
-    setup, draw, depth, asleep, act, pace, spoil, moveSpoil, raiseSpoil, HANDS, clod, carry, shelf, unearth, DEN_HALF, digging, diggingUp, dug, movers, empty, open, shut,
+    setup, draw, depth, asleep, act, pace, holdTrowel, clodOnHead, CLOD_LANDS_MS, spoil, moveSpoil, raiseSpoil, HANDS, clod, carry, shelf, unearth, DEN_HALF, digging, diggingUp, dug, movers, empty, open, shut,
     /** Is it open (or opening, or lingering) for the child to see? */
     get shown() { return shown },
     /** The earth's top: a tap below it, he staying under, is a tap on the earth. */

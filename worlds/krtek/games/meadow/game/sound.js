@@ -522,7 +522,15 @@ const Sound = (() => {
     hiss(0, 0.35, 260, 1.5, 0.18)
   }
 
-  /** Something thrown: a whoosh. */
+  /** His trowel striking a stone under the ground: a short bright clink (a stand-in until takes are picked). */
+  function clink() {
+    if (!ready() || recorded('clink')) return
+    note(2350, 0, 0.18, 0.16, 'triangle', 0.6)
+    note(3520, 0.005, 0.12, 0.08, 'sine', 0.6)
+    hiss(0, 0.03, 4000, 2, 0.08)
+  }
+
+    /** Something thrown: a whoosh. */
   function whoosh() {
     if (!ready() || recorded('whoosh')) return
     hiss(0, 0.5, 1500, 0.8, 0.12)
@@ -662,5 +670,5 @@ const Sound = (() => {
     listen(fn) { heard = fn },
     /** Is sound on (after the first tap, and not held)? */
     get running() { return ready() && ctx.state === 'running' },
-    say: own(say), hushEchoes, ECHO_GAP_S, dig: own(dig), pop: own(pop), bonk, water, bell, snicker, growl, croak, roll, knock, tock, squeak, sneeze, peep, crack, cluck, plink, tug, whoosh, rumble, splash, swish, clunk, boo, yelp, crank, vroom, wind, chirp, heron, grunt, snort, hoot, hootSleepy, drum, peck, snuffle, honk, howl, puddle: own(puddle), drips: own(drips), scrape: own(scrape), scurry: own(scurry), trickle: own(trickle) }
+    say: own(say), hushEchoes, ECHO_GAP_S, dig: own(dig), pop: own(pop), bonk, water, bell, snicker, growl, croak, roll, knock, tock, squeak, sneeze, peep, crack, cluck, plink, tug, clink: own(clink), whoosh, rumble, splash, swish, clunk, boo, yelp, crank, vroom, wind, chirp, heron, grunt, snort, hoot, hootSleepy, drum, peck, snuffle, honk, howl, puddle: own(puddle), drips: own(drips), scrape: own(scrape), scurry: own(scurry), trickle: own(trickle) }
 })()

@@ -107,7 +107,7 @@ test('what is over the whole meadow is heard from above: the rain, the wind, the
 
 const NOT_SOUNDS = ['ensure', 'under', 'bus', 'hearFrom', 'from', 'listen', 'hushEchoes'] // the hooks, not sounds
 const ARGS = { roll: [1], rumble: [1], water: [0.5] } // what a sound needs to be heard at all
-const HIS = ['say', 'dig', 'pop', 'puddle', 'drips', 'scrape', 'scurry', 'trickle'] // his own: clear
+const HIS = ['say', 'dig', 'pop', 'puddle', 'drips', 'scrape', 'scurry', 'trickle', 'clink'] // his own: clear (his trowel's clink too)
 
 test('every sound but his own is heard from above, a new one too (the woodpecker\'s drum was not)', async () => {
   for (const effects of [false, true]) await everyAbove(effects) // made here, and the recorded takes
