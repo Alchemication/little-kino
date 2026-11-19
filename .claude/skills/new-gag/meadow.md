@@ -28,6 +28,7 @@ child taking over, and goes at once. Keep each step
 | Underground | a visitor goes down with `f.rise(false)` (sinks `DOWN`, its full height, clipped at the ground by `friends-above-ground`) and comes up with `rise(true)`; what it carries goes in `f.held`, so it goes down with it. A visitor drawn `behind` something that hides it (`{ behind: <layer> }`, the hen and hare in the garden behind the painter's fence) may come and go in view, since nothing shows it appear. The mole's own: `digTo(x)`, `Mole.goDown`, `Underground.tunnelTo(x, followers)` (the bump; `Underground.burrowX()` says where it is drawn; what he digs is kept, `tunnels.js`), `comeUp('hill')`. Staying under (pose `under`), nothing arrives, and any gesture not in meadow.js `UNDER` brings him up first. Whoever comes up where he is needs him to step aside first (the paint's friends once rose on top of him) |
 | The spring's pool | `water.js`: `Water.paddle` (a tap on the spring), `Water.wash(alive, x)` (after the paint): he wades in (`Mole.wade`, pose `wade`, the pool's near edge drawn in front of him in `#wade`), `Mole.dip` under the water, out with `Mole.comeUp('out')`. A cut settles him on the bank (meadow.js `settle`, `Water.restore`) |
 | His moves | `mole.js`: `goTo` (via `Things.meadow`), `walkTo`, `carry`/`wear`, `lean`, `knock`, `wobble`, `cheer`, `perch`, `glide`, `paint`/`dots`. New moves there, made with `Motion.endAt`, cut by `relax()` |
+| A prop he holds in one hand, or that stands about between uses | in his hand: `Mole.grip(draw)` (a copy in each view, in his near hand, turning with his arm; null empties it), not `carry` (both arms up over his head, which at his molehill reads as hands to his face); his arms with `Mole.arms(left, right, ms)`, about 110 and -80 for flung up (higher, his short arms cover his face). Under the ground, on the crawler (`TunnelArt.holdTrowel`). Standing in a molehill: `Hills.stand(x, draw)`, behind its earth, which keeps that molehill from sinking, and a tap on it is a tap on the molehill (`Hills.under`). The trowel (`trowelart.js`) is the example: where it is is one state (`at`), each cut ends with `TrowelArt.settle()` after the meadow's settle, and a `Debug.check` that it is never in the air |
 | Drawing helpers | `Things.meadow.el` (the SVG helper), the layers in `index.html` (`#things` behind him, `#mole-out` him on the grass, `#friends` in front, `#far-things` up the hill) |
 | A place that answers taps (the flower bed, the spring, the oak, the painter's fence, the owl once it is out) | not an encounter: there all play, a tap has him go and do something there, a different way each time (meadow.js `rounds`, its own random stream). In meadow.js: an `INTENTS` entry run through `answer(name, play, onCut)`, its `intentAt` test, and its row in `PLACES` (the space bar near it); its drawing and ways in a file of its own once they outgrow meadow.js (`oak.js`), given `goTo` and `rounds` at setup. Its `onCut` puts back at once what a way left (on him, in the air, booked on the audio clock); a `Debug.check` that nothing of it is left once he is free |
 | A tap on it | `data-thing="<name>"` on what can be tapped; remove it when the thing is done (unless it has `again`), so it stops taking taps meant for what is under it |
@@ -82,6 +83,8 @@ child taking over, and goes at once. Keep each step
   the molehills, so a hover glow and a test's tap first hit it
   (`#front .hill` is the molehills).
 
+- Something added inside a drawing's group (the trowel in a molehill's) changes the group's bounding box, so a test that taps a fraction of that box lands elsewhere: the molehill tests' tap at 30% of the box went into the sky. Aim at the part that takes the tap, and give what is added the same tap as what it stands in.
+
 ## Look at it
 
 `main.py look krtek meadow` opens a seeded, still play, wakes him, and
@@ -96,6 +99,8 @@ photograph: each `--before` is played out first, however long it takes
 (a short `--for` once made a walk in `--before` fail, and a piped `tail`
 hid the error: read look's whole output).
 
+Each `--before` is played until he is free again, so a move started there is over before the first photograph: start what you want to see in `--watch`, as an expression that starts it and returns a promise that resolves once he has been busy and is free again: `"(meadowGame.perform('go to 1500'), new Promise((ok) => { let s = 0; const f = () => { const b = meadowGame.state().busy; if (b) s = 1; if (s && !b) ok(); else setTimeout(f, 20) }; f() }))"`.
+
 `look` with a `--before` that starts an encounter once photographed a still
 meadow while its trace said the whole story had played (2026-11-01, not yet
 understood). If the frames don't show what the trace says, drive the page
@@ -109,3 +114,11 @@ with Playwright yourself (`channel="chrome"`: wake, wait for the arrival,
   at every step then picked up, hurried by taps, a tap on him that hurries
   rather than cuts, and bedtime in the middle. Add a class of its own for
   what is particular to it (`TestMeadowCar`: another ride, a cut mid-ride).
+- `assert_settled` expects him up (in a molehill or on the grass). For a
+  gag that ends with him down in his tunnels, wait free and check his pose
+  is `under` and `m.errors` is empty instead (a broken `Debug.check` shows
+  there), as `TestMeadowTrowel`'s surprises do.
+- A part drawn at random per play (the trowel on half of them) gets a page
+  flag (`?trowel=1` / `0`) that draws either way, and every test that
+  needs it one way says so: the left-alone tests run with `trowel=0`, so
+  the fetch can happen.
