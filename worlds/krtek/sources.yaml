@@ -75,6 +75,14 @@ sources:
   publisher: unknown (channel @krtekthemole3695)
   accessed: '2026-10-15'
   notes: 'Verified by YouTube, about 243,000 subscribers, uploading since December 2018. On 2026-10-15 it had 44 videos: 31 of the 49 original films and 13 one-minute sketches with the mouse. Who runs it is not stated; whether it is the heirs'', the NFA''s or another licensee''s is unknown. Videos refuse anonymous downloads (they play when signed in). 4:3 picture pillarboxed into 854×480; higher formats not checked. The material behind every claim observed by claude-frames.'
+- id: youtube-krecik-zalany-dom
+  title: Krecik i zalany Dom odcinek 43 — YouTube
+  url: https://www.youtube.com/watch?v=E7LAC7uQDhE
+  kind: video
+  language: cs
+  publisher: unknown (an uploader named Alan; not an official channel)
+  accessed: '2026-11-19'
+  notes: 'An unofficial upload, from 2024-11-26, of Krtek a myška (1997), under a Polish title. Its title card reads "Krtek a myška" and its end credits name Zdeněk Miler (story and script), Jiří Strohner (music), Krátký film Praha with WDR, 1997; 5:20 long, matching cs-wikipedia''s 5:19. 490×360 only, so fine line is soft. Used for frames only, because the film was not found on the official channel; prefer an official copy if one turns up.'
 - id: stream-cz-krtek
   title: Krteček — Stream.cz
   url: https://www.stream.cz/krtek

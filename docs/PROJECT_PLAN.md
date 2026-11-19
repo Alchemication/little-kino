@@ -163,6 +163,65 @@ sounds he has judged are in.
    (`worlds/krtek/hours.md`).
    - The world (`worlds/krtek/`) is done; its `open_questions` wait,
      rights before release. His voice is generated (`docs/DECISIONS.md`).
+   - **Next in the meadow** (Adam, 2026-11-19; planned, not started:
+     waits for the fixes in the other thread to land, since 1 and 3 touch
+     `underground.js`). In this order:
+     1. **Digging pace.** Into new earth he is too slow underground
+        (`underground.js` `STROKE` 26 / `STROKE_MS` 320, about 80 units a
+        second, slowed on 2026-11-15 when he "slid"). That note was about
+        the scurry along what is dug (`SCURRY_MS`), which stays. Make the
+        digging about twice as fast, tuned by eye with `main.py look`;
+        keep `TunnelArt.pace` and the clods in step. Folds into 3 once
+        the trowel digs.
+     2. **The sun's face** (Krtek a myška 1:01–1:09, 3:55–3:59;
+        `world.yaml` `aesthetics.line_and_shape`): a yellow-orange disc,
+        thin dark outline, pointed rays, eyes as short arcs under small
+        brows, rosy cheeks, a small pink-red nose, a wide thin smile, a
+        halo of small red and orange dots that thickens and thins. In the
+        film the face never changes, even as a cloud covers it: the face
+        and the twinkling halo are `original`, its moods are ours
+        (`invented`), so keep them small and keep the film's smile the
+        sun's usual face. A new `sun.js` (`meadow.js` is near
+        its size limit): a pure mood rule from the hour and the world
+        state, unit-tested, and the face drawn in `#sun`, redrawn only
+        when the mood changes, blinking on the Clock
+        (`Debug.random('sun')`). Moods: waking in the morning, a soft
+        smile by day, a mild pout under the storm's or a shower's cloud
+        (never crying; check `DESIGN_PRINCIPLES.md`), a round "o" as the
+        eclipse's moon comes over it and relief after, beaming after
+        rain, sleepy eyes closing as it sets. A tap on it outside an
+        eclipse: it winks or smiles wider, he looks up and waves (a new
+        `INTENTS` entry; today that tap is a tap on the sky). Its
+        `brief.yaml` part, a `TestMeadowSun` browser class and its row in
+        CLAUDE.md's slice table, an early `look` render so the face acts
+        (character-looks bar).
+     3. **The trowel** (`world.yaml` `trowel`: Krtek a buldozer 0:42–5:48;
+        Krtek a myška 2:17–2:25, where he dives into his molehill and comes
+        up with it, and 2:56–4:10). Not every play: on some plays he has it, on others not
+        (Adam, 2026-11-19), drawn from its own stream. On a play with it,
+        it stands stuck upright in his home molehill, or in the ground by
+        whatever he is doing, as in the film, and he holds it only to dig,
+        so no other gesture needs a version with it. Its beats, varied,
+        with rare surprises, slow and soft: digging himself in on the
+        grass (`Mole.digIn`), a few quick spadefuls with earth over his
+        shoulder; new earth underground dug with it, quicker than his paws
+        and with a rhythm (dig-dig-dig, pause), his nose still tapping
+        first; now and then it clinks on a stone and he shakes with the
+        jolt, sticks and he tugs it free, flings earth onto his own head,
+        or he leans on it and wipes his brow; it clinks on a find before
+        he finds it (`FINDS`); coming up where there is no molehill, its
+        tip pokes through the grass first; pushing spoil up a shaft with
+        it; in his den it leans by the ledge while he naps. Krtek a
+        myška's beat too: on a play without it, now and then he has an
+        idea, dives head first into his molehill and comes up holding it
+        high, delighted, and has it from then on. The
+        prop drawn in `moleart.js` after the film's frames
+        (`new-character`), its moves in `mole.js`, its beats in
+        `underground.js` and `hills.js`, a scrape and a clink
+        (`new-sound`, Adam picks), the brief part `original` with its
+        refs, the browser tables, and the slice `TestMeadowUnderground or
+        TestMeadowMolehills or TestMeadowTapHim`. On plays without it he
+        digs as now, with his paws.
    - **Adam listens to the meadow's music in play** (built 2026-10-22,
      `worlds/krtek/MUSIC_DIRECTION.md`): the theme as he wakes, curious as
      a thing arrives, sad at its trouble (the egg found, the poles at his

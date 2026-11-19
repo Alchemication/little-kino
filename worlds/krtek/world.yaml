@@ -222,6 +222,14 @@ characters:
       sources:
       - krtek-youtube
       observed_by: claude-frames
+  - id: trowel
+    claim:
+      text: 'In Krtek a buldozer he has a small garden trowel: a blue, rounded, pointed blade on a short dark handle with a crossbar grip, about as long as his arm. When he is not using it, it stands stuck upright in the ground near him: in the top of his molehill while he waters (0:42), at the edge of his flower bed (0:57–1:20, 5:36–5:48), among the survey poles he moves (4:59–5:05). He holds it hanging blade-down from one hand by the handle as he goes about (0:55–0:57). He digs with it: he digs a small hole in the meadow, a small heap of earth beside it (4:24–4:25); after a cut the hole is a pit big enough for the bulldozer, beside a heap taller than he is (4:26), and he climbs out of it holding the trowel (4:34–4:35). He walks off carrying it and digs small holes in a line with it, flicks of earth flying (4:40–4:45). In Krtek a myška (1997) it is the same trowel: when the flood leaves the mouse on her chimney, he has an idea, dives head first into his molehill and comes back up with it, standing on top and holding it up with his other arm flung up, delighted (2:17–2:25). He digs with it beside the hare''s pickaxe and the hedgehog''s spade (2:56–3:00), and while he builds the mouse''s new house it stands stuck in the ground by the wall (4:00–4:10). Whether he has it in the other films sampled is not yet checked.'
+      status: observed
+      sources:
+      - krtek-youtube
+      - youtube-krecik-zalany-dom
+      observed_by: adam
   - id: hands-to-cheeks
     claim:
       text: Claps both hands to his cheeks or over his ears in dismay or delight (Buldozer 5:20, Autíčko 11:40).
@@ -448,10 +456,11 @@ aesthetics:
   - '#c16226'
   - '#f0b976'
   line_and_shape:
-    text: Round, soft shapes for animals; the mole is a pear with stubby limbs. Machines and buildings are drawn with straight lines and repeated patterns.
+    text: 'Round, soft shapes for animals; the mole is a pear with stubby limbs. Machines and buildings are drawn with straight lines and repeated patterns. The sun is mostly a plain orange disc (Buldozer 0:08, 1:44). In Krtek a myška (1997, spotted by Adam) it has a face: a yellow-orange disc with a thin dark outline and a ring of pointed orange rays, eyes as two short arcs under small arched brows, round rosy cheeks, a small pink-red nose and a wide thin smile, in a halo of small red and orange dots in a blue sky with soft white clouds. Its face does not change: it smiles on while a big cloud rises over it before the flood (1:01–1:09), and smiles again when it comes back after (3:55–3:59). Only the halo moves, the dots thickening and thinning as if it twinkles.'
     status: observed
     sources:
     - krtek-youtube
+    - youtube-krecik-zalany-dom
     observed_by: claude-frames
   backgrounds:
     text: 'Painted plates with texture: dabbed foliage, stippled grass, misty layers of trees behind (Hodinářem, Buldozer). The 1963 Autíčko has flatter, more graphic backgrounds than the 1970s films. In Malířem''s night the forest itself is repainted in pattern (6:40–7:56).'
