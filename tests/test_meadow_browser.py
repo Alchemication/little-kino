@@ -1905,14 +1905,60 @@ class TestMeadowEclipse:
         m.wait("meadowGame.state().eclipse > 0", 5_000)
         assert not m.errors, m.errors
 
-    def test_a_tap_on_the_sun_without_one_is_a_tap_on_him(
+
+class TestMeadowSun:
+    """The sun's face, after Krtek a myška (sun.js, sunart.js): the film's
+    smile by day, small moods of ours with the hour and the weather, and a
+    wink or a beam back at a tap."""
+
+    FACE = "SunArt.face"
+
+    def test_a_tap_winks_then_beams_and_he_answers(self, meadow: callable) -> None:
+        m = meadow(f"{STILL}&props=")
+        m.wake()
+        assert m.page.evaluate(self.FACE) == "sleepy", "it has only just come up"
+        m.do("tap sun")
+        m.wait(f"{self.FACE} === 'wink'", 3_000)
+        assert "calls the sun" not in m.page.evaluate("meadowGame.trace()")
+        m.wait_free()
+        m.assert_settled()
+        m.do("tap sun")
+        m.wait(f"{self.FACE} === 'beam'", 3_000)
+        m.wait_free()
+        m.wait(f"{self.FACE} === 'sleepy'", 5_000)  # back to its face for the hour
+        assert traced_field(m, "the sun answers", "way") == ["wink", "beam"]
+        m.assert_settled()
+
+    def test_tapped_while_he_is_under_it_answers_and_he_stays_down(
         self, meadow: callable
     ) -> None:
         m = meadow(f"{STILL}&props=")
         m.wake()
+        m.do("dig to 900")
+        m.wait("meadowGame.state().pose === 'under' && !meadowGame.state().busy")
         m.do("tap sun")
-        m.wait("meadowGame.trace().includes(' says ')", 3_000)
-        assert "calls the sun" not in m.page.evaluate("meadowGame.trace()")
+        m.wait(f"{self.FACE} === 'wink'", 3_000)
+        m.play_for(500)
+        s = m.state()
+        assert (s["pose"], s["busy"]) == ("under", None), s
+        assert not m.errors, m.errors
+
+    def test_oh_as_the_eclipse_comes_glad_as_it_goes(self, meadow: callable) -> None:
+        m = meadow(f"{STILL}&props=&eclipse=now")
+        m.wake()
+        m.wait(f"{self.FACE} === 'oh'", 10_000)
+        m.wait(f"{self.FACE} === 'glad'", 40_000)
+        m.wait("meadowGame.state().eclipse === 0", 40_000)
+        m.wait_free()
+        m.assert_settled()
+
+    def test_glum_in_the_rain_glad_after(self, meadow: callable) -> None:
+        m = meadow("seed=1&props=&rain=drizzle&day=600")
+        m.wake()
+        m.wait(f"{self.FACE} === 'glum'", 40_000)
+        m.wait("Storm.phase === 'clearing'", 120_000)
+        m.wait(f"{self.FACE} === 'glad'", 3_000)
+        m.wait(f"{self.FACE} === 'smile'", 30_000)
         m.wait_free()
         m.assert_settled()
 

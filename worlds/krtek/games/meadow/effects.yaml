@@ -324,7 +324,7 @@ effects:
   - file: drips/09.mp3
     prompt: 'a brief patter of drops falling from a tree onto leaves after a rain shower'
 - id: scrape
-  overlaps: true # a stroke comes every 0.32 s (underground.js STROKE_MS), quicker than a take lasts
+  overlaps: true # a stroke comes every 0.18 s (underground.js STROKE_MS), quicker than a take lasts
   takes:
   - file: scrape/01.mp3
     prompt: 'a hand scooping a handful of dry garden soil, one short scrape, close up'

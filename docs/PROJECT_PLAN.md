@@ -115,8 +115,8 @@ sounds he has judged are in.
      makes him jump. Along what is dug he scurries (`SCURRY_MS`, 2.4 ms a
      unit, was 0.8), and backs up a short way back (`BACK_UP`). Into new
      earth his nose taps first (`NOSE_MS`), then he digs stroke by stroke
-     (`STROKE`, `STROKE_MS`, `REACH`; about 80 units a second, a third of
-     before), his paws bigger spades. Now and then he pushes the loose
+     (`STROKE`, `STROKE_MS`, `REACH`; about 165 units a second since
+     2026-11-19, when 80 was too slow), his paws bigger spades. Now and then he pushes the loose
      earth up a shaft into a molehill on free grass (`SPOIL_*`,
      `HILL_ROOM`); under a molehill he may sniff up its shaft. The oak's
      roots stop him (`Layout.UNDER`). Judge by watching: the stroke's
@@ -163,38 +163,25 @@ sounds he has judged are in.
    (`worlds/krtek/hours.md`).
    - The world (`worlds/krtek/`) is done; its `open_questions` wait,
      rights before release. His voice is generated (`docs/DECISIONS.md`).
-   - **Next in the meadow** (Adam, 2026-11-19; planned, not started:
-     waits for the fixes in the other thread to land, since 1 and 3 touch
-     `underground.js`). In this order:
-     1. **Digging pace.** Into new earth he is too slow underground
-        (`underground.js` `STROKE` 26 / `STROKE_MS` 320, about 80 units a
-        second, slowed on 2026-11-15 when he "slid"). That note was about
-        the scurry along what is dug (`SCURRY_MS`), which stays. Make the
-        digging about twice as fast, tuned by eye with `main.py look`;
-        keep `TunnelArt.pace` and the clods in step. Folds into 3 once
-        the trowel digs.
-     2. **The sun's face** (Krtek a myška 1:01–1:09, 3:55–3:59;
-        `world.yaml` `aesthetics.line_and_shape`): a yellow-orange disc,
-        thin dark outline, pointed rays, eyes as short arcs under small
-        brows, rosy cheeks, a small pink-red nose, a wide thin smile, a
-        halo of small red and orange dots that thickens and thins. In the
-        film the face never changes, even as a cloud covers it: the face
-        and the twinkling halo are `original`, its moods are ours
-        (`invented`), so keep them small and keep the film's smile the
-        sun's usual face. A new `sun.js` (`meadow.js` is near
-        its size limit): a pure mood rule from the hour and the world
-        state, unit-tested, and the face drawn in `#sun`, redrawn only
-        when the mood changes, blinking on the Clock
-        (`Debug.random('sun')`). Moods: waking in the morning, a soft
-        smile by day, a mild pout under the storm's or a shower's cloud
-        (never crying; check `DESIGN_PRINCIPLES.md`), a round "o" as the
-        eclipse's moon comes over it and relief after, beaming after
-        rain, sleepy eyes closing as it sets. A tap on it outside an
-        eclipse: it winks or smiles wider, he looks up and waves (a new
-        `INTENTS` entry; today that tap is a tap on the sky). Its
-        `brief.yaml` part, a `TestMeadowSun` browser class and its row in
-        CLAUDE.md's slice table, an early `look` render so the face acts
-        (character-looks bar).
+   - **Next in the meadow** (Adam, 2026-11-19). In this order:
+     1. **Adam judges the digging pace** (built 2026-11-19): into new
+        earth underground he digs twice as fast (`underground.js`
+        `STROKE` 30 / `STROKE_MS` 180, about 165 units a second, was
+        80); the scurry along what is dug (`SCURRY_MS`) is unchanged.
+        Judge: the pace, and whether a scrape every stroke is now too
+        busy. Folds into 3 once the trowel digs.
+     2. **Adam judges the sun's face** (built 2026-11-19; `sun.js` the
+        moods, `sunart.js` the drawing): the sun of Krtek a myška
+        (`world.yaml` `aesthetics.line_and_shape`), its rays, its face and
+        its twinkling halo, the film's smile nearly all day. Moods ours:
+        sleepy till 08:24 and from 18:18, a little glum while rain gathers
+        and falls, glad 12 s after it clears, "oh!" as the eclipse's moon
+        comes over it and glad as it goes. Tapped (now any time, not only
+        in an eclipse), it winks, then beams, in turn, and he waves back
+        or cheers; under the ground he stays down. Judge: the faces at
+        phone size, whether the moods read or feel like too much, the
+        halo's twinkle (`TWINKLE_MS`). Around midday it passes behind the
+        church tower on the hill, face and all, as the plain disc did.
      3. **The trowel** (`world.yaml` `trowel`: Krtek a buldozer 0:42–5:48;
         Krtek a myška 2:17–2:25, where he dives into his molehill and comes
         up with it, and 2:56–4:10). Not every play: on some plays he has it, on others not

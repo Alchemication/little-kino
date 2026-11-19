@@ -23,7 +23,7 @@
 // gesture under way short (Mole.relax), and he is settled where it left
 // him, so he always ends free and standing.
 
-/* global Again, Alone, Watering, SoilLife, Autumn, Bed, Den, Hills, TunnelArt, Underground, Water, Oak, Owl, Fence, Church, Clock, Cricket, Critters, Flock, Heron, Wildlife, Eclipse, Moons, RainPlay, Showers, Spring, Day, Debug, FilmLook, Friends, Layout, MeadowBeds, Mole, Nest, Motion, Music, Painting, Sound, Storm, Things, Swing, Turn, View, Weather, Woodpecker, World */
+/* global Again, Alone, SunArt, Watering, SoilLife, Autumn, Bed, Den, Hills, TunnelArt, Underground, Water, Oak, Owl, Fence, Church, Clock, Cricket, Critters, Flock, Heron, Wildlife, Eclipse, Moons, RainPlay, Showers, Spring, Day, Debug, FilmLook, Friends, Layout, MeadowBeds, Mole, Nest, Motion, Music, Painting, Sound, Storm, Things, Swing, Turn, View, Weather, Woodpecker, World */
 /* exported meadowGame */
 const meadowGame = (() => {
   const SVG = 'http://www.w3.org/2000/svg'
@@ -67,6 +67,7 @@ const meadowGame = (() => {
   const night = document.getElementById('night')
   const sun = document.getElementById('sun')
   const eclipseMoon = document.getElementById('eclipse-moon')
+  SunArt.setup(sun) // the sun of Krtek a myška, its face and its halo (sunart.js)
   let sunX = 800 // where the sun is across the sky (the sky's units: it stays put as the view moves)
   let framed = null // a scene x an encounter wants kept in sight with him (the bulldozer), or null: the view follows him
   const moon = document.getElementById('moon')
@@ -252,6 +253,7 @@ const meadowGame = (() => {
     const on = game.eclipse !== null && !Eclipse.over(eclipseMs())
     eclipseMoon.setAttribute('visibility', on ? 'visible' : 'hidden')
     if (on) eclipseMoon.setAttribute('cx', (Eclipse.across(eclipseMs()) * 124).toFixed(1))
+    if (pos) SunArt.update(h, Storm.phase, on ? Eclipse.across(eclipseMs()) : null) // its face: its mood now (sun.js)
     const m = Day.moon(h)
     moon.style.visibility = m ? 'visible' : 'hidden'
     if (m) moon.style.transform = `translate(${tonight.x.toFixed(0)}px, ${(600 - m.up * tonight.rise).toFixed(0)}px)`
@@ -643,16 +645,30 @@ const meadowGame = (() => {
     [/^tap wild$/, () => lookAfter(Wildlife.tap())],
     [/^tap flock (\d+)$/, (m) => lookAfter(Flock.tap(Number(m[1])))],
     [/^tap heron$/, () => lookAfter(Heron.tap())],
-    [/^tap sun$/, () => run('tap sun', callSun)],
+    [/^tap sun$/, () => (eclipseCover() || Mole.state.pose !== 'under' ? run('tap sun', callSun) : sunAnswers())],
   ]
 
   /** A tap on a butterfly: it flutters off, and, if he is free, he looks up after it, hairs up: "ooh". */
   const tapButterfly = (id) => lookAfter(Critters.tap(id))
 
+  /** A tap on the sun out of an eclipse: it winks or beams back (sunart.js), in turn. Returns which. */
+  function sunAnswers() {
+    const way = SunArt.tap()
+    Debug.trace('the sun answers', { way })
+    return way
+  }
+
   /** A tap on the sun in an eclipse: he looks up and calls to it, waving ("ahoj!"); it comes back in its own
-   * time, the same for every child. Out of an eclipse, a tap on the sun is a tap on the sky: he answers. */
+   * time, the same for every child. Out of one, the sun winks or beams at the tap, and he looks up at it and
+   * waves back, or cheers. */
   async function callSun() {
-    if (!eclipseCover()) return tapMole()
+    if (!eclipseCover()) {
+      const way = sunAnswers()
+      Mole.perk(1.2)
+      Mole.lookAt(View.x + sunX)
+      await (way === 'wink' ? Mole.wave() : Mole.cheer())
+      return
+    }
     Mole.perk(1.2)
     Mole.lookAt(View.x + sunX) // the sky stays put as the view moves
     Sound.say('ahoj')
@@ -775,7 +791,7 @@ const meadowGame = (() => {
     if (Mole.state.pose === 'under' && p.y > TunnelArt.TOP) return `crawl to ${Math.round(clampX(View.toWorld(p.x)))}` // the earth he is in: along it
     if (target.closest('.mole-carry') && Things.holder()) return `use ${Things.holder()}`
     if (target.closest('.mole')) return game.gesture && Things.get(game.gesture) ? `use ${game.gesture}` : 'tap mole'
-    if (target.closest('#sun') && eclipseCover()) return 'tap sun'
+    if (target.closest('#sun')) return 'tap sun'
     if (target.closest('.puddle-hit')) return `puddle ${target.closest('.puddle-hit').dataset.puddle}`
     const place = PLACE_HITS.find(([sel]) => target.closest(sel))
     const mound = Hills.under(View.toWorld(p.x), p.y)

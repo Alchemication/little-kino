@@ -272,7 +272,7 @@ the edge cases that would let bad data pass silently.
 - *Unit* (`worlds/<id>/games/<game>/tests/*.test.js`, `node:test`, run by
   `uv run pytest`): logic, loaded into a sandbox by `tests/load.js`. Rules
   live in pure modules with no drawing or clock of their own (`day.js`,
-  `shower.js`, `idle.js`, `input.js`, `layout.js`, `life.js`, `gait.js`, `bed.js` and each game's `beds.js`, `world.js`, `creature.js`, `wind.js`, the meadow's `eclipse.js`, `showers.js`, `moons.js` and `tunnels.js`, and the shared `acts.js`): the part that draws tells them what
+  `shower.js`, `idle.js`, `input.js`, `layout.js`, `life.js`, `gait.js`, `bed.js` and each game's `beds.js`, `world.js`, `creature.js`, `wind.js`, the meadow's `eclipse.js`, `sun.js`, `showers.js`, `moons.js` and `tunnels.js`, and the shared `acts.js`): the part that draws tells them what
   happened and does what they say. Drawing parts are tested here too, on a
   pretend page and clock: `load(…, { dom: true, globals })`, then
   `await page.advance(ms)` runs the timers and animation frames due (all
@@ -347,7 +347,7 @@ for minutes.
 | the meadow's small life and wildlife (`critters.js`, `flock.js`, `wildlife.js`, `wildart.js`, `heron.js`, `nest.js`, `foxart.js`) | `"TestMeadowCritters or TestMeadowFireflies or TestMeadowSnail or TestMeadowWildlife"` |
 | the meadow's music, the cricket (`music.js`, `beds.js`, `cricket.js`) | `"TestMeadowMusic"` |
 | him in the spring's pool, his paddles and the wash after the paint (`water.js`) | `"TestMeadowDay or TestMeadowFox"` |
-| the meadow's wind, eclipse, church, spring, moon (`weather.js`, `eclipse.js`, `church.js`, `spring.js`, `moons.js`) | `"TestMeadowWind"`, `"TestMeadowEclipse"`, `"TestMeadowChurch"`, `"TestMeadowSpring"`, `"TestMeadowMoon"` |
+| the meadow's wind, eclipse, church, spring, moon, sun (`weather.js`, `eclipse.js`, `church.js`, `spring.js`, `moons.js`, `sun.js`, `sunart.js`) | `"TestMeadowWind"`, `"TestMeadowEclipse"`, `"TestMeadowChurch"`, `"TestMeadowSpring"`, `"TestMeadowMoon"`, `"TestMeadowSun"` (and `sun.test.js`) |
 | the meadow's `day.js`, `layout.js`, or anything shared | the whole meadow file, `"Meadow"` |
 
 **Adding a gag:** run the `new-gag` skill; it has the steps and where each

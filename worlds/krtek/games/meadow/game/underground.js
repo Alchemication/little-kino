@@ -43,9 +43,9 @@ const Underground = (() => {
   const BACK_SLOW = 1.8 // backing up is this much slower than scurrying on
   const BACK_UP = 200 // staying under, a way back shorter than this along what is dug: he backs up, not turns round (a
   // mole's fur lies either way, so it can reverse along its tunnel: Mammal Society, Wildlife Trusts)
-  const STROKE = 26 // digging new earth, stroke by stroke, one forepaw then the other (a mole braces and shears the
+  const STROKE = 30 // digging new earth, stroke by stroke, one forepaw then the other (a mole braces and shears the
   // earth with one, then the other): each stroke takes him this far…
-  const STROKE_MS = 320 // …over this long (so about 80 units a second, a third of the old pace)…
+  const STROKE_MS = 180 // …over this long: about 165 units a second (Adam, 2026-11-19: at 80 it was too slow to watch)…
   const REACH = 0.45 // …its first part his paw reaching into the earth, him still; then the pull that moves him on
   const NOSE_MS = 700 // staying under, at the face of new earth or at the oak's roots, his nose taps it first (a mole feels its way with its nose)
   const SHAFT_SNIFF = 0.5 // staying under, passing under a molehill, he stops this often to sniff up its shaft
