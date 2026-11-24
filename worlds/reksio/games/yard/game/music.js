@@ -46,9 +46,8 @@ const Music = (() => {
   // ------------------------------------------------------------ loading
 
   async function load() {
-    const jobs = [band.loaded]
-    if (typeof TUNES !== 'undefined') jobs.push(takes.load(TUNES))
-    await Promise.all(jobs)
+    if (typeof TUNES !== 'undefined') takes.load(TUNES)
+    await Promise.all([band.loaded, takes.want(...PARTS.map(named))]) // only the next take of each part is decoded (takes.js)
     ready = true
   }
 
@@ -60,8 +59,11 @@ const Music = (() => {
    * time t; false if it has none ready. random: the caller's stream. The bed
    * steps back while it plays (takes.js onStart, onEnd). */
   function playTake(part, random, t) {
-    return ready && (takes.play(`${part}.${season}`, random, t) || takes.play(part, random, t))
+    return ready && takes.play(named(part), random, t)
   }
+
+  /** The name of `part`'s takes in this play: the season's own, where it has them. */
+  const named = (part) => (takes.has(`${part}.${season}`) ? `${part}.${season}` : part)
 
   /** This play's season: its own takes of a part, where it has them. */
   function setSeason(name) {
@@ -95,6 +97,7 @@ const Music = (() => {
   async function startMorning(random) {
     await prepare()
     if (!night) playTake('morning', random, bus.ctx.currentTime + 0.15)
+    takes.drop(named('morning')) // once a play: its next take isn't kept
   }
 
   /** A phrase now, after something done (the game decides when: idle.js
@@ -183,6 +186,7 @@ const Music = (() => {
     const after = takes.playing ? takes.FADE_S + 0.3 : 0.1 // straight away, or once the phrase has faded
     takes.fade()
     playTake('lullaby', random, bus.ctx.currentTime + after)
+    takes.drop(...PARTS.map(named)) // the last music of the day: no take is kept for later
     night = true
     bed?.stop() // the lullaby is the last music of the day
   }
@@ -197,6 +201,7 @@ const Music = (() => {
     auditionRandom ??= Debug.random('music-audition')
     takes.fade()
     if (PARTS.includes(part)) {
+      await takes.want(named(part)) // dropped after its once-a-play turn, or not yet decoded
       playTake(part, auditionRandom, bus.ctx.currentTime + 0.1)
     } else if (part === 'stretch') {
       for (let n = 0; n < 6; n++) setTimeout(() => react.stretchStep(n), n * 300)

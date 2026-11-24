@@ -575,11 +575,18 @@ const Debug = (() => {
 
   /** A decoded sound, counted: Safari on a phone shows no memory figure, and
    * decoded audio (32-bit samples at the device's rate) is most of what a
-   * game holds. Every decodeAudioData passes its buffer through this. */
+   * game holds. Every decodeAudioData passes its buffer through this, and
+   * one let go goes through freed(). */
   function decoded(buffer) {
     audio.clips += 1
     audio.bytes += buffer.length * buffer.numberOfChannels * 4
     return buffer
+  }
+
+  /** A decoded sound let go (no longer kept to play): the count is what is held now. */
+  function freed(buffer) {
+    audio.clips -= 1
+    audio.bytes -= buffer.length * buffer.numberOfChannels * 4
   }
 
   /** The note of this play as it stands. */
@@ -636,5 +643,5 @@ const Debug = (() => {
     store(crashKey, null)
   }
 
-  return { on, still, seed, seeded, now, random, trace, dump, pin, replayUrl, ignoreCut, check, show, events, input, inputs, record, snapshots, bugReport, saveBugReport, decoded, crashes }
+  return { on, still, seed, seeded, now, random, trace, dump, pin, replayUrl, ignoreCut, check, show, events, input, inputs, record, snapshots, bugReport, saveBugReport, decoded, freed, crashes }
 })()

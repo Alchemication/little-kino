@@ -76,7 +76,8 @@ const Music = (() => {
       bed = band.bed(MeadowBeds, { quiet: () => takes.playing, stream: 'meadow-bed' })
       takes = Takes.player(ctx, out, { volume: TAKE_VOLUME, onStart: (t) => bed.away(t), onEnd: () => { if (!night) bed.back() } })
       random = Debug.random('music')
-      loading = Promise.all([band.loaded, typeof TUNES !== 'undefined' && takes.load(TUNES)]).then(() => { ready = true })
+      if (typeof TUNES !== 'undefined') takes.load(TUNES)
+      loading = Promise.all([band.loaded, takes.want(...PARTS.map(named))]).then(() => { ready = true }) // only the next take of each part is decoded (takes.js)
     }
     return loading
   }
@@ -84,19 +85,22 @@ const Music = (() => {
   /** The part playing now, whichever season's take it is ('happy', not 'happy.autumn'), or null. */
   const partNow = () => takes?.part?.split('.')[0] ?? null
 
+  /** The name of `part`'s takes in this play: a season's own (tunes.yaml `season`: autumn's), where it has them. */
+  const named = (part) => (takes.has(`${part}.${Layout.season}`) ? `${part}.${Layout.season}` : part)
+
   /** A take of `part` after `wait` seconds; then(): once it has played to its end. */
   function play(part, wait = LEAD_S, then = null) {
-    const own = `${part}.${Layout.season}` // a season's own takes of a part (tunes.yaml `season`: autumn's), where it has them
-    const seasons = takes.has(own)
-    if (!takes.play(seasons ? own : part, random, ctx.currentTime + wait, then)) return
+    const name = named(part)
+    if (!takes.play(name, random, ctx.currentTime + wait, then)) return
     startsAt = ctx.currentTime + wait
-    Debug.trace('music', seasons ? { part, season: Layout.season } : { part })
+    Debug.trace('music', name !== part ? { part, season: Layout.season } : { part })
   }
 
   /** The morning: the theme, as he comes up (if nothing plays yet). */
   async function morning() {
     await prepare()
     if (!night && !takes.playing) play('morning')
+    takes.drop(named('morning')) // once a play: its next take isn't kept
     if (!night) bed.start()
   }
 
@@ -155,6 +159,7 @@ const Music = (() => {
     night = true
     await prepare()
     bed.stop() // the cricket's alone from dusk
+    takes.drop(...PARTS.filter((p) => p !== 'lullaby').map(named)) // only his fiddle from now: the moods' takes aren't kept
     const wait = takes.playing ? takes.FADE_S + 0.2 : LEAD_S
     takes.fade()
     const fiddle = (gap) => { if (!ended) play('lullaby', gap, () => { if (!ended) fiddle(CRICKET_GAP_S + between()) }) }
