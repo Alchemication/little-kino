@@ -44,13 +44,22 @@ const Sound = (() => {
     else ctx.resume()
   })
 
+  const AUDIO_RATE = 22050 // the sound runs at the rate its recordings are packed at (main.py effects, tunes): a phone
+  // decodes every recording to its own rate, at 48 kHz more than twice the memory for nothing heard (Adam's iPhone
+  // crashed, 2026-11-24); made-in-code sounds keep everything under 11 kHz, the retro recipe cuts above 6.5 anyway
+
   /** Create the audio context on the first tap (browsers require a gesture). */
   function ensure() {
     if (!ctx) {
       // iPhone and iPad mute web audio when the ringer switch is on silent;
       // "playback" (Safari 17+) makes the game sound like a video does
       if (navigator.audioSession) navigator.audioSession.type = 'playback'
-      ctx = new (window.AudioContext || window.webkitAudioContext)()
+      const Context = window.AudioContext || window.webkitAudioContext
+      try {
+        ctx = new Context({ sampleRate: AUDIO_RATE })
+      } catch {
+        ctx = new Context() // a browser that can't run at that rate: its own
+      }
       master = ctx.createGain()
       master.gain.value = VOLUME
       master.connect(ctx.destination)

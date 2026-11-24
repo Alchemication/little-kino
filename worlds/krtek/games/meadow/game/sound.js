@@ -64,18 +64,30 @@ const Sound = (() => {
     else ctx.resume()
   })
 
+  const AUDIO_RATE = 22050 // the sound runs at the rate its recordings are packed at (main.py effects, tunes): a phone
+  // decodes every recording to its own rate, at 48 kHz more than twice the memory for nothing heard (Adam's iPhone
+  // crashed, 2026-11-24); made-in-code sounds keep everything under 11 kHz, the retro recipe cuts above 6.5 anyway
+
+  /** The open filter, as it is: at most what the context's rate can carry (half of it). */
+  const open = () => Math.min(ABOVE_OPEN_HZ, ctx.sampleRate / 2)
+
   /** Create the audio context on the first tap (browsers require a gesture). */
   function ensure() {
     if (!ctx) {
       if (navigator.audioSession) navigator.audioSession.type = 'playback' // iPhone on silent: play like a video
-      ctx = new (window.AudioContext || window.webkitAudioContext)()
+      const Context = window.AudioContext || window.webkitAudioContext
+      try {
+        ctx = new Context({ sampleRate: AUDIO_RATE })
+      } catch {
+        ctx = new Context() // a browser that can't run at that rate: its own
+      }
       master = ctx.createGain()
       master.gain.value = VOLUME
       master.connect(ctx.destination)
       above = ctx.createBiquadFilter()
       above.type = 'lowpass'
       above.Q.value = 0.7 // no ring at the cut
-      above.frequency.value = muffled ? ABOVE_UNDER_HZ : ABOVE_OPEN_HZ
+      above.frequency.value = muffled ? ABOVE_UNDER_HZ : open()
       aboveLevel = ctx.createGain()
       aboveLevel.gain.value = muffled ? ABOVE_UNDER_LEVEL : 1
       above.connect(aboveLevel).connect(master)
@@ -649,7 +661,7 @@ const Sound = (() => {
     Debug.trace('heard from under', { on })
     if (!ready()) return
     const t = ctx.currentTime
-    for (const [param, to] of [[above.frequency, on ? ABOVE_UNDER_HZ : ABOVE_OPEN_HZ], [aboveLevel.gain, on ? ABOVE_UNDER_LEVEL : 1]]) {
+    for (const [param, to] of [[above.frequency, on ? ABOVE_UNDER_HZ : open()], [aboveLevel.gain, on ? ABOVE_UNDER_LEVEL : 1]]) {
       param.cancelScheduledValues(t)
       param.setValueAtTime(param.value, t)
       param.exponentialRampToValueAtTime(to, t + ABOVE_RAMP_S)

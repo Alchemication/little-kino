@@ -29,9 +29,9 @@ function fakeAudio() {
   }
   class AudioContext {
     static made = { sources }
-    constructor() {
+    constructor({ sampleRate = 8000 } = {}) {
       this.state = 'running'
-      this.sampleRate = 8000
+      this.sampleRate = sampleRate // the rate asked for, as a real one
       this.currentTime = 0
       this.destination = node()
     }
