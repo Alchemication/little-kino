@@ -369,6 +369,12 @@ def cmd_replay(args: argparse.Namespace) -> int:
         report = load_report(path)
         out = Path(args.out) if args.out else path.with_suffix("")
         total = report["at"] / 1000
+        for crash in report.get("crashes", []):
+            print(
+                f"  Carries a play that ended unexpectedly {crash.get('played', 0) / 1000:.0f} s in"
+                f" (found {crash.get('found')}; audio {crash.get('audio')}): it is in the report's"
+                " `crashes`, not replayed."
+            )
         print(f"Replaying {path}: {report.get('description')!r}")
         print(
             f"  {len(report['inputs'])} inputs over {total:.1f} s (seed {report.get('seed')})"

@@ -318,6 +318,16 @@ screenshot every 0.5 s of game time over the last 10 s (`--last 60` for more), a
 sheet, and `replay.json` (recorded vs replayed state, trace). The game runs on the real clock, so a replay is close, not exact; the
 command says when it ended differently.
 
+**Crashes.** A phone's browser ends a page that uses too much memory with no
+error, and it just starts again. So every play keeps a short note of itself in
+the browser's storage (debug.js), taken away when the page is left the usual
+way. A note still there at the next load is a play that ended unexpectedly; the
+last five are kept and go into the next bug report as `crashes` (each: how long
+it had played, whether it was hidden, the seed, the last inputs and trace, the
+state, how much decoded audio it held, and on Chrome the script memory). On a
+phone, after a crash, open the game with `?debug`: the overlay says
+"ENDED UNEXPECTEDLY", and "report a bug" saves the report to Files.
+
 **Looking at a gag.** `main.py look` opens a seeded, still play (only what you
 ask moves; `--flags` adds or replaces page flags), awaits each `--before`
 step, then photographs `--watch` every 350 ms of game time until it ends and the hero is

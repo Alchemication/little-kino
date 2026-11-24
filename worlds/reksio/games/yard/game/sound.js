@@ -11,7 +11,7 @@
 // running, a little higher or lower each time.
 
 // Shared by every game: it uses only other shared parts (CLAUDE.md, "Shared parts").
-/* global BARKS, EFFECTS, Clock */
+/* global BARKS, EFFECTS, Clock, Debug */
 /* exported Sound */
 const Sound = (() => {
   const VOLUME = 0.5
@@ -58,13 +58,13 @@ const Sound = (() => {
       const data = noise.getChannelData(0)
       for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1
       if (typeof BARKS !== 'undefined') {
-        for (const b64 of BARKS) ctx.decodeAudioData(bytes(b64)).then((buffer) => barks.push(buffer))
+        for (const b64 of BARKS) ctx.decodeAudioData(bytes(b64)).then((buffer) => barks.push(Debug.decoded(buffer)))
       }
       if (typeof EFFECTS !== 'undefined') {
         for (const [name, e] of Object.entries(EFFECTS)) {
           const mine = (effects[name] = { gain: e.gain, steady: !!e.steady, overlaps: !!e.overlaps, buffers: [], last: -1, until: 0 })
           for (const b64 of e.takes) {
-            ctx.decodeAudioData(bytes(b64)).then((buffer) => mine.buffers.push(buffer), () => {}) // a take that won't decode is left out: the others (or the synth) play
+            ctx.decodeAudioData(bytes(b64)).then((buffer) => mine.buffers.push(Debug.decoded(buffer)), () => {}) // a take that won't decode is left out: the others (or the synth) play
           }
         }
       }

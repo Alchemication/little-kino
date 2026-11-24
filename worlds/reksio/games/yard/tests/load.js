@@ -127,7 +127,7 @@ function fakeClock() {
 function load(files, { query = '', storage = {}, storageThrows = false, dom = false, globals = {} } = {}) {
   const store = new Map(Object.entries(storage))
   const listeners = {}
-  const logs = { info: [], debug: [], error: [] }
+  const logs = { info: [], debug: [], warn: [], error: [] }
   const intervals = []
   const clock = fakeClock()
   const blocked = () => {
@@ -140,8 +140,8 @@ function load(files, { query = '', storage = {}, storageThrows = false, dom = fa
     performance: dom ? { now: clock.now } : performance,
     console: Object.fromEntries(Object.keys(logs).map((k) => [k, (...a) => logs[k].push(a.map(String).join(' '))])),
     localStorage: storageThrows
-      ? { getItem: blocked, setItem: blocked }
-      : { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)) },
+      ? { getItem: blocked, setItem: blocked, removeItem: blocked }
+      : { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) },
     window: { addEventListener: (type, fn) => (listeners[type] ||= []).push(fn), innerWidth: 1280, innerHeight: 720 },
     navigator: { userAgent: 'test' },
     setInterval: (fn) => intervals.push(fn),

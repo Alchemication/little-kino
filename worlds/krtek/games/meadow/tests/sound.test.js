@@ -60,7 +60,7 @@ function sound({ music = false, effects = false, tunes = null } = {}) {
     navigator: {},
     Clock: { onHold() {}, held: false, after() {}, every: () => () => {}, now: () => 0 },
     Layout: { season: 'spring' },
-    Debug: { random: () => () => 0.5, trace() {} },
+    Debug: { random: () => () => 0.5, trace() {}, decoded: (b) => b },
     Math,
     atob: globalThis.atob, // the takes' bytes
     TUNES: tunes ?? undefined, // the music's takes, stand-ins

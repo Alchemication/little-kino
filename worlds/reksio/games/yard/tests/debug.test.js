@@ -201,3 +201,59 @@ describe('recorder', () => {
     assert.deepEqual(page.json('Debug.bugReport("x").layout.props'), page.json('Layout.props'))
   })
 })
+
+describe('crash note', () => {
+  const NOTE = 'little-kino:note:'
+  const CRASHES = 'little-kino:crashes:'
+  const ended = (played, more = {}) => JSON.stringify({ played, hidden: false, trace: [], ...more })
+
+  it('keeps a note of the play, rewritten as it goes', () => {
+    const page = load(['debug.js'], { query: '?seed=5' })
+    page.get('Debug.record(() => ({ busy: true })); Debug.input("go to bowl")')
+    page.tick()
+    page.tick() // the note was set going first: its second write sees the first snapshot
+    const note = JSON.parse(page.store.get(NOTE))
+    assert.equal(note.seed, 5)
+    assert.equal(note.state.busy, true)
+    assert.deepEqual(note.inputs.map((i) => i.intent), ['go to bowl'])
+    assert.equal(page.json('Debug.crashes').length, 0)
+  })
+
+  it('takes the note away when the page is left the usual way', () => {
+    const page = load(['debug.js'])
+    page.fire('pagehide')
+    assert.equal(page.store.has(NOTE), false)
+    page.tick()
+    assert.equal(page.store.has(NOTE), false, 'no note written after leaving')
+    page.fire('pageshow')
+    assert.equal(page.store.has(NOTE), true, 'back from the back-forward cache: noted again')
+  })
+
+  it('finds a note the last play left behind, and puts it in the next report', () => {
+    const page = load(['debug.js'], { storage: { [NOTE]: ended(95000) } })
+    assert.deepEqual(page.json('Debug.crashes.map((c) => c.played)'), [95000])
+    assert.deepEqual(page.json('Debug.bugReport("crash").crashes.map((c) => c.played)'), [95000])
+    assert.equal(JSON.parse(page.store.get(CRASHES)).length, 1, 'kept until a report carries it')
+    assert.match(page.logs.warn.join(), /ended unexpectedly, 95 s in/)
+  })
+
+  it('keeps only the last few ended plays', () => {
+    const old = [1, 2, 3, 4, 5].map((s) => ({ played: s }))
+    const page = load(['debug.js'], { storage: { [CRASHES]: JSON.stringify(old), [NOTE]: ended(6) } })
+    assert.deepEqual(page.json('Debug.crashes.map((c) => c.played)'), [2, 3, 4, 5, 6])
+  })
+
+  it('counts the audio it decodes', () => {
+    const page = load(['debug.js'])
+    page.get('Debug.decoded({ length: 48000, numberOfChannels: 1 }); Debug.decoded({ length: 48000, numberOfChannels: 2 })')
+    page.tick()
+    assert.deepEqual(JSON.parse(page.store.get(NOTE)).audio, { clips: 2, mb: 0.6 })
+  })
+
+  it('plays on when storage is blocked', () => {
+    const page = load(['debug.js'], { storageThrows: true })
+    page.tick()
+    page.fire('pagehide')
+    assert.deepEqual(page.json('Debug.crashes'), [])
+  })
+})

@@ -42,6 +42,10 @@
 //   every half second for the last two minutes. Ctrl+Shift+B (or the button
 //   under ?debug) asks what went wrong and saves it all as a bug report file,
 //   which `main.py replay` plays back. See README.
+// - A crash note: the play keeps a short note of itself in the browser's
+//   storage, so a page a phone ended (out of memory, no error) is found on
+//   the next load and goes into the next bug report, with how much decoded
+//   audio it held (`Debug.decoded`).
 // - `?still`: Reksio does nothing unless asked (no left-alone moves or thought
 //   bubbles, no bird hunting), so one gesture or gag can be tried, or tested,
 //   on its own.
@@ -407,6 +411,7 @@ const Debug = (() => {
       snapshots,
       trace: events,
       broken: [...broken],
+      crashes: [...crashes], // plays here that ended unexpectedly (the crash note, below)
     }
   }
 
@@ -431,6 +436,7 @@ const Debug = (() => {
     a.download = `${gameName()}-bug-${stamp}.json`
     a.click()
     setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+    crashesSent()
   }
 
   if (typeof document !== 'undefined') {
@@ -519,7 +525,8 @@ const Debug = (() => {
       document.body.appendChild(button)
     }
     const lines = Object.entries(state).filter(([k]) => k !== 'seed').map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
-    overlay.textContent = `seed ${seed}${broken.size ? `\nBROKEN: ${[...broken].join(', ')}` : ''}\n${lines.join('\n')}\n\n${dump(events.slice(-OVERLAY_EVENTS))}`
+    const ended = crashes.length ? `\nENDED UNEXPECTEDLY: ${crashes.length} play(s), the last ${Math.round(crashes[crashes.length - 1].played / 1000)} s in (report a bug to save)` : ''
+    overlay.textContent = `seed ${seed}${broken.size ? `\nBROKEN: ${[...broken].join(', ')}` : ''}${ended}\n${lines.join('\n')}\n\n${dump(events.slice(-OVERLAY_EVENTS))}`
   }
 
   console.info(`[game] seed ${seed}`)
@@ -527,5 +534,108 @@ const Debug = (() => {
   /** Game time (Clock), the clock of the trace, inputs and snapshots. */
   const now = () => Math.round(Clock.now())
 
-  return { on, still, seed, seeded, now, random, trace, dump, pin, replayUrl, ignoreCut, check, show, events, input, inputs, record, snapshots, bugReport, saveBugReport }
+  // ------------------------------------------------------------ the crash note
+
+  // A phone's browser ends a page that uses too much memory with no error and
+  // nothing saved: the page just starts again. So a play keeps a short note
+  // of itself in the browser's storage, rewritten every NOTE_MS and taken
+  // away when the page is left the usual way. A note still there when the
+  // page next loads is a play that ended unexpectedly: the last CRASHES of
+  // them are kept and go into the next bug report (on a phone: open the game
+  // with ?debug and tap "report a bug"). One note per game page, so two tabs
+  // of one game share it; a child plays in one.
+  const NOTE_MS = 2000 // often enough to see the last seconds, rare enough to cost nothing (a write of a few kB)
+  const NOTE_TRACE = 40 // trace events kept in the note: the run-up to the end
+  const NOTE_INPUTS = 30 // inputs kept in the note
+  const CRASHES = 5 // ended plays kept for the next report
+  const where = typeof location === 'undefined' ? '' : location.pathname || ''
+  const noteKey = `little-kino:note:${where}`
+  const crashKey = `little-kino:crashes:${where}`
+  const startedAt = new Date().toISOString()
+  const audio = { clips: 0, bytes: 0 }
+  let left = false // the page was left the usual way: no note until it is shown again
+
+  /** A stored value, or null (no storage in a private window, or not ours). */
+  function stored(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key))
+    } catch {
+      return null // nothing kept: as if this were the first play
+    }
+  }
+
+  /** Keep `value` under `key` (null takes it away), if the browser lets us. */
+  function store(key, value) {
+    try {
+      if (value === null) localStorage.removeItem(key)
+      else localStorage.setItem(key, JSON.stringify(value))
+    } catch {
+      // storage full or blocked: this play keeps no note, and plays on
+    }
+  }
+
+  /** A decoded sound, counted: Safari on a phone shows no memory figure, and
+   * decoded audio (32-bit samples at the device's rate) is most of what a
+   * game holds. Every decodeAudioData passes its buffer through this. */
+  function decoded(buffer) {
+    audio.clips += 1
+    audio.bytes += buffer.length * buffer.numberOfChannels * 4
+    return buffer
+  }
+
+  /** The note of this play as it stands. */
+  function note() {
+    const memory = typeof performance !== 'undefined' && performance.memory // Chrome only
+    const page = typeof document !== 'undefined' && document.getElementsByTagName ? document : null
+    return {
+      started: startedAt,
+      wrote: new Date().toISOString(),
+      played: now(),
+      hidden: !!page?.hidden,
+      url: location.href,
+      replayUrl: replayUrl(),
+      seed,
+      userAgent: typeof navigator === 'undefined' ? '' : navigator.userAgent,
+      viewport: { width: window.innerWidth, height: window.innerHeight, dpr: window.devicePixelRatio || 1 },
+      audio: { clips: audio.clips, mb: Math.round(audio.bytes / 1e5) / 10 },
+      heapMb: memory ? Math.round(memory.usedJSHeapSize / 1e5) / 10 : null,
+      elements: page ? page.getElementsByTagName('*').length : null,
+      state: snapshots.at(-1) ?? null, // the recorder's latest
+      inputs: inputs.slice(-NOTE_INPUTS),
+      trace: events.slice(-NOTE_TRACE),
+      broken: [...broken],
+    }
+  }
+
+  const writeNote = () => left || store(noteKey, note())
+
+  // a note left by the last play here: it never said goodbye
+  const crashes = stored(crashKey) || []
+  const unfinished = stored(noteKey)
+  if (unfinished) {
+    crashes.push({ ...unfinished, found: startedAt })
+    crashes.splice(0, Math.max(0, crashes.length - CRASHES))
+    store(crashKey, crashes)
+    trace('crash found', { played: unfinished.played, hidden: unfinished.hidden })
+    console.warn(`[game] the last play here ended unexpectedly, ${Math.round(unfinished.played / 1000)} s in${unfinished.hidden ? ', while hidden' : ''}: it goes into the next bug report`)
+  }
+  writeNote()
+  setInterval(writeNote, NOTE_MS)
+  window.addEventListener('pagehide', () => {
+    left = true
+    store(noteKey, null)
+  })
+  window.addEventListener('pageshow', () => {
+    left = false // back from the browser's back-forward cache: the same play goes on
+    writeNote()
+  })
+  if (typeof document !== 'undefined' && document.addEventListener) document.addEventListener('visibilitychange', writeNote)
+
+  /** Forget the ended plays once a report has carried them. */
+  function crashesSent() {
+    crashes.length = 0
+    store(crashKey, null)
+  }
+
+  return { on, still, seed, seeded, now, random, trace, dump, pin, replayUrl, ignoreCut, check, show, events, input, inputs, record, snapshots, bugReport, saveBugReport, decoded, crashes }
 })()

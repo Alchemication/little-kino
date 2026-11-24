@@ -144,7 +144,7 @@ const Ensemble = (() => {
     const jobs = []
     for (const [inst, notes] of Object.entries(samples || {})) {
       buffers[inst] = []
-      for (const note of notes) jobs.push(ctx.decodeAudioData(bytes(note.data)).then((buffer) => buffers[inst].push({ midi: note.midi, buffer })))
+      for (const note of notes) jobs.push(ctx.decodeAudioData(bytes(note.data)).then((buffer) => buffers[inst].push({ midi: note.midi, buffer: Debug.decoded(buffer) })))
     }
     const loaded = Promise.all(jobs).then(() => {
       for (const list of Object.values(buffers)) list.sort((a, b) => (a.midi ?? 0) - (b.midi ?? 0))

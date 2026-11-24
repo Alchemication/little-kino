@@ -86,7 +86,7 @@ const Sound = (() => {
       for (const [name, e] of Object.entries(typeof EFFECTS !== 'undefined' ? EFFECTS : {})) {
         const mine = (takes[name] = { gain: e.gain, overlaps: !!e.overlaps, inTurn: !!e.inTurn, buffers: [], last: -1, until: 0 })
         e.takes.forEach((b64, i) => {
-          ctx.decodeAudioData(bytes(b64)).then((b) => (mine.buffers[i] = b), () => {}) // in its place in the list; a take that won't decode is left out: the others play
+          ctx.decodeAudioData(bytes(b64)).then((b) => (mine.buffers[i] = Debug.decoded(b)), () => {}) // in its place in the list; a take that won't decode is left out: the others play
         })
       }
     }

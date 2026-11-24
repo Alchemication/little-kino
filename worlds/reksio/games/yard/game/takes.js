@@ -6,6 +6,7 @@
 // the meadow's its moods and the cricket).
 //
 // Shared by every game: it uses only other shared parts (CLAUDE.md, "Shared parts").
+/* global Debug */
 /* exported Takes */
 const Takes = (() => {
   const FADE_S = 0.5 // a take cut short fades over about this long
@@ -28,7 +29,7 @@ const Takes = (() => {
       const jobs = []
       for (const [part, list] of Object.entries(table || {})) {
         takes[part] ??= []
-        for (const b64 of list) jobs.push(ctx.decodeAudioData(bytes(b64)).then((b) => takes[part].push(b), () => {})) // left out: the part plays from the others
+        for (const b64 of list) jobs.push(ctx.decodeAudioData(bytes(b64)).then((b) => takes[part].push(Debug.decoded(b)), () => {})) // left out: the part plays from the others
       }
       return Promise.all(jobs)
     }
