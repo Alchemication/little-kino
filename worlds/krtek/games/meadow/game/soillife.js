@@ -146,7 +146,7 @@ const SoilLife = (() => {
     const heard = (x) => World.heard(x, since).some((n) => n.kind === 'burrow' && Math.abs(n.x - x) <= HEARS)
     for (const w of worms) if (heard(w.x)) mind(w)
     for (const t of tulips()) if (World.heard(t.x, since).some((n) => n.kind === 'burrow' && Math.abs(n.x - t.x) <= UNDER_TULIP)) nod(t, 3)
-    if (heard(beetleX())) mind(beetle)
+    if (root.style.display !== 'none' && heard(beetleX())) mind(beetle) // only in sight: where it is is read from the page, a style recalculation each time
     if (heard(ANTS_AT.x)) mind(ants)
     since = World.heardUpTo
     for (const who of [...worms, beetle, ants]) if (who.until && Clock.now() > who.until) {

@@ -64,6 +64,19 @@ const meadowGame = (() => {
   const layers = Object.fromEntries(['sky', 'back', 'mole', 'front', 'top', 'den'].map((id) => [id, document.getElementById(id)]))
   const frontGround = document.getElementById('front-ground')
   const irisCircle = document.getElementById('iris-circle')
+  const irised = document.getElementById('irised')
+
+  /** The iris circle's radius. The mask is on only while it is closing: a mask has the whole
+   * meadow drawn offscreen and masked every frame, a phone's heaviest cost for a circle open
+   * all day (measured: 3 points of the main thread, Adam's "feels heavy", 2026-11-24). */
+  function setIris(r) {
+    irisCircle.setAttribute('r', String(r))
+    const masked = r < IRIS_OPEN
+    if (masked !== irised.hasAttribute('mask')) {
+      if (masked) irised.setAttribute('mask', 'url(#iris)')
+      else irised.removeAttribute('mask')
+    }
+  }
   const night = document.getElementById('night')
   const sun = document.getElementById('sun')
   const eclipseMoon = document.getElementById('eclipse-moon')
@@ -246,7 +259,9 @@ const meadowGame = (() => {
     const light = Math.min(Eclipse.light(k), Storm.light, Math.max(0, Math.min(1, (0.3 * cr + 0.59 * cg + 0.11 * cb - 0.2) / 0.4))) // 1 by day, 0 at night
     World.set({ light })
     Painting.cloudsAt(light) // the wash of cloud fades as the sky darkens
-    night.setAttribute('opacity', String(NIGHT_TINT * (1 - light) * (tonight.kind === 'full' ? 1 - Moons.BRIGHT : 1))) // and the painted meadow darkens with it (less under a full moon)
+    const dark = NIGHT_TINT * (1 - light) * (tonight.kind === 'full' ? 1 - Moons.BRIGHT : 1) // and the painted meadow darkens with it (less under a full moon)
+    night.setAttribute('opacity', String(dark))
+    night.style.display = dark > 0 ? '' : 'none' // clear by day: out of the picture, its blend mode no cost
     const pos = Day.sun(h)
     sun.style.visibility = pos ? 'visible' : 'hidden'
     if (pos) sunX = pos.across * 1600
@@ -313,7 +328,7 @@ const meadowGame = (() => {
   /** The circle closing through the last hour; at dusk, left alone, he goes home to listen; then bedtime. */
   function evening(h) {
     const share = Day.iris(h)
-    irisCircle.setAttribute('r', String(share >= 1 ? IRIS_OPEN : Math.round(share * IRIS_FULL)))
+    setIris(share >= 1 ? IRIS_OPEN : Math.round(share * IRIS_FULL))
     const alone = !Debug.still && !game.gesture && Clock.now() - game.lastInput > HOME_AT_DUSK_MS
     if (Day.phase(h) === 'dusk' && alone && Mole.state.pose === 'under') run('rest', (alive) => Underground.restInDen(alive, true)) // down there at dusk: he lies down in his den
     else if (Day.phase(h) === 'dusk' && alone && Mole.state.pose !== 'listen') run('home to listen', homeToListen)
@@ -604,10 +619,10 @@ const meadowGame = (() => {
     const start = Clock.now()
     while (Clock.now() - start < IRIS_CLOSE_MS) {
       const t = (Clock.now() - start) / IRIS_CLOSE_MS
-      irisCircle.setAttribute('r', String(Math.round(from * (1 - t))))
+      setIris(Math.round(from * (1 - t)))
       await Clock.frame()
     }
-    irisCircle.setAttribute('r', '0')
+    setIris(0)
     Music.quiet()
     if (toy) car.takeIn()
     Den.hug(!!toy)

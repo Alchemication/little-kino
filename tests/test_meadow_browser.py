@@ -261,11 +261,16 @@ class TestMeadowDay:
     def test_the_day_ends_asleep_in_the_den(self, meadow: callable) -> None:
         m = meadow(f"{STILL}&day=12&props=")
         m.wake()
+        masked = "document.getElementById('irised').hasAttribute('mask')"
+        assert not m.page.evaluate(masked), (
+            "the iris's mask is off by day: it costs a phone every frame"
+        )
         m.wait("meadowGame.state().ended && !meadowGame.state().busy", 40_000)
         assert (
             m.page.evaluate("getComputedStyle(document.getElementById('den')).display")
             != "none"
         )
+        assert m.page.evaluate(masked), "the closed circle masks the meadow"
         assert not m.errors, m.errors
 
     # a tester, 2026-10-30: after the end, a held press anywhere started a new day
