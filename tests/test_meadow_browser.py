@@ -1958,6 +1958,22 @@ class TestMeadowSun:
         m.wait_free()
         m.assert_settled()
 
+    def test_oh_as_the_bulldozer_comes_glad_once_it_has_gone(
+        self, meadow: callable
+    ) -> None:
+        m = meadow(f"{STILL}&soon&props=poles&hour=10&day=600")
+        m.wake()
+        arrived(m, "poles")
+        m.do("use poles")
+        m.wait(f"{self.FACE} === 'oh'", 40_000)
+        m.wait(f"{self.FACE} === 'smile'", 10_000)  # a start, not a worry it keeps
+        m.wait(f"{self.FACE} === 'glad'", DONE_MS)  # the trouble lifts
+        m.wait(f"{self.FACE} === 'smile'", 15_000)
+        faces = traced_field(m, "sun face", "face")
+        assert faces.index("oh") < faces.index("glad"), faces
+        m.wait_free()
+        m.assert_settled()
+
     def test_glum_in_the_rain_glad_after(self, meadow: callable) -> None:
         m = meadow("seed=1&props=&rain=drizzle&day=600")
         m.wake()

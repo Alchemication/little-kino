@@ -4,7 +4,8 @@
 // cheeks, a small pink-red nose, a wide thin smile), and round it a halo of
 // small red and orange dots that thickens and thins as if it twinkles. Its
 // face changes with the moods sun.js picks (ours: the film's never
-// changes), and a tap gets a wink or a beam back.
+// changes), and a tap gets a wink or a beam back. It hears the
+// encounters' music cues (heard()) and keeps the ones sun.js answers.
 //
 // Drawn once into #sun (meadow.js moves it across the sky); each face is
 // drawn once and only shown or hidden, so a frame does no more than ask
@@ -35,6 +36,8 @@ const SunArt = (() => {
   let taps = 0
   let wasRaining = false
   let clearedAt = null
+  let cue = null // the last of the music's cues it answers (Sun.answers), and when
+  let cuedAt = null
 
   function el(name, attrs, parent) {
     const e = document.createElementNS(SVG, name)
@@ -114,7 +117,8 @@ const SunArt = (() => {
     if (wasRaining && !raining) clearedAt = Clock.now()
     wasRaining = raining
     const now = Clock.now()
-    const name = Sun.mood({ hour, storm, eclipse, clearedMs: clearedAt === null ? null : now - clearedAt, tappedMs: tappedAt === null ? null : now - tappedAt, tapWay: Sun.way(taps - 1) })
+    const since = (at) => (at === null ? null : now - at)
+    const name = Sun.mood({ hour, storm, eclipse, clearedMs: since(clearedAt), tappedMs: since(tappedAt), tapWay: Sun.way(taps - 1), cue, cuedMs: since(cuedAt) })
     if (name === shown) return
     if (shown) faces[shown].setAttribute('visibility', 'hidden')
     faces[name].setAttribute('visibility', 'visible')
@@ -129,8 +133,15 @@ const SunArt = (() => {
     return Sun.way(taps - 1)
   }
 
+  /** An encounter's moment, as the music hears it (things.js): the ones it answers change its face a while. */
+  function heard(part) {
+    if (!Sun.answers(part)) return
+    cue = part
+    cuedAt = Clock.now()
+  }
+
   return {
-    setup, update, tap,
+    setup, update, tap, heard,
     /** The face it shows now. */
     get face() { return shown },
   }

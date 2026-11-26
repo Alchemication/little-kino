@@ -940,7 +940,10 @@ const meadowGame = (() => {
     busyWith: () => game.gesture,
     /** The eclipse is on: it holds the stage, so no encounter arrives (one story at a time). */
     elsewhere: () => (game.eclipse !== null && !Eclipse.over(eclipseMs())) || (!!Storm.phase && Storm.kind !== 'storm') || Mole.state.pose === 'under', // the eclipse on, a shower, or he is down in his tunnels: no encounter comes
-    music: (part) => Music.cue(part),
+    music: (part) => {
+      SunArt.heard(part) // the sun answers a few of the moments (sun.js), heard or not
+      Music.cue(part)
+    },
     /** His tulips, left to right: { x, base, bend } (bend: turned about its foot, to knock one over). */
     tulips: () => tulipHeads.map(({ x, base, bend }) => ({ x, base, bend })),
     /** Keep x in sight with him (the view between them), or null: follow him again. */

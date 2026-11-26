@@ -45,6 +45,22 @@ test('a tap brings a wink, then a beam, in turn, for a while; it comes before an
   assert.equal(mood({ tappedMs: Sun.TAPPED_MS }), 'smile')
 })
 
+test('of the encounters, "oh" as the bulldozer comes and glad as one comes right, a while, then its smile', () => {
+  assert.equal(mood({ cue: 'menace', cuedMs: 0 }), 'oh')
+  assert.equal(mood({ cue: 'bulldozer', cuedMs: Sun.CUED_MS.oh - 1 }), 'oh')
+  assert.equal(mood({ cue: 'menace', cuedMs: Sun.CUED_MS.oh }), 'smile')
+  assert.equal(mood({ cue: 'happy', cuedMs: 0, storm: 'raining' }), 'glad')
+  assert.equal(mood({ cue: 'happy', cuedMs: Sun.CUED_MS.glad }), 'smile')
+  assert.equal(mood({ cue: 'happy', cuedMs: Sun.CUED_MS.glad, hour: 18.5 }), 'sleepy', 'then the face for the hour')
+  assert.equal(mood({ cue: 'happy', cuedMs: 0, tappedMs: 0, tapWay: 'beam' }), 'beam', 'a tap still comes first')
+  assert.equal(mood({ cue: 'happy', cuedMs: 0, eclipse: -0.5 }), 'oh', 'and the eclipse')
+})
+
+test('it answers only those cues: not curious, sad, a hush or a motif', () => {
+  assert.deepEqual(['menace', 'bulldozer', 'happy', 'curious', 'sad', 'hush', 'fox'].filter(Sun.answers), ['menace', 'bulldozer', 'happy'])
+  assert.equal(mood({ cue: 'sad', cuedMs: 0 }), 'smile')
+})
+
 test('its moods are few, and every one of them is drawn (sunart.js)', () => {
   const art = fs.readFileSync(path.join(__dirname, '..', 'game', 'sunart.js'), 'utf8')
   const seen = new Set()

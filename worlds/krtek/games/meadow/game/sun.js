@@ -15,6 +15,8 @@ const Sun = (() => {
   const GLAD_AFTER_MS = 12000 // glad this long after the rain has cleared
   const TAPPED_MS = 1800 // a tap's wink or beam lasts this long
   const TAPS = ['wink', 'beam'] // what a tap brings, in turn
+  const CUES = { menace: 'oh', bulldozer: 'oh', happy: 'glad' } // the music's cues it answers (music.js): the bulldozer's uneasy turn, recorded or written; an encounter come right
+  const CUED_MS = { oh: 3000, glad: 6000 } // how long each lasts: a start, not a worry it keeps; a shared smile, shorter than after the rain
 
   /**
    * The face to show now.
@@ -25,19 +27,32 @@ const Sun = (() => {
    * @param {number|null} now.eclipse where the eclipse's moon is across it (eclipse.js across), or null with none on
    * @param {number|null} now.tappedMs how long since a tap on it, or null
    * @param {string} [now.tapWay] that tap's face (way())
+   * @param {string|null} [now.cue] the last of the music's cues it answers (CUES), or null
+   * @param {number|null} [now.cuedMs] how long since that cue
    * @returns {string} 'smile', 'sleepy', 'glum', 'oh', 'glad', 'wink' or 'beam'
    */
-  function mood({ hour, storm, clearedMs, eclipse, tappedMs, tapWay = 'wink' }) {
-    if (tappedMs !== null && tappedMs < TAPPED_MS) return tapWay
-    if (eclipse !== null) return eclipse < 0 ? 'oh' : 'glad'
+  function mood({ hour, storm, clearedMs, eclipse, tappedMs, tapWay = 'wink', cue = null, cuedMs = null }) {
+    const moment = passing({ eclipse, tappedMs, tapWay, cue, cuedMs })
+    if (moment) return moment
     if (storm === 'gathering' || storm === 'raining') return 'glum'
     if (clearedMs !== null && clearedMs < GLAD_AFTER_MS) return 'glad'
     if (hour < WAKING_TILL || hour >= SLEEPY_FROM) return 'sleepy'
     return 'smile'
   }
 
+  /** What is happening to it just now, before the weather and the hour: a tap, the eclipse, an encounter's moment; or null. */
+  function passing({ eclipse, tappedMs, tapWay, cue, cuedMs }) {
+    if (tappedMs !== null && tappedMs < TAPPED_MS) return tapWay
+    if (eclipse !== null) return eclipse < 0 ? 'oh' : 'glad'
+    if (CUES[cue] && cuedMs !== null && cuedMs < CUED_MS[CUES[cue]]) return CUES[cue]
+    return null
+  }
+
   /** The face the `n`th tap (from 0) brings: a wink, then a beam, in turn. */
   const way = (n) => TAPS[n % TAPS.length]
 
-  return { mood, way, TAPPED_MS, GLAD_AFTER_MS, WAKING_TILL, SLEEPY_FROM }
+  /** Whether it answers the music's cue `part` (meadow.js keeps only those). */
+  const answers = (part) => part in CUES
+
+  return { mood, way, answers, CUED_MS, TAPPED_MS, GLAD_AFTER_MS, WAKING_TILL, SLEEPY_FROM }
 })()
